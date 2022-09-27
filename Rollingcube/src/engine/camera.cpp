@@ -1,0 +1,177 @@
+#include "camera.h"
+
+#include <iostream>
+
+
+Camera::Camera() :
+	_type(),
+	_eye(),
+	_center(),
+	_up(),
+	_fov(),
+	_aspect(),
+	_nearPlane(),
+	_farPlane(),
+	_left(),
+	_right(),
+	_top(),
+	_bottom(),
+	_viewMatrix(glm::identity<glm::mat4>()),
+	_projectionMatrix(glm::identity<glm::mat4>()),
+	_viewprojectionMatrix(glm::identity<glm::mat4>())
+{}
+
+void Camera::setToGL()
+{
+	updateViewMatrix();
+	updateProjectionMatrix();
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(&_viewMatrix);
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(&_projectionMatrix);
+	glMatrixMode(GL_MODELVIEW);
+}
+
+void Camera::move(const glm::vec3& delta)
+{
+	auto localDelta = getLocalVector(delta);
+	_eye -= localDelta;
+	_center -= localDelta;
+	updateViewMatrix();
+}
+
+void Camera::rotate(float angle, const glm::vec3& axis)
+{
+	glm::mat4 rot = glm::utils::rotation(angle, axis);
+	glm::vec3 newFront = rot * (_center - _eye);
+	_center = _eye + newFront;
+	updateViewMatrix();
+}
+
+/**
+ * Transform a local camera vector to world coordinates.
+ *
+ * \param v
+ * \return
+ */
+glm::vec3 Camera::getLocalVector(const glm::vec3& v) const
+{
+	glm::mat4 inv = glm::inverse(_viewMatrix);
+	inv[3][0] = 0;
+	inv[3][1] = 0;
+	inv[3][2] = 0;
+	return inv * v;
+}
+
+void Camera::setToPerspective(float fov, float aspect, float near_plane, float far_plane)
+{
+	_type = Type::Perspective;
+
+	_fov = fov;
+	_aspect = aspect;
+	_nearPlane = near_plane;
+	_farPlane = far_plane;
+
+	updateProjectionMatrix();
+}
+
+void Camera::setToOrthographic(float left, float right, float bottom, float top, float near_plane, float far_plane)
+{
+	_type = Type::Orthographic;
+
+	_left = left;
+	_right = right;
+	_bottom = bottom;
+	_top = top;
+	_nearPlane = near_plane;
+	_farPlane = far_plane;
+
+	updateProjectionMatrix();
+}
+
+void Camera::lookAt(const glm::vec3& eye, const glm::vec3& center, const glm::vec3& up)
+{
+	_eye = eye;
+	_center = center;
+	_up = up;
+
+	updateViewMatrix();
+}
+
+void Camera::updateViewMatrix()
+{
+	if (_type == Type::Perspective)
+		_viewMatrix = glm::lookAt(_eye, _center, _up);
+	else
+		_viewMatrix = glm::identity<glm::mat4>();
+
+	_viewprojectionMatrix = _projectionMatrix * _viewMatrix;
+}
+
+void Camera::updateProjectionMatrix()
+{
+	if (_type == Type::Orthographic)
+		_projectionMatrix = glm::ortho(_left, _right, _bottom, _top, _nearPlane, _farPlane);
+	else
+		_projectionMatrix = glm::perspective(_fov, _aspect, _nearPlane, _farPlane);
+
+	_viewprojectionMatrix = _projectionMatrix * _viewMatrix;
+}
+
+
+void Camera::setFov(float fov, bool update)
+{
+	_fov = fov;
+	if (update)
+		updateViewMatrix();
+}
+
+void Camera::setAspect(float aspect, bool update)
+{
+	_aspect = aspect;
+	if (update)
+		updateViewMatrix();
+}
+
+void Camera::setNearPlane(float near_plane, bool update)
+{
+	_nearPlane = near_plane;
+	if (update)
+		updateViewMatrix();
+}
+
+void Camera::setFarPlane(float far_plane, bool update)
+{
+	_farPlane = far_plane;
+	if (update)
+		updateViewMatrix();
+}
+
+void Camera::setLeft(float left, bool update)
+{
+	_left = left;
+	if (update)
+		updateViewMatrix();
+}
+
+void Camera::setRight(float right, bool update)
+{
+	_right = right;
+	if (update)
+		updateViewMatrix();
+}
+
+void Camera::setTop(float top, bool update)
+{
+	_top = top;
+	if (update)
+		updateViewMatrix();
+}
+
+void Camera::setBottom(float bottom, bool update)
+{
+	_bottom = bottom;
+	if (update)
+		updateViewMatrix();
+}
