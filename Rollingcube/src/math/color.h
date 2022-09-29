@@ -77,6 +77,12 @@ public:
 	template <std::floating_point T, glm::qualifier Q>
 	constexpr operator glm::vec<4, T, Q>() const { return { T(i2f(r)) ,T(i2f(g)), T(i2f(b)), T(i2f(a)) }; }
 
+	template <std::integral T, glm::qualifier Q>
+	constexpr operator glm::vec<3, T, Q>() const { return { T(r) ,T(g), T(b) }; }
+
+	template <std::floating_point T, glm::qualifier Q>
+	constexpr operator glm::vec<3, T, Q>() const { return { T(i2f(r)) ,T(i2f(g)), T(i2f(b)) }; }
+
 
 	
 	inline void gl_color(bool use_alpha) const

@@ -138,6 +138,12 @@ void tutos()
     ObjModel objmodel;
     objmodel.load("test/suzanne.obj");
 
+    Material material;
+    material.setDiffuseColor({ 1, 1, 1 });
+    material.setAmbientColor({ 0.1, 0.1, 0.1 });
+    material.setSpecularColor({ 0.3, 0.3, 0.3 });
+    material.setShininess(10);
+
     TutoMove mover;
 
     glm::mat4 model = glm::mat4(1.f);
@@ -148,7 +154,10 @@ void tutos()
     auto mvp = cam.mvp(model);
 
 
-    GLuint textureLoc = glGetUniformLocation(shader.programId(), "myTextureSampler");
+    GLuint textureLoc = glGetUniformLocation(shader.programId(), "mainTexture");
+
+
+    glm::vec3 lightPos = glm::vec3(4, 4, 4);
 
 
     double lastTime = 0;
@@ -203,7 +212,10 @@ void tutos()
         glUniform1i(textureLoc, 0);
 
         shader.setUniformMatrix("model", model);
+        shader.setUniformMatrix("view", cam.getViewMatrix());
         shader.setUniformMatrix("viewProjection", cam.getViewprojectionMatrix());
+        shader.setUniform("lightPos", lightPos);
+        shader.setUniformMaterial(material);
 
         objmodel.render();
 

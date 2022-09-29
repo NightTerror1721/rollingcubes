@@ -20,26 +20,81 @@
 			<variables>
 				<variable type="float4x4" name="model" system="GeometryTransform" />
 				<variable type="float4x4" name="viewProjection" system="ViewProjection" />
+				<variable type="float4x4" name="view" system="View" />
+				<variable type="float3" name="lightPos">
+					<row>
+						<value>4</value>
+						<value>4</value>
+						<value>4</value>
+					</row>
+				</variable>
+				<variable type="float3" name="materialDiffuseColor">
+					<row>
+						<value>1</value>
+						<value>1</value>
+						<value>1</value>
+					</row>
+				</variable>
+				<variable type="float3" name="materialAmbientColor">
+					<row>
+						<value>0.100000001</value>
+						<value>0.100000001</value>
+						<value>0.100000001</value>
+					</row>
+				</variable>
+				<variable type="float3" name="materialSpecularColor">
+					<row>
+						<value>0.300000012</value>
+						<value>0.300000012</value>
+						<value>0.300000012</value>
+					</row>
+				</variable>
+				<variable type="float" name="materialDiffuseK">
+					<row>
+						<value>1</value>
+					</row>
+				</variable>
+				<variable type="float" name="materialAmbientK">
+					<row>
+						<value>1</value>
+					</row>
+				</variable>
+				<variable type="float" name="materialSpecularK">
+					<row>
+						<value>1</value>
+					</row>
+				</variable>
+				<variable type="float" name="materialShininess">
+					<row>
+						<value>5</value>
+					</row>
+				</variable>
 			</variables>
 			<macros />
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="texture" path="..\Rollingcube\test\uvtemplate.bmp" vflip="false" min_filter="Linear" mag_filter="Nearest" wrap_s="Repeat" wrap_t="Repeat">
+		<object type="texture" path="..\Rollingcube\test\uvtemplate.bmp" vflip="false" min_filter="Linear" mag_filter="Nearest" wrap_s="Repeat" wrap_t="Repeat" />
+		<object type="texture" path="..\Rollingcube\test\uvmap.png" vflip="true" min_filter="Linear" mag_filter="Nearest" wrap_s="Repeat" wrap_t="Repeat">
 			<bind slot="0" name="Basic" />
-		</object>
-		<object type="texture" path="..\Rollingcube\test\uvmap.png" vflip="false" min_filter="Linear" mag_filter="Nearest" wrap_s="Repeat" wrap_t="Repeat">
-			<bind slot="1" name="Basic" />
 		</object>
 	</objects>
 	<cameras />
 	<settings>
 		<entry type="file" name="Basic" shader="vs" />
 		<entry type="file" name="Basic" shader="ps" />
+		<entry type="pinned" name="lightPos" owner="Basic" />
+		<entry type="pinned" name="materialDiffuseColor" owner="Basic" />
+		<entry type="pinned" name="materialAmbientColor" owner="Basic" />
+		<entry type="pinned" name="materialSpecularColor" owner="Basic" />
+		<entry type="pinned" name="materialDiffuseK" owner="Basic" />
+		<entry type="pinned" name="materialAmbientK" owner="Basic" />
+		<entry type="pinned" name="materialSpecularK" owner="Basic" />
+		<entry type="pinned" name="materialShininess" owner="Basic" />
 		<entry type="camera" fp="false">
 			<distance>5</distance>
-			<pitch>18</pitch>
-			<yaw>189</yaw>
+			<pitch>4</pitch>
+			<yaw>175</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />

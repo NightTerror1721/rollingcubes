@@ -143,5 +143,8 @@
     <ClInclude Include="src\core\time.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
+    <ClInclude Include="src\engine\material.h">
+      <Filter>Header Files\engine</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

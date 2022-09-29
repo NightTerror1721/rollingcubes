@@ -8,6 +8,8 @@
 #include "math/glm.h"
 #include "math/color.h"
 
+#include "material.h"
+
 class Shader
 {
 public:
@@ -17,6 +19,19 @@ public:
 	static constexpr GLuint tangents_array_attrib_index = 3;
 	static constexpr GLuint bitangents_array_attrib_index = 4;
 	static constexpr GLuint colors_array_attrib_index = 5;
+
+
+private:
+	static constexpr std::string_view materialDiffuseColor = "materialDiffuseColor";
+	static constexpr std::string_view materialAmbientColor = "materialAmbientColor";
+	static constexpr std::string_view materialSpecularColor = "materialSpecularColor";
+
+	static constexpr std::string_view materialDiffuseCoeficient = "materialDiffuseK";
+	static constexpr std::string_view materialAmbientCoeficient = "materialAmbientK";
+	static constexpr std::string_view materialSpecularCoeficient = "materialSpecularK";
+
+	static constexpr std::string_view materialShininess = "materialShininess";
+
 
 private:
 	using uniform_index_t = decltype(glGetUniformLocation(0, nullptr));
@@ -77,10 +92,7 @@ private:
 	static inline void deleteProgram(GLuint& programId) { glDeleteProgram(programId), programId = invalid_id; }
 
 public:
-	template <typename _Ty> void setUniform(std::string_view name, _Ty val0) const;
-	template <typename _Ty> void setUniform(std::string_view name, _Ty val0, _Ty val1) const;
-	template <typename _Ty> void setUniform(std::string_view name, _Ty val0, _Ty val1, _Ty val2) const;
-	template <typename _Ty> void setUniform(std::string_view name, _Ty val0, _Ty val1, _Ty val2, _Ty val3) const;
+	template <typename _Ty> void setUniform(std::string_view name, const _Ty& val0) const;
 
 	template <typename _Ty> void setUniformArray(std::string_view name, const _Ty* array, GLsizei count) const;
 
@@ -114,86 +126,46 @@ public:
 	{
 		setUniformMatrixArray(name, std::addressof(matrix), 1, transpose);
 	}
+
+
+
+	void setUniformMaterial(const Material& material) const;
 };
 
 
 
-template <> inline void Shader::setUniform<GLfloat>(std::string_view name, GLfloat val0) const
+template <> inline void Shader::setUniform<GLfloat>(std::string_view name, const GLfloat& value) const
 {
-	glUniform1f(getUniformLocation(name), val0);
-}
-
-template <> inline void Shader::setUniform<GLfloat>(std::string_view name, GLfloat val0, GLfloat val1) const
-{
-	glUniform2f(getUniformLocation(name), val0, val1);
-}
-
-template <> inline void Shader::setUniform<GLfloat>(std::string_view name, GLfloat val0, GLfloat val1, GLfloat val2) const
-{
-	glUniform3f(getUniformLocation(name), val0, val1, val2);
-}
-
-template <> inline void Shader::setUniform<GLfloat>(std::string_view name, GLfloat val0, GLfloat val1, GLfloat val2, GLfloat val3) const
-{
-	glUniform4f(getUniformLocation(name), val0, val1, val2, val3);
+	glUniform1f(getUniformLocation(name), value);
 }
 
 
-template <> inline void Shader::setUniform<GLint>(std::string_view name, GLint val0) const
+template <> inline void Shader::setUniform<GLint>(std::string_view name, const GLint& value) const
 {
-	glUniform1i(getUniformLocation(name), val0);
-}
-
-template <> inline void Shader::setUniform<GLint>(std::string_view name, GLint val0, GLint val1) const
-{
-	glUniform2i(getUniformLocation(name), val0, val1);
-}
-
-template <> inline void Shader::setUniform<GLint>(std::string_view name, GLint val0, GLint val1, GLint val2) const
-{
-	glUniform3i(getUniformLocation(name), val0, val1, val2);
-}
-
-template <> inline void Shader::setUniform<GLint>(std::string_view name, GLint val0, GLint val1, GLint val2, GLint val3) const
-{
-	glUniform4i(getUniformLocation(name), val0, val1, val2, val3);
+	glUniform1i(getUniformLocation(name), value);
 }
 
 
-template <> inline void Shader::setUniform<GLuint>(std::string_view name, GLuint val0) const
+template <> inline void Shader::setUniform<GLuint>(std::string_view name, const GLuint& value) const
 {
-	glUniform1ui(getUniformLocation(name), val0);
-}
-
-template <> inline void Shader::setUniform<GLuint>(std::string_view name, GLuint val0, GLuint val1) const
-{
-	glUniform2ui(getUniformLocation(name), val0, val1);
-}
-
-template <> inline void Shader::setUniform<GLuint>(std::string_view name, GLuint val0, GLuint val1, GLuint val2) const
-{
-	glUniform3ui(getUniformLocation(name), val0, val1, val2);
-}
-
-template <> inline void Shader::setUniform<GLuint>(std::string_view name, GLuint val0, GLuint val1, GLuint val2, GLuint val3) const
-{
-	glUniform4ui(getUniformLocation(name), val0, val1, val2, val3);
+	glUniform1ui(getUniformLocation(name), value);
 }
 
 
-template <> inline void Shader::setUniform<const glm::vec2&>(std::string_view name, const glm::vec2& v) const
+
+template <> inline void Shader::setUniform<glm::vec2>(std::string_view name, const glm::vec2& value) const
 {
-	setUniform<GLfloat>(name, v.x, v.y);
+	glUniform2f(getUniformLocation(name), value.x, value.y);
 }
 
-template <> inline void Shader::setUniform<const glm::vec3&>(std::string_view name, const glm::vec3& v) const
+template <> inline void Shader::setUniform<glm::vec3>(std::string_view name, const glm::vec3& value) const
 {
-	setUniform<GLfloat>(name, v.x, v.y, v.z);
+	glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
 }
 
-template <> inline void Shader::setUniform<const glm::vec4&>(std::string_view name, const glm::vec4& v) const
+template <> inline void Shader::setUniform<glm::vec4>(std::string_view name, const glm::vec4& value) const
 {
-	setUniform<GLfloat>(name, v.x, v.y, v.z, v.w);
+	glUniform4f(getUniformLocation(name), value.x, value.y, value.z, value.w);
 }
 
 template <> inline void Shader::setUniform<const Color&>(std::string_view name, const Color& color) const
@@ -202,35 +174,35 @@ template <> inline void Shader::setUniform<const Color&>(std::string_view name, 
 }
 
 
-template <> inline void Shader::setUniform<const glm::ivec2&>(std::string_view name, const glm::ivec2& v) const
+template <> inline void Shader::setUniform<const glm::ivec2&>(std::string_view name, const glm::ivec2& value) const
 {
-	setUniform<GLint>(name, v.x, v.y);
+	glUniform2i(getUniformLocation(name), value.x, value.y);
 }
 
-template <> inline void Shader::setUniform<const glm::ivec3&>(std::string_view name, const glm::ivec3& v) const
+template <> inline void Shader::setUniform<const glm::ivec3&>(std::string_view name, const glm::ivec3& value) const
 {
-	setUniform<GLint>(name, v.x, v.y, v.z);
+	glUniform3i(getUniformLocation(name), value.x, value.y, value.z);
 }
 
-template <> inline void Shader::setUniform<const glm::ivec4&>(std::string_view name, const glm::ivec4& v) const
+template <> inline void Shader::setUniform<const glm::ivec4&>(std::string_view name, const glm::ivec4& value) const
 {
-	setUniform<GLint>(name, v.x, v.y, v.z, v.w);
+	glUniform4i(getUniformLocation(name), value.x, value.y, value.z, value.w);
 }
 
 
-template <> inline void Shader::setUniform<const glm::uvec2&>(std::string_view name, const glm::uvec2& v) const
+template <> inline void Shader::setUniform<const glm::uvec2&>(std::string_view name, const glm::uvec2& value) const
 {
-	setUniform<GLuint>(name, v.x, v.y);
+	glUniform2ui(getUniformLocation(name), value.x, value.y);
 }
 
-template <> inline void Shader::setUniform<const glm::uvec3&>(std::string_view name, const glm::uvec3& v) const
+template <> inline void Shader::setUniform<const glm::uvec3&>(std::string_view name, const glm::uvec3& value) const
 {
-	setUniform<GLuint>(name, v.x, v.y, v.z);
+	glUniform3ui(getUniformLocation(name), value.x, value.y, value.z);
 }
 
-template <> inline void Shader::setUniform<const glm::uvec4&>(std::string_view name, const glm::uvec4& v) const
+template <> inline void Shader::setUniform<const glm::uvec4&>(std::string_view name, const glm::uvec4& value) const
 {
-	setUniform<GLuint>(name, v.x, v.y, v.z, v.w);
+	glUniform4ui(getUniformLocation(name), value.x, value.y, value.z, value.w);
 }
 
 
@@ -340,4 +312,21 @@ template <> inline void Shader::setUniformMatrixArray<glm::mat3x4>(std::string_v
 template <> inline void Shader::setUniformMatrixArray<glm::mat4x3>(std::string_view name, const glm::mat4x3* matrices, GLsizei count, GLboolean transpose) const
 {
 	glUniformMatrix4x3fv(getUniformLocation(name), count, transpose, &matrices[0][0][0]);
+}
+
+
+
+
+
+inline void Shader::setUniformMaterial(const Material& material) const
+{
+	setUniform(materialDiffuseColor, material.getDiffuseColor());
+	setUniform(materialAmbientColor, material.getAmbientColor());
+	setUniform(materialSpecularColor, material.getSpecularColor());
+
+	setUniform(materialDiffuseCoeficient, material.getDiffuseCoeficient());
+	setUniform(materialAmbientCoeficient, material.getAmbientCoeficient());
+	setUniform(materialSpecularCoeficient, material.getSpecularCoeficient());
+
+	setUniform(materialShininess.data(), material.getShininess());
 }
