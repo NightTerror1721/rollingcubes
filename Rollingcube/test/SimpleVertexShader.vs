@@ -1,16 +1,18 @@
 #version 330 core
 
-// Input vertex data, different for all executions of this shader.
-layout(location = 0) in vec3 vertexPosition_modelspace;
-layout(location = 5) in vec4 vertexColor;
+layout(location = 0) in vec3 vertexPosition; // Camera space
+layout(location = 1) in vec2 vertexUV; // Camera space
+layout(location = 2) in vec3 vertexNormal; // Camera space
 
-out vec4 fragmentColor;
+uniform mat4 viewProjection;
+uniform mat4 model;
 
-uniform mat4 mvp;
+out vec2 uv;
 
 void main()
 {
-    gl_Position = mvp * vec4(vertexPosition_modelspace, 1);
+	mat4 mvp = model * viewProjection;
+    gl_Position = mvp * vec4(vertexPosition, 1);
 
-    fragmentColor = vertexColor;
+    uv = vertexUV;
 }

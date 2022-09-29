@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <concepts>
 
-#include "Vector4.h"
 #include "glm.h"
 
 
@@ -70,13 +69,6 @@ public:
 				f2i(float_component_type(alpha))
 		}
 	{}
-
-
-	template <std::integral _Ty0>
-	constexpr operator vector4<_Ty0>() const { return { _Ty0(r) ,_Ty0(g), _Ty0(b), _Ty0(a) }; }
-
-	template <std::floating_point _Ty0>
-	constexpr operator vector4<_Ty0>() const { return { _Ty0(i2f(r)) ,_Ty0(i2f(g)), _Ty0(i2f(b)), _Ty0(i2f(a)) }; }
 
 
 	template <std::integral T, glm::qualifier Q>

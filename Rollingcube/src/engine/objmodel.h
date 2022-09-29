@@ -8,10 +8,6 @@
 
 #include "core/gl.h"
 #include "math/glm.h"
-#include "math/Vector2.h"
-#include "math/Vector3.h"
-#include "math/Vector4.h"
-#include "math/Matrix44.h"
 #include "math/color.h"
 #include "utils/optref.h"
 
@@ -156,91 +152,4 @@ public:
 
 	inline Mesh& getMesh(const std::string_view& name) { return *safeGetMesh(name); }
 	inline const Mesh& getMesh(const std::string_view& name) const { return *safeGetMesh(name); }
-};
-
-
-
-
-
-struct OldMeshInfo
-{
-	vector3f min_aabb;
-	vector3f max_aabb;
-	vector3f center;
-	vector3f halfsize;
-	float length;
-};
-
-
-
-class OldMesh
-{
-public:
-	using Info = OldMeshInfo;
-
-private:
-	mutable unsigned int _verticesVBOId = 0;
-	mutable unsigned int _uvsVBOId = 0;
-	mutable unsigned int _normalsVBOId = 0;
-	mutable unsigned int _colorsVBOId = 0;
-	mutable bool _reloadToVRam = true;
-	mutable bool _rebuildBB = true;
-	bool _usingVBO = true;
-
-	Info _info;
-
-	std::vector<vector3f> _vertices;
-	std::vector<vector3f> _normals;
-	std::vector<vector2f> _uvs;
-	std::vector<vector4f> _colors;
-	mutable std::vector<vector3f> _bb;
-
-public:
-	OldMesh() = default;
-	OldMesh(const OldMesh&) = default;
-	OldMesh(OldMesh&&) noexcept = default;
-
-	OldMesh& operator= (const OldMesh&) = default;
-	OldMesh& operator= (OldMesh&&) noexcept = default;
-
-	bool operator== (const OldMesh&) const = default;
-
-
-	~OldMesh();
-
-	void clear();
-
-	void render(int primitive) const;
-//	void render(int primitive, const Shader& shader) const;
-	void renderBoundingBox(int primitive, const matrix44f& model, Color color = Color::green()) const;
-
-	void createPlane(float size);
-	void createQuad(float center_x, float center_y, float w, float h, bool flip_uvs);
-
-	void createBIN(const std::string_view& filename) const;
-
-	bool loadBIN(const std::string_view& filename);
-//	bool loadOldMesh(const std::string_view& filename);
-
-
-	inline void setVBOMolde(bool flag) { _usingVBO = flag; }
-
-private:
-	void createVRAMData() const;
-	void destroyVRAMData() const;
-	void createBoundingBoxOldMesh() const;
-	void notifyChanges();
-
-	static inline void destroyVBO(unsigned int& VBO_id) { glDeleteBuffers(1, &VBO_id); }
-
-	template <typename _Ty> requires std::same_as<_Ty, vector2f> || std::same_as<_Ty, vector3f> || std::same_as<_Ty, vector4f>
-	static inline void createVBO(unsigned int& VBO_id, const std::vector<_Ty>&vector)
-	{
-		if (!vector.empty())
-		{
-			glGenBuffers(1, &VBO_id); //generate one handler
-			glBindBuffer(GL_ARRAY_BUFFER, VBO_id); //bind the handler
-			glBufferData(GL_ARRAY_BUFFER, vector.size() * _Ty::dimension_count * sizeof(_Ty::value_type), &*vector.data(), GL_STATIC_DRAW); //upload data
-		}
-	}
 };

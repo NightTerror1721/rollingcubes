@@ -113,6 +113,8 @@ public:
 	inline const glm::mat4& getViewprojectionMatrix() const { return _viewprojectionMatrix; }
 
 	inline glm::mat4 mvp(const glm::mat4& model) { return model * _viewprojectionMatrix; }
+
+	inline void rotateLocal(float angle, const glm::vec3& axis) { rotate(angle, getLocalVector(axis)); }
 };
 
 inline glm::mat4 operator* (const Camera& cam, const glm::mat4& model) { return model * cam.getViewprojectionMatrix(); }

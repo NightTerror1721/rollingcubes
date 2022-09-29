@@ -3,6 +3,7 @@
 #include <functional>
 
 #include "gl.h"
+#include "time.h"
 
 namespace window
 {
@@ -14,5 +15,5 @@ namespace window
 
 	bool createMainWindow();
 
-	void simpleLoop(bool terminateOnEnd, const std::function<void(void)>& drawFunction = {});
+	void simpleLoop(bool terminateOnEnd, const std::function<void(Time)>& drawFunction = {});
 }

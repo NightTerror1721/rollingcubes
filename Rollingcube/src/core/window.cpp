@@ -1,6 +1,10 @@
 #include "window.h"
 
 #include <iostream>
+#include <sstream>
+
+#include "fps.h"
+
 
 namespace window
 {
@@ -32,19 +36,30 @@ namespace window
 
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS);
+
+			glEnable(GL_CULL_FACE);
+
+			glfwSwapInterval(1);
+
 			glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 		}
 
 		return true;
 	}
 
-	void simpleLoop(bool terminateOnEnd, const std::function<void(void)>& drawFunction)
+	void simpleLoop(bool terminateOnEnd, const std::function<void(Time)>& drawFunction)
 	{
+		TimeController timeController;
 		do
 		{
+			Time elapsedTime = timeController.update();
+			std::stringstream ss;
+			ss << "Rollingcube " << timeController.getFPS() << "fps";
+			glfwSetWindowTitle(getMainWindow(), ss.str().c_str());
+
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			drawFunction();
+			drawFunction(elapsedTime);
 
 			glfwSwapBuffers(mainw);
 			glfwPollEvents();

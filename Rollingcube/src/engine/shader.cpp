@@ -105,6 +105,20 @@ Shader::~Shader()
 		deleteProgram(_programId);
 }
 
+void Shader::release()
+{
+	if (_programId != invalid_id)
+		deleteProgram(_programId);
+
+	_programId = invalid_id;
+	clearCache();
+}
+
+void Shader::clearCache() const
+{
+	_uniformCache.clear();
+}
+
 bool Shader::load(std::string_view vertexShaderFilename, std::string_view fragmentShaderFilename)
 {
 	auto vertexShaderId = loadShader(true, vertexShaderFilename);
@@ -129,12 +143,32 @@ bool Shader::load(std::string_view vertexShaderFilename, std::string_view fragme
 		return false;
 	}
 
-	//detachShader(programId, vertexShaderId.value());
-	//detachShader(programId, fragmentShaderId.value());
+	detachShader(programId, vertexShaderId.value());
+	detachShader(programId, fragmentShaderId.value());
 
-	//deleteShader(vertexShaderId.value());
-	//deleteShader(fragmentShaderId.value());
+	deleteShader(vertexShaderId.value());
+	deleteShader(fragmentShaderId.value());
+
+	release();
 
 	_programId = programId;
 	return true;
+}
+
+Shader::uniform_index_t Shader::getUniformLocation(std::string_view vs_name) const
+{
+	auto name = std::string(vs_name);
+	auto it = _uniformCache.find(name);
+	if (it != _uniformCache.end())
+		return it->second;
+
+	auto loc = glGetUniformLocation(_programId, name.c_str());
+	if (loc < 0)
+	{
+		logger::error("Cannot get uniform '{}' location.", name);
+		return -1;
+	}
+
+	_uniformCache.emplace(name, loc);
+	return loc;
 }
