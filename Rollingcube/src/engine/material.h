@@ -32,13 +32,13 @@ public:
 
 
 	constexpr void setDiffuseColor(const glm::vec3& color) { _diffuseColor = color; }
-	constexpr glm::vec3 getDiffuseColor() const { return _diffuseColor; }
+	constexpr const glm::vec3& getDiffuseColor() const { return _diffuseColor; }
 
 	constexpr void setAmbientColor(const glm::vec3& color) { _ambientColor = color; }
-	constexpr glm::vec3 getAmbientColor() const { return _ambientColor; }
+	constexpr const glm::vec3& getAmbientColor() const { return _ambientColor; }
 
 	constexpr void setSpecularColor(const glm::vec3& color) { _specularColor = color; }
-	constexpr glm::vec3 getSpecularColor() const { return _specularColor; }
+	constexpr const glm::vec3& getSpecularColor() const { return _specularColor; }
 
 
 	constexpr void setDiffuseCoeficient(float coeficient) { _diffuseCoeficient = coeficient; }

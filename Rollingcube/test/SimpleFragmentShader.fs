@@ -35,7 +35,7 @@ vec3 computeColorFromLight(LightInfo light);
 void main()
 {
 	vec3 lightColor = vec3(1, 1, 1);
-	float lightPower = 50.f;
+	float lightPower = 20.f;
 	
 	LightInfo light = LightInfo(
 			lightPos,

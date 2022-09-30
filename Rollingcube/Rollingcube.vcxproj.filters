@@ -146,5 +146,8 @@
     <ClInclude Include="src\engine\material.h">
       <Filter>Header Files\engine</Filter>
     </ClInclude>
+    <ClInclude Include="src\engine\light.h">
+      <Filter>Header Files\engine</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

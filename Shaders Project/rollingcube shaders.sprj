@@ -66,7 +66,7 @@
 				</variable>
 				<variable type="float" name="materialShininess">
 					<row>
-						<value>5</value>
+						<value>10</value>
 					</row>
 				</variable>
 			</variables>
@@ -81,6 +81,7 @@
 	</objects>
 	<cameras />
 	<settings>
+		<entry type="property" name="Basic" item="pipe" />
 		<entry type="file" name="Basic" shader="vs" />
 		<entry type="file" name="Basic" shader="ps" />
 		<entry type="pinned" name="lightPos" owner="Basic" />
@@ -93,7 +94,7 @@
 		<entry type="pinned" name="materialShininess" owner="Basic" />
 		<entry type="camera" fp="false">
 			<distance>5</distance>
-			<pitch>4</pitch>
+			<pitch>7</pitch>
 			<yaw>175</yaw>
 			<roll>360</roll>
 		</entry>

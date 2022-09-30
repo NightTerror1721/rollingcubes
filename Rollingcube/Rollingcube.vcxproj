@@ -173,6 +173,7 @@
     <ClInclude Include="src\core\window.h" />
     <ClInclude Include="src\engine\camera.h" />
     <ClInclude Include="src\engine\frustum.h" />
+    <ClInclude Include="src\engine\light.h" />
     <ClInclude Include="src\engine\material.h" />
     <ClInclude Include="src\engine\objmodel.h" />
     <ClInclude Include="src\engine\shader.h" />

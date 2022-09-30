@@ -41,11 +41,31 @@ void Camera::move(const glm::vec3& delta)
 	updateViewMatrix();
 }
 
-void Camera::rotate(float angle, const glm::vec3& axis)
+void Camera::rotate(float angle, const glm::vec3& axis, bool enableUpRotation)
 {
-	glm::mat4 rot = glm::utils::rotation(angle, axis);
-	glm::vec3 newFront = rot * (_center - _eye);
-	_center = _eye + newFront;
+	glm::vec3 front = glm::angleAxis(angle, axis) * (_center - _eye);
+	_center = _eye + front;
+	if(enableUpRotation)
+		_up = glm::rotate(_up, angle, axis);
+
+	updateViewMatrix();
+}
+
+void Camera::rotate(const glm::vec3& angles)
+{
+	glm::quat qt = glm::quat(angles);
+	glm::vec3 front = qt * (_center - _eye);
+	_center = _eye + front;
+	_up = qt * _up;
+}
+
+void Camera::setOrientation(const glm::vec3& angles)
+{
+	glm::quat qt = glm::quat(angles);
+	glm::vec3 front = qt * glm::vec3(0, 0, -1);
+	_center = _eye + front;
+	_up = qt * glm::vec3(0, 1, 0);
+
 	updateViewMatrix();
 }
 

@@ -183,8 +183,20 @@ void tutos()
         mpos.x = (window::default_width / 2) - mpos.x;
         mpos.y = (window::default_height / 2) - mpos.y;
 
-        cam.rotateLocal(0.1f * deltaTime * mpos.x, { 0, 1, 0 });
-        cam.rotateLocal(0.1f * deltaTime * mpos.y, { 1, 0, 0 });
+        cam.rotateLocal(0.1f * deltaTime * mpos.x, { 0, 1, 0 }, true);
+        cam.rotateLocal(0.1f * deltaTime * mpos.y, { 1, 0, 0 }, true);
+
+
+        if (glfwGetKey(window::getMainWindow(), GLFW_KEY_Z) == GLFW_PRESS)
+            cam.rotateLocal(2.0f * deltaTime, { 0, 0, 1 }, true);
+        else if (glfwGetKey(window::getMainWindow(), GLFW_KEY_C) == GLFW_PRESS)
+            cam.rotateLocal(-2.0f * deltaTime, { 0, 0, 1 }, true);
+
+        if (glfwGetKey(window::getMainWindow(), GLFW_KEY_R) == GLFW_PRESS)
+            cam.setOrientation({0, 0, 0});
+
+        
+
 
 
         glm::vec3 translation{};
@@ -204,6 +216,9 @@ void tutos()
             translation.y -= float(deltaTime) * 3.f;
 
         cam.move(translation);
+
+
+        lightPos = cam.getEye() + glm::vec3(1, 1, 0);
 
         shader.bind();
 

@@ -56,7 +56,10 @@ public:
 	void setToGL();
 
 	void move(const glm::vec3& delta);
-	void rotate(float angle, const glm::vec3& axis);
+	void rotate(float angle, const glm::vec3& axis, bool enableUpRotation = false);
+	void rotate(const glm::vec3& angles);
+
+	void setOrientation(const glm::vec3& angles);
 
 	/**
 	 * Transform a local camera vector to world coordinates.
@@ -114,7 +117,11 @@ public:
 
 	inline glm::mat4 mvp(const glm::mat4& model) { return model * _viewprojectionMatrix; }
 
-	inline void rotateLocal(float angle, const glm::vec3& axis) { rotate(angle, getLocalVector(axis)); }
+	inline void rotateLocal(float angle, const glm::vec3& axis, bool enableUpRotation = false) { rotate(angle, getLocalVector(axis), enableUpRotation); }
+
+	inline void rotateVertical(float angle, bool enableUpRotation = false) { rotateLocal(angle, { 0, 1, 0 }, enableUpRotation); }
+	inline void rotateHorizontal(float angle, bool enableUpRotation = false) { rotateLocal(angle, { 1, 0, 0 }, enableUpRotation); }
+	inline void rotateLateral(float angle) { rotateLocal(angle, { 0, 0, 1 }, true); }
 };
 
 inline glm::mat4 operator* (const Camera& cam, const glm::mat4& model) { return model * cam.getViewprojectionMatrix(); }
