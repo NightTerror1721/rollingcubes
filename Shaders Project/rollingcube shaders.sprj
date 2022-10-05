@@ -28,43 +28,43 @@
 						<value>4</value>
 					</row>
 				</variable>
-				<variable type="float3" name="materialDiffuseColor">
+				<variable type="float3" name="material.diffuseColor">
 					<row>
 						<value>1</value>
 						<value>1</value>
 						<value>1</value>
 					</row>
 				</variable>
-				<variable type="float3" name="materialAmbientColor">
+				<variable type="float3" name="material.ambientColor">
 					<row>
 						<value>0.100000001</value>
 						<value>0.100000001</value>
 						<value>0.100000001</value>
 					</row>
 				</variable>
-				<variable type="float3" name="materialSpecularColor">
+				<variable type="float3" name="material.specularColor">
 					<row>
 						<value>0.300000012</value>
 						<value>0.300000012</value>
 						<value>0.300000012</value>
 					</row>
 				</variable>
-				<variable type="float" name="materialDiffuseK">
+				<variable type="float" name="material.kd">
 					<row>
 						<value>1</value>
 					</row>
 				</variable>
-				<variable type="float" name="materialAmbientK">
+				<variable type="float" name="material.ka">
 					<row>
 						<value>1</value>
 					</row>
 				</variable>
-				<variable type="float" name="materialSpecularK">
+				<variable type="float" name="material.ks">
 					<row>
 						<value>1</value>
 					</row>
 				</variable>
-				<variable type="float" name="materialShininess">
+				<variable type="float" name="material.shininess">
 					<row>
 						<value>10</value>
 					</row>
@@ -85,17 +85,17 @@
 		<entry type="file" name="Basic" shader="vs" />
 		<entry type="file" name="Basic" shader="ps" />
 		<entry type="pinned" name="lightPos" owner="Basic" />
-		<entry type="pinned" name="materialDiffuseColor" owner="Basic" />
-		<entry type="pinned" name="materialAmbientColor" owner="Basic" />
-		<entry type="pinned" name="materialSpecularColor" owner="Basic" />
-		<entry type="pinned" name="materialDiffuseK" owner="Basic" />
-		<entry type="pinned" name="materialAmbientK" owner="Basic" />
-		<entry type="pinned" name="materialSpecularK" owner="Basic" />
-		<entry type="pinned" name="materialShininess" owner="Basic" />
+		<entry type="pinned" name="material.diffuseColor" owner="Basic" />
+		<entry type="pinned" name="material.ambientColor" owner="Basic" />
+		<entry type="pinned" name="material.specularColor" owner="Basic" />
+		<entry type="pinned" name="material.kd" owner="Basic" />
+		<entry type="pinned" name="material.ka" owner="Basic" />
+		<entry type="pinned" name="material.ks" owner="Basic" />
+		<entry type="pinned" name="material.shininess" owner="Basic" />
 		<entry type="camera" fp="false">
 			<distance>5</distance>
-			<pitch>7</pitch>
-			<yaw>175</yaw>
+			<pitch>12</pitch>
+			<yaw>170</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />

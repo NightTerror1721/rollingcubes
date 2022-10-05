@@ -81,6 +81,9 @@
     <ClCompile Include="src\core\fps.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
+    <ClCompile Include="src\engine\light.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\math\MathUtils.h">
@@ -148,6 +151,9 @@
     </ClInclude>
     <ClInclude Include="src\engine\light.h">
       <Filter>Header Files\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\color_channels.h">
+      <Filter>Header Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

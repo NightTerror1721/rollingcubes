@@ -28,6 +28,8 @@ namespace glm::utils
 
 	template<typename T, qualifier Q>
 	constexpr mat<4, 4, T, Q> rotation(float angle, float x, float y, float z) { return rotate(identity<mat<4, 4, T, Q>>(), angle, { x, y, z }); }
+
+	inline mat3 normalMatrix(const mat4& model) { return mat3(transpose(inverse(model))); }
 }
 
 template<typename T, glm::qualifier Q>

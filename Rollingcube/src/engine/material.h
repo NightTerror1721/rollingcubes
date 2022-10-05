@@ -1,56 +1,62 @@
 #pragma once
 
 #include <compare>
+#include <memory>
 
+#include "utils/color_channels.h"
 #include "math/glm.h"
 #include "math/color.h"
+#include "texture.h"
 
 
-class Material
+class Material : public ColorChannels
 {
 private:
-	glm::vec3 _diffuseColor = { 1, 1, 1 };
-	glm::vec3 _ambientColor = { 0, 0, 0 };
-	glm::vec3 _specularColor = { 0, 0, 0 };
-
-	float _diffuseCoeficient = 1;
-	float _ambientCoeficient = 1;
-	float _specularCoeficient = 1;
+	std::shared_ptr<Texture> _diffuseTexture = nullptr;
+	std::shared_ptr<Texture> _specularTexture = nullptr;
 
 	float _shininess = 5;
 
 public:
-	constexpr Material() = default;
-	constexpr Material(const Material&) = default;
-	constexpr Material(Material&&) noexcept = default;
-	constexpr ~Material() = default;
+	Material(const Material&) = default;
+	Material(Material&&) noexcept = default;
+	~Material() = default;
 
-	constexpr Material& operator= (const Material&) = default;
-	constexpr Material& operator= (Material&&) noexcept = default;
+	Material& operator= (const Material&) = default;
+	Material& operator= (Material&&) noexcept = default;
 
-	constexpr bool operator== (const Material&) const = default;
-
-
-	constexpr void setDiffuseColor(const glm::vec3& color) { _diffuseColor = color; }
-	constexpr const glm::vec3& getDiffuseColor() const { return _diffuseColor; }
-
-	constexpr void setAmbientColor(const glm::vec3& color) { _ambientColor = color; }
-	constexpr const glm::vec3& getAmbientColor() const { return _ambientColor; }
-
-	constexpr void setSpecularColor(const glm::vec3& color) { _specularColor = color; }
-	constexpr const glm::vec3& getSpecularColor() const { return _specularColor; }
+	bool operator== (const Material&) const = default;
 
 
-	constexpr void setDiffuseCoeficient(float coeficient) { _diffuseCoeficient = coeficient; }
-	constexpr float getDiffuseCoeficient() const { return _diffuseCoeficient; }
-
-	constexpr void setAmbientCoeficient(float coeficient) { _ambientCoeficient = coeficient; }
-	constexpr float getAmbientCoeficient() const { return _ambientCoeficient; }
-
-	constexpr void setSpecularCoeficient(float coeficient) { _specularCoeficient = coeficient; }
-	constexpr float getSpecularCoeficient() const { return _specularCoeficient; }
+	inline Material() : ColorChannels({ 1, 1, 1 }, {}, {}) {}
 
 
-	constexpr void setShininess(float shininess) { _shininess = shininess; }
-	constexpr float getShininess() const { return _shininess; }
+	inline void setDiffuseTexture(const std::shared_ptr<Texture>& texture) { _diffuseTexture = texture; }
+	inline const std::shared_ptr<Texture>& getDiffuseTexture() const { return _diffuseTexture; }
+
+	inline void setSpecularTexture(const std::shared_ptr<Texture>& texture) { _specularTexture = texture; }
+	inline const std::shared_ptr<Texture>& getSpecularTexture() const { return _specularTexture; }
+
+
+	inline void setShininess(float shininess) { _shininess = shininess; }
+	inline float getShininess() const { return _shininess; }
+
+
+	inline void bindTextures()
+	{
+		if (_diffuseTexture != nullptr)
+			_diffuseTexture->bind();
+
+		if (_specularTexture != nullptr)
+			_specularTexture->bind();
+	}
+
+	inline void unbindTextures()
+	{
+		if (_diffuseTexture != nullptr)
+			_diffuseTexture->unbind();
+
+		if (_specularTexture != nullptr)
+			_specularTexture->unbind();
+	}
 };

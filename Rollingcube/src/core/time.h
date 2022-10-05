@@ -5,7 +5,8 @@
 #include <chrono>
 #include <concepts>
 
-#include "core/gl.h"
+#include "gl.h"
+#include "math/glm.h"
 
 
 enum class TimeUnit
@@ -102,6 +103,10 @@ public:
 		else
 			return microseconds(static_cast<IntegerTimeUnit>(amount));
 	}
+
+	static constexpr Time max(Time left, Time right) { return Time(std::max(left._micros, right._micros)); }
+	static constexpr Time min(Time left, Time right) { return Time(std::min(left._micros, right._micros)); }
+	static constexpr Time clamp(Time value, Time min, Time max) { return Time(glm::clamp(value._micros, min._micros, max._micros)); }
 
 public:
 	friend constexpr Time operator+ (Time left, Time right) { return Time(left._micros + right._micros); }

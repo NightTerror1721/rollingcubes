@@ -156,6 +156,7 @@
     <ClCompile Include="src\core\window.cpp" />
     <ClCompile Include="src\engine\camera.cpp" />
     <ClCompile Include="src\engine\frustum.cpp" />
+    <ClCompile Include="src\engine\light.cpp" />
     <ClCompile Include="src\engine\objmodel.cpp" />
     <ClCompile Include="src\engine\shader.cpp" />
     <ClCompile Include="src\engine\texture.cpp" />
@@ -182,6 +183,7 @@
     <ClInclude Include="src\math\glm.h" />
     <ClInclude Include="src\math\MathUtils.h" />
     <ClInclude Include="src\utils\bmp_decoder.h" />
+    <ClInclude Include="src\utils\color_channels.h" />
     <ClInclude Include="src\utils\image.h" />
     <ClInclude Include="src\utils\io_utils.h" />
     <ClInclude Include="src\utils\jpeg_decoder.h" />

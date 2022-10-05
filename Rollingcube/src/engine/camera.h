@@ -117,6 +117,11 @@ public:
 
 	inline glm::mat4 mvp(const glm::mat4& model) { return model * _viewprojectionMatrix; }
 
+	inline void setPosition(const glm::vec3& position) { setEye(position); }
+	inline const glm::vec3& getPosition() const { return getEye(); }
+
+	inline glm::vec3 getFront() const { return _center - _eye; }
+
 	inline void rotateLocal(float angle, const glm::vec3& axis, bool enableUpRotation = false) { rotate(angle, getLocalVector(axis), enableUpRotation); }
 
 	inline void rotateVertical(float angle, bool enableUpRotation = false) { rotateLocal(angle, { 0, 1, 0 }, enableUpRotation); }

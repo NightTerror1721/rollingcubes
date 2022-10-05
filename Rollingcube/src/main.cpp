@@ -118,35 +118,61 @@ void tutos()
     };*/
 
 
-    Texture tex;
-    if (!tex.load("test/uvmap.jpg"))
+    std::shared_ptr<Texture> tex = std::make_shared<Texture>();
+    if (!tex->load("test/uvmap.jpg"))
         return;
 
-    tex.bind();
-    tex.setParameter(GL_TEXTURE_WRAP_S, GL_REPEAT, GL_TEXTURE_2D);
-    tex.setParameter(GL_TEXTURE_WRAP_T, GL_REPEAT, GL_TEXTURE_2D);
-    tex.setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR, GL_TEXTURE_2D);
-    tex.setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR, GL_TEXTURE_2D);
-    tex.unbind();
+    tex->bind();
+    tex->setParameter(GL_TEXTURE_WRAP_S, GL_REPEAT, GL_TEXTURE_2D);
+    tex->setParameter(GL_TEXTURE_WRAP_T, GL_REPEAT, GL_TEXTURE_2D);
+    tex->setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR, GL_TEXTURE_2D);
+    tex->setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR, GL_TEXTURE_2D);
+    tex->unbind();
 
 
 
 
     Shader shader;
-    shader.load("test/SimpleVertexShader.vs", "test/SimpleFragmentShader.fs");
+    shader.load("data/shaders/default.vert", "data/shaders/default.frag");
 
     ObjModel objmodel;
     objmodel.load("test/suzanne.obj");
 
     Material material;
     material.setDiffuseColor({ 1, 1, 1 });
-    material.setAmbientColor({ 0.1, 0.1, 0.1 });
+    material.setAmbientColor({ 0.1, 0.5, 0.1 });
     material.setSpecularColor({ 0.3, 0.3, 0.3 });
     material.setShininess(10);
+    material.setDiffuseTexture(tex);
 
     TutoMove mover;
 
     glm::mat4 model = glm::mat4(1.f);
+
+    DirectionalLight dirLight;
+    dirLight.setColor(glm::vec3(1, 1, 1));
+    dirLight.setDirection(glm::vec3(-0.2f, -1.0f, -0.3f));
+    dirLight.setIntensity(0.5);
+
+    SpotLight spotLight;
+    spotLight.setColor({ 0, 0, 0 });
+    //spotLight.setAmbientColor({ 0, 0, 0 });
+    //spotLight.setDiffuseColor({ 0.1, 0.1, 0.1 });
+    //spotLight.setSpecularColor({ 1, 1, 1 });
+    spotLight.setIntensity(3);
+    spotLight.setCutOff(glm::cos(glm::radians(7.5f)));
+    spotLight.setOuterCutOff(glm::cos(glm::radians(30.5f)));
+
+    LightManager lightManager;
+    auto slights = lightManager.createShaderLights();
+    slights->setPosition(glm::vec3(0, 0, 0));
+
+    Light light;
+    light.setColor(glm::vec3(1, 1, 1));
+    light.setIntensity(20.f);
+    light.setPosition({ 5, 2, 0 });
+    //light.setQuadraticAttenuation(0.25);
+    auto lightId = lightManager.createNewLight(light);
 
     Camera cam;
     cam.setToPerspective(glm::radians(45.f), float(window::default_width) / float(window::default_height), 0.1f, 100.f);
@@ -157,15 +183,13 @@ void tutos()
     GLuint textureLoc = glGetUniformLocation(shader.programId(), "mainTexture");
 
 
-    glm::vec3 lightPos = glm::vec3(4, 4, 4);
-
-
     double lastTime = 0;
 
     resetMousePosition();
 
     Time timeAccum;
     Time marksAccum;
+    Time maxTime;
     unsigned int marksCount = 0;
     Clock clock;
 
@@ -183,14 +207,14 @@ void tutos()
         mpos.x = (window::default_width / 2) - mpos.x;
         mpos.y = (window::default_height / 2) - mpos.y;
 
-        cam.rotateLocal(0.1f * deltaTime * mpos.x, { 0, 1, 0 }, true);
-        cam.rotateLocal(0.1f * deltaTime * mpos.y, { 1, 0, 0 }, true);
+        cam.rotateLocal(0.1f * float(deltaTime) * mpos.x, { 0, 1, 0 }, false);
+        cam.rotateLocal(0.1f * float(deltaTime) * mpos.y, { 1, 0, 0 }, false);
 
 
         if (glfwGetKey(window::getMainWindow(), GLFW_KEY_Z) == GLFW_PRESS)
-            cam.rotateLocal(2.0f * deltaTime, { 0, 0, 1 }, true);
+            cam.rotateLocal(2.0f * float(deltaTime), { 0, 0, 1 }, true);
         else if (glfwGetKey(window::getMainWindow(), GLFW_KEY_C) == GLFW_PRESS)
-            cam.rotateLocal(-2.0f * deltaTime, { 0, 0, 1 }, true);
+            cam.rotateLocal(-2.0f * float(deltaTime), { 0, 0, 1 }, true);
 
         if (glfwGetKey(window::getMainWindow(), GLFW_KEY_R) == GLFW_PRESS)
             cam.setOrientation({0, 0, 0});
@@ -218,23 +242,38 @@ void tutos()
         cam.move(translation);
 
 
-        lightPos = cam.getEye() + glm::vec3(1, 1, 0);
+        if (glfwGetKey(window::getMainWindow(), GLFW_KEY_G) == GLFW_PRESS)
+            cam.lookAt(cam.getEye(), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+
+        light.setPosition(cam.getEye() + glm::vec3(0, 0, 0));
+        lightManager.updateLight(lightId, light);
+        slights->build();
+
+        dirLight.setDirection(glm::normalize(cam.getFront()));
+        spotLight.setPosition(cam.getPosition());
+        spotLight.setDirection(cam.getFront());
 
         shader.bind();
 
-        tex.bind();
-        glActiveTexture(GL_TEXTURE0);
-        glUniform1i(textureLoc, 0);
+        material.bindTextures();
+
+        //tex.bind();
+        //glActiveTexture(GL_TEXTURE0);
+        //glUniform1i(textureLoc, 0);
 
         shader.setUniformMatrix("model", model);
-        shader.setUniformMatrix("view", cam.getViewMatrix());
         shader.setUniformMatrix("viewProjection", cam.getViewprojectionMatrix());
-        shader.setUniform("lightPos", lightPos);
+        shader.setUniformMatrix("modelNormal", glm::utils::normalMatrix(model));
+        shader.setUniform("viewPos", cam.getPosition());
+        shader.setUniformLights(slights);
+        shader.setUniformDirectionalLight(dirLight);
+        //shader.setUniformSpotLight(spotLight);
         shader.setUniformMaterial(material);
 
         objmodel.render();
 
-        tex.unbind();
+        material.unbindTextures();
 
         shader.unbind();
 
@@ -242,13 +281,16 @@ void tutos()
 
         timeAccum += t;
         marksAccum += t;
+        maxTime = Time::max(maxTime, t);
         marksCount++;
         if (timeAccum >= Time::seconds(1))
         {
             Time t_avg = marksAccum / marksCount;
-            std::cout << t_avg.toMilliseconds() << " performance." << std::endl;
+            std::cout << maxTime.toMilliseconds() << "ms poor performance; ";
+            std::cout << t_avg.toMilliseconds() << "ms avg performance." << std::endl;
             timeAccum = Time::zero();
             marksAccum = Time::zero();
+            maxTime = Time::zero();
             marksCount = 0;
         }
     });
