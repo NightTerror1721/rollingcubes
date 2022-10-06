@@ -55,7 +55,7 @@ void Mesh::clear()
 	_elementCount = 0;
 }
 
-void Mesh::render(GLenum mode)
+void Mesh::render(GLenum mode) const
 {
 	if (_vaoId != invalid_id)
 	{
@@ -161,7 +161,7 @@ const_optref<Mesh> ObjModel::safeGetMesh(const std::string_view& name) const
 }
 
 
-void ObjModel::render(GLenum mode)
+void ObjModel::render(GLenum mode) const
 {
 	std::size_t const len = _meshes.size();
 	const auto* ptr = _meshes.data();

@@ -154,16 +154,20 @@
     <ClCompile Include="src\core\fps.cpp" />
     <ClCompile Include="src\core\gl.cpp" />
     <ClCompile Include="src\core\window.cpp" />
+    <ClCompile Include="src\engine\basics.cpp" />
     <ClCompile Include="src\engine\camera.cpp" />
+    <ClCompile Include="src\engine\entities.cpp" />
     <ClCompile Include="src\engine\frustum.cpp" />
     <ClCompile Include="src\engine\light.cpp" />
     <ClCompile Include="src\engine\objmodel.cpp" />
     <ClCompile Include="src\engine\shader.cpp" />
     <ClCompile Include="src\engine\texture.cpp" />
+    <ClCompile Include="src\game\cube_model.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\utils\bmp_decoder.cpp" />
     <ClCompile Include="src\utils\image.cpp" />
     <ClCompile Include="src\utils\jpeg_decoder.cpp" />
+    <ClCompile Include="src\utils\json.cpp" />
     <ClCompile Include="src\utils\logger.cpp" />
     <ClCompile Include="src\utils\png_decoder.cpp" />
   </ItemGroup>
@@ -172,13 +176,16 @@
     <ClInclude Include="src\core\gl.h" />
     <ClInclude Include="src\core\time.h" />
     <ClInclude Include="src\core\window.h" />
+    <ClInclude Include="src\engine\basics.h" />
     <ClInclude Include="src\engine\camera.h" />
+    <ClInclude Include="src\engine\entities.h" />
     <ClInclude Include="src\engine\frustum.h" />
     <ClInclude Include="src\engine\light.h" />
     <ClInclude Include="src\engine\material.h" />
     <ClInclude Include="src\engine\objmodel.h" />
     <ClInclude Include="src\engine\shader.h" />
     <ClInclude Include="src\engine\texture.h" />
+    <ClInclude Include="src\game\cube_model.h" />
     <ClInclude Include="src\math\color.h" />
     <ClInclude Include="src\math\glm.h" />
     <ClInclude Include="src\math\MathUtils.h" />
@@ -187,9 +194,11 @@
     <ClInclude Include="src\utils\image.h" />
     <ClInclude Include="src\utils\io_utils.h" />
     <ClInclude Include="src\utils\jpeg_decoder.h" />
+    <ClInclude Include="src\utils\json.h" />
     <ClInclude Include="src\utils\logger.h" />
     <ClInclude Include="src\utils\optref.h" />
     <ClInclude Include="src\utils\png_decoder.h" />
+    <ClInclude Include="src\utils\resources.h" />
     <ClInclude Include="src\utils\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

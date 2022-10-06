@@ -14,6 +14,8 @@
 #include "utils/bmp_decoder.h"
 #include "utils/image.h"
 
+#include "game/cube_model.h"
+
 #include <JPEG/jpeglib.h>
 
 int test_window();
@@ -119,7 +121,7 @@ void tutos()
 
 
     std::shared_ptr<Texture> tex = std::make_shared<Texture>();
-    if (!tex->load("test/uvmap.jpg"))
+    if (!tex->load("test/tile1.jpg"))
         return;
 
     tex->bind();
@@ -135,8 +137,9 @@ void tutos()
     Shader shader;
     shader.load("data/shaders/default.vert", "data/shaders/default.frag");
 
-    ObjModel objmodel;
-    objmodel.load("test/suzanne.obj");
+
+    const ObjModel& objmodel = *cubes::model::getModel().get();
+    //objmodel.load("test/suzanne.obj");
 
     Material material;
     material.setDiffuseColor({ 1, 1, 1 });
@@ -148,6 +151,7 @@ void tutos()
     TutoMove mover;
 
     glm::mat4 model = glm::mat4(1.f);
+    model = glm::scale(model, { 3, 3, 3 });
 
     DirectionalLight dirLight;
     dirLight.setColor(glm::vec3(1, 1, 1));
@@ -173,6 +177,12 @@ void tutos()
     light.setPosition({ 5, 2, 0 });
     //light.setQuadraticAttenuation(0.25);
     auto lightId = lightManager.createNewLight(light);
+
+    Light light2;
+    light2.setColor(glm::vec3(1, 0, 0));
+    light2.setIntensity(30.f);
+    light2.setPosition({ -5, 2, 0 });
+    auto lightId2 = lightManager.createNewLight(light2);
 
     Camera cam;
     cam.setToPerspective(glm::radians(45.f), float(window::default_width) / float(window::default_height), 0.1f, 100.f);

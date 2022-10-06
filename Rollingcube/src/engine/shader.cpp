@@ -1,7 +1,11 @@
 #include "shader.h"
 
+#include <unordered_map>
+#include <string>
+
 #include "utils/io_utils.h"
 #include "utils/logger.h"
+#include "utils/resources.h"
 
 
 std::optional<std::string> Shader::readShader(const std::string_view& filename)
@@ -171,4 +175,112 @@ Shader::uniform_index_t Shader::getUniformLocation(std::string_view vs_name) con
 
 	_uniformCache.emplace(name, loc);
 	return loc;
+}
+
+
+
+
+
+namespace shaders::manager
+{
+	struct ShaderEntry
+	{
+		std::string vertex;
+		std::string fragment;
+	};
+
+	static std::unordered_map<std::string, ShaderEntry> ShadersNames;
+	static bool ShadersNamesLoaded = false;
+
+	static std::unordered_map<std::string, std::shared_ptr<Shader>> ShadersCache;
+
+
+	static void loadNames()
+	{
+		if (ShadersNamesLoaded)
+			return;
+
+		try
+		{
+			JsonValue json = resources::shaders.readJson("config.json");
+			if (json.is_object())
+			{
+				const JsonObject& shadersMap = json.get_ref<const JsonObject&>();
+				for (const auto& e : shadersMap)
+				{
+					std::string_view shaderName;
+					try
+					{
+						shaderName = e.first;
+						if (e.second.is_object())
+						{
+							const JsonObject& rawShaderEntry = e.second.get_ref<const JsonObject&>();
+							auto vertexIt = rawShaderEntry.find("vertex");
+							if (vertexIt == rawShaderEntry.end())
+								throw std::exception("Vertex Shader not found.");
+							auto fragmentIt = rawShaderEntry.find("fragment");
+							if (fragmentIt == rawShaderEntry.end())
+								throw std::exception("Fragment Shader not found.");
+
+							ShaderEntry entry = {
+								.vertex = vertexIt->second.get_ref<const std::string&>(),
+								.fragment = fragmentIt->second.get_ref<const std::string&>()
+							};
+							ShadersNames.insert({ shaderName.data(), entry });
+						}
+					}
+					catch (const std::exception& ex)
+					{
+						logger::error("Exception during shader name {} load: {}", shaderName, ex.what());
+					}
+				}
+			}
+		}
+		catch (const std::exception& ex)
+		{
+			logger::fatal("Exception during shader names load: {}", ex.what());
+		}
+
+		ShadersNamesLoaded = true;
+	}
+}
+
+
+const std::shared_ptr<Shader>& Shader::get(std::string_view name)
+{
+	if (!shaders::manager::ShadersNamesLoaded)
+		shaders::manager::loadNames();
+
+	auto it = shaders::manager::ShadersCache.find(name.data());
+	if (it != shaders::manager::ShadersCache.end())
+		return it->second;
+
+	auto namesIt = shaders::manager::ShadersNames.find(name.data());
+	if (namesIt == shaders::manager::ShadersNames.end())
+	{
+		logger::error("Shader {} not found!", name);
+		return nullptr;
+	}
+
+	std::shared_ptr<Shader> ptr = std::make_shared<Shader>();
+	if (!ptr->load(namesIt->second.vertex, namesIt->second.fragment))
+		return nullptr;
+
+	auto result = shaders::manager::ShadersCache.insert({ name.data(), std::move(ptr) });
+	if (!result.second)
+	{
+		logger::error("Cannot load {} shader. Unknown error.", name);
+		return nullptr;
+	}
+
+	return result.first->second;
+}
+
+void Shader::loadAll()
+{
+	if (!shaders::manager::ShadersNamesLoaded)
+		shaders::manager::loadNames();
+
+	for (auto e : shaders::manager::ShadersNames)
+		get(e.first);
 }

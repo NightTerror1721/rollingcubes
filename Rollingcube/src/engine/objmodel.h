@@ -49,7 +49,7 @@ public:
 
 	void clear();
 
-	void render(GLenum mode = GL_TRIANGLES);
+	void render(GLenum mode = GL_TRIANGLES) const;
 
 	void setColors(const std::vector<Color>& colors);
 
@@ -140,7 +140,7 @@ public:
 	const_optref<Mesh> safeGetMesh(const std::string_view& name) const;
 
 
-	void render(GLenum mode = GL_TRIANGLES);
+	void render(GLenum mode = GL_TRIANGLES) const;
 
 
 	bool load(const std::string_view& filename);

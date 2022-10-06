@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <optional>
+#include <memory>
 
 #include "core/gl.h"
 #include "math/glm.h"
@@ -40,7 +41,7 @@ public:
 	Shader& operator= (const Shader&) = delete;
 	Shader& operator= (Shader&&) noexcept = delete;
 
-
+public:
 	~Shader();
 
 	void release();
@@ -53,6 +54,12 @@ public:
 
 	inline void bind() const { if (_programId != invalid_id) glUseProgram(_programId); }
 	inline void unbind() const { glUseProgram(invalid_id); }
+
+public:
+	static const std::shared_ptr<Shader>& get(std::string_view name);
+	static void loadAll();
+
+	static inline bool exists(std::string_view name) { return get(name) != nullptr; }
 
 private:
 	uniform_index_t getUniformLocation(std::string_view name) const;
