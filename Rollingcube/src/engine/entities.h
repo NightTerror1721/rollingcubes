@@ -8,6 +8,7 @@
 #include "basics.h"
 #include "objmodel.h"
 #include "material.h"
+#include "light.h"
 
 
 class EntityIdFactory;
@@ -122,24 +123,34 @@ class ModeledEntity : public TransformableEntity
 private:
 	std::shared_ptr<ObjModel> _objModel = nullptr;
 	Material _material;
+	StaticLightContainer _staticLightContainer;
+	std::shared_ptr<StaticLightManager> _staticLightManager = nullptr;
 
 public:
 	ModeledEntity() = default;
 	ModeledEntity(const ModeledEntity&) = delete;
 	ModeledEntity(ModeledEntity&&) noexcept = default;
-	virtual ~ModeledEntity() = default;
+	virtual ~ModeledEntity();
 
 	ModeledEntity& operator= (const ModeledEntity&) = delete;
 	ModeledEntity& operator= (ModeledEntity&&) noexcept = delete;
 
 public:
-	virtual void render(GLenum mode = GL_TRIANGLES);
+	virtual void update(Time elapsedTime);
+
+	void renderDefault(GLenum mode = GL_TRIANGLES);
+
+	void linkStaticLightManager(const std::shared_ptr<StaticLightManager>& lightManager);
 
 public:
+	virtual inline void render(GLenum mode = GL_TRIANGLES) { renderDefault(mode); }
+
 	inline void setObjectModel(const std::shared_ptr<ObjModel>& objModel) { _objModel = objModel; }
 	inline const std::shared_ptr<ObjModel>& getObjectModel() const { return _objModel; }
 
 	inline void setMaterial(const Material& material) { _material = material; }
 	inline const Material& getMaterial() const { return _material; }
 	inline Material& getMaterial() { return _material; }
+
+	inline const StaticLightContainer& getStaticLightContainer() { return _staticLightContainer; }
 };

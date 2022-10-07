@@ -195,3 +195,14 @@ void Camera::setBottom(float bottom, bool update)
 	if (update)
 		updateViewMatrix();
 }
+
+
+void Camera::bindToShader(const std::shared_ptr<Shader>& shader)
+{
+	if (shader != nullptr)
+	{
+		shader->bind();
+		shader->setUniformMatrix("viewProjection", _viewprojectionMatrix);
+		shader->setUniform("viewPos", _eye);
+	}
+}

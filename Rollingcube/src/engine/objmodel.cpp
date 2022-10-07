@@ -74,6 +74,12 @@ void Mesh::render(GLenum mode) const
 	}
 }
 
+void Mesh::render(const std::function<void(const Mesh&)>& preRenderCallback, GLenum mode) const
+{
+	preRenderCallback(*this);
+	render(mode);
+}
+
 void Mesh::setColors(const std::vector<Color>& colors)
 {
 	std::vector<glm::vec4> vcolors;
@@ -167,6 +173,14 @@ void ObjModel::render(GLenum mode) const
 	const auto* ptr = _meshes.data();
 	for (std::size_t i = 0; i < len; ++i)
 		ptr[i]->render(mode);
+}
+
+void ObjModel::render(const std::function<void(const Mesh&)>& preMeshRenderCallback, GLenum mode) const
+{
+	std::size_t const len = _meshes.size();
+	const auto* ptr = _meshes.data();
+	for (std::size_t i = 0; i < len; ++i)
+		ptr[i]->render(preMeshRenderCallback, mode);
 }
 
 

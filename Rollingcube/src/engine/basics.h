@@ -30,6 +30,8 @@ private:
 	glm::vec3 _rotation = { 0, 0, 0 };
 	glm::vec3 _scale = { 1, 1, 1 };
 
+	bool _alteredFlag = true;
+
 	mutable glm::mat4 _model = {};
 	mutable bool _modelNeedUpdate = true;
 
@@ -50,13 +52,13 @@ public:
 	const glm::mat4& getInvertedModelMatrix() const;
 
 public:
-	inline void setPosition(const glm::vec3& position) { _position = position; _modelNeedUpdate = true; _invertedModelNeedUpdate = true; }
+	inline void setPosition(const glm::vec3& position) { _position = position; _modelNeedUpdate = true; _invertedModelNeedUpdate = true; _alteredFlag = true; }
 	inline const glm::vec3& getPosition() const { return _position; }
 
-	inline void setRotation(const glm::vec3& rotation) { _rotation = rotation; _modelNeedUpdate = true; _invertedModelNeedUpdate = true; }
+	inline void setRotation(const glm::vec3& rotation) { _rotation = rotation; _modelNeedUpdate = true; _invertedModelNeedUpdate = true; _alteredFlag = true; }
 	inline const glm::vec3& getRotation() const { return _rotation; }
 
-	inline void setScale(const glm::vec3& scale) { _scale = scale; _modelNeedUpdate = true; _invertedModelNeedUpdate = true; }
+	inline void setScale(const glm::vec3& scale) { _scale = scale; _modelNeedUpdate = true; _invertedModelNeedUpdate = true; _alteredFlag = true; }
 	inline const glm::vec3& getScale() const { return _scale; }
 
 	inline void setPosition(float x, float y, float z) { setPosition({ x, y, z }); }
@@ -71,4 +73,10 @@ public:
 
 	inline void scale(const glm::vec3& delta) { setScale(_scale + delta); }
 	inline void scale(float x, float y, float z) { scale({ x, y, z }); }
+
+	inline glm::mat3 getNormalMatrix() const { return glm::mat3(glm::transpose(getInvertedModelMatrix())); }
+
+protected:
+	constexpr bool isAlteredFlagEnabled() const { return _alteredFlag; }
+	constexpr void disableAlteredFlag() { _alteredFlag = false; }
 };

@@ -181,18 +181,21 @@ Shader::uniform_index_t Shader::getUniformLocation(std::string_view vs_name) con
 
 
 
+std::vector<std::shared_ptr<Shader>> Shader::ShadersCache;
+std::shared_ptr<Shader> Shader::DefaultShaderCache = nullptr;
+
 namespace shaders::manager
 {
 	struct ShaderEntry
 	{
 		std::string vertex;
 		std::string fragment;
+		Shader::Id id;
+		bool loaded;
 	};
 
 	static std::unordered_map<std::string, ShaderEntry> ShadersNames;
 	static bool ShadersNamesLoaded = false;
-
-	static std::unordered_map<std::string, std::shared_ptr<Shader>> ShadersCache;
 
 
 	static void loadNames()
@@ -223,8 +226,9 @@ namespace shaders::manager
 								throw std::exception("Fragment Shader not found.");
 
 							ShaderEntry entry = {
-								.vertex = vertexIt->second.get_ref<const std::string&>(),
-								.fragment = fragmentIt->second.get_ref<const std::string&>()
+								.vertex = (resources::shaders / vertexIt->second.get_ref<const std::string&>()).string(),
+								.fragment = (resources::shaders / fragmentIt->second.get_ref<const std::string&>()).string(),
+								.loaded = false
 							};
 							ShadersNames.insert({ shaderName.data(), entry });
 						}
@@ -246,34 +250,30 @@ namespace shaders::manager
 }
 
 
-const std::shared_ptr<Shader>& Shader::get(std::string_view name)
+Shader::Id Shader::load(std::string_view name)
 {
 	if (!shaders::manager::ShadersNamesLoaded)
 		shaders::manager::loadNames();
 
-	auto it = shaders::manager::ShadersCache.find(name.data());
-	if (it != shaders::manager::ShadersCache.end())
-		return it->second;
-
 	auto namesIt = shaders::manager::ShadersNames.find(name.data());
-	if (namesIt == shaders::manager::ShadersNames.end())
-	{
-		logger::error("Shader {} not found!", name);
-		return nullptr;
-	}
+	if (namesIt != shaders::manager::ShadersNames.end() && namesIt->second.loaded)
+		return namesIt->second.id;
 
 	std::shared_ptr<Shader> ptr = std::make_shared<Shader>();
 	if (!ptr->load(namesIt->second.vertex, namesIt->second.fragment))
-		return nullptr;
+		return Id(-1);
 
-	auto result = shaders::manager::ShadersCache.insert({ name.data(), std::move(ptr) });
-	if (!result.second)
-	{
-		logger::error("Cannot load {} shader. Unknown error.", name);
-		return nullptr;
-	}
+	Id id = Id(ShadersCache.size());
+	ShadersCache.push_back(std::move(ptr));
+	namesIt->second.id = id;
 
-	return result.first->second;
+	return id;
+}
+
+void Shader::loadDefault()
+{
+	Shader::Id id = load("default");
+	DefaultShaderCache = get(id);
 }
 
 void Shader::loadAll()
@@ -282,5 +282,5 @@ void Shader::loadAll()
 		shaders::manager::loadNames();
 
 	for (auto e : shaders::manager::ShadersNames)
-		get(e.first);
+		load(e.first);
 }

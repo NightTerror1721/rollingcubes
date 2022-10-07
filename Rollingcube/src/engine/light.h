@@ -78,6 +78,22 @@ public:
 
 	constexpr void setQuadraticAttenuation(float attenuationFactor) { _quadraticAttenuation = attenuationFactor; }
 	constexpr float getQuadraticAttenuation() const { return _quadraticAttenuation; }
+
+
+	constexpr float computeAttenuation(float distance)
+	{
+		return 1.0f / (_constantAttenuation + _linearAttenuation * distance + _quadraticAttenuation * (distance * distance));
+	}
+
+	constexpr float computeAttenuatedIntensity(float distance)
+	{
+		return _intensity * computeAttenuation(distance);
+	}
+
+	inline float computeAttenuatedIntensityFrom(const glm::vec3& position)
+	{
+		return computeAttenuatedIntensity(glm::length(_position - position));
+	}
 };
 
 
@@ -150,122 +166,185 @@ public:
 };
 
 
+using StaticLightId = std::size_t;
 
-class LightManager;
+class StaticLightManager;
 
 
-
-class ShaderLights
+class StaticLightContainer
 {
 public:
-	static constexpr std::size_t maxLights = 8;
-	static constexpr float minIntensity = .01f;
+	friend StaticLightManager;
 
-	friend LightManager;
-
-private:
-	LightManager* _manager;
-	Light::ListenerId _listenerId = 0;
-	glm::vec3 _position = glm::vec3(0, 0, 0);
-	bool _needBuild = true;
+	static constexpr std::size_t maxStaticLights = 8;
 
 private:
-	std::vector<Light::ManagerId> _lights;
+	static constexpr float minIntensity = 0.01f;
 
-	std::vector<glm::vec3> _lightPositions;
-	std::vector<glm::vec3> _lightDiffuseColors;
-	std::vector<glm::vec3> _lightAmbientColors;
-	std::vector<glm::vec3> _lightSpecularColors;
-	std::vector<GLfloat> _lightConstants;
-	std::vector<GLfloat> _lightLinears;
-	std::vector<GLfloat> _lightQuadratics;
-	std::vector<GLfloat> _lightIntensities;
+private:
+	std::shared_ptr<StaticLightManager> _manager = nullptr;
+	std::vector<std::shared_ptr<Light>> _lights;
+	glm::vec3 _position;
+	std::uint64_t _buildVersion = 0;
 
 public:
-	ShaderLights(const ShaderLights&) = delete;
-	ShaderLights(ShaderLights&&) noexcept = default;
+	StaticLightContainer() = default;
+	StaticLightContainer(const StaticLightContainer&) = default;
+	StaticLightContainer(StaticLightContainer&&) noexcept = default;
+	~StaticLightContainer() = default;
 
-	ShaderLights& operator= (const ShaderLights&) = delete;
-	ShaderLights& operator= (ShaderLights&&) noexcept = default;
-
-	inline ShaderLights(LightManager& manager) : _manager(std::addressof(manager)) {}
+	StaticLightContainer& operator= (const StaticLightContainer&) = default;
+	StaticLightContainer& operator= (StaticLightContainer&&) noexcept = default;
 
 public:
-	~ShaderLights();
-
-	inline void setPosition(const glm::vec3& position) { _position = position; }
-	inline const glm::vec3& getPosition() const { return _position; }
-
-	void build();
-
-	const Light& getLight(GLint index) const;
-
-
 	inline bool empty() const { return _lights.empty(); }
 	inline std::size_t size() const { return _lights.size(); }
 
-	inline const std::vector<glm::vec3>& getLightsPositions() const { return _lightPositions; }
-	inline const std::vector<glm::vec3>& getLightsDiffuseColors() const { return _lightDiffuseColors; }
-	inline const std::vector<glm::vec3>& getLightsAmbientColors() const { return _lightAmbientColors; }
-	inline const std::vector<glm::vec3>& getLightsSpecularColors() const { return _lightSpecularColors; }
-	inline const std::vector<GLfloat>& getLightsConstantAttenuations() const { return _lightConstants; }
-	inline const std::vector<GLfloat>& getLightsLinearAttenuations() const { return _lightLinears; }
-	inline const std::vector<GLfloat>& getLightsQuadraticAttenuations() const { return _lightQuadratics; }
-	inline const std::vector<GLfloat>& getLightsIntensities() const { return _lightIntensities; }
+	inline const Light& at(std::size_t index) const { return *_lights.at(index); }
 
+	inline const Light& operator[] (std::size_t index) const { return *_lights[index]; }
 
-	inline const Light& operator[] (GLint index) const { return getLight(index); }
+	inline const glm::vec3& getPosition() const { return _position; }
+
+	inline void setPosition(const glm::vec3& position)
+	{
+		auto old = _position;
+		_position = position;
+		if (old != position)
+			_buildVersion = 0;
+	}
+
+	inline void unlink()
+	{
+		_lights.clear();
+		_manager.reset();
+		_buildVersion = 0;
+	}
+
+	inline void link(const std::shared_ptr<StaticLightManager>& manager)
+	{
+		unlink();
+		_manager = manager;
+	}
+
+	void update();
+
+private:
+	void build();
 };
 
 
-
-
-class LightManager
+class StaticLightManager
 {
 public:
-	friend ShaderLights;
+	friend StaticLightContainer;
 
 private:
-	struct Allocator
-	{
-		Light::ManagerId id;
-		std::shared_ptr<Light> light;
-		std::unordered_set<Light::ListenerId> listeners;
-	};
-
-	static constexpr std::size_t managerIdToIndex(Light::ManagerId id) { return id - 1; }
-	static constexpr Light::ManagerId indexToManagerId(std::size_t id) { return id + 1; }
-
-private:
-	IndexedVector<Allocator> _lights;
-	IndexedVector<std::shared_ptr<ShaderLights>> _listeners;
+	std::unordered_map<StaticLightId, std::shared_ptr<Light>> _lights;
+	std::queue<StaticLightId> _unusedIds;
+	StaticLightId _nextId = 1;
+	std::uint64_t _buildVersion = 1;
 
 public:
-	LightManager() = default;
-	LightManager(const LightManager&) = delete;
-	LightManager(LightManager&&) noexcept = default;
-	~LightManager() = default;
+	StaticLightManager() noexcept = default;
+	StaticLightManager(const StaticLightManager&) = delete;
+	StaticLightManager(StaticLightManager&&) noexcept = default;
+	~StaticLightManager() = default;
 
-	LightManager& operator= (const LightManager&) = delete;
-	LightManager& operator= (LightManager&&) noexcept = default;
+	StaticLightManager& operator= (const StaticLightManager&) = delete;
+	StaticLightManager& operator= (StaticLightManager&&) noexcept = default;
 
+public:
+	inline StaticLightId createNewLight(const Light& initialLight)
+	{
+		StaticLightId id;
+		if (!_unusedIds.empty())
+		{
+			id = _unusedIds.front();
+			_unusedIds.pop();
+		}
+		else
+			id = _nextId++;
 
-	std::shared_ptr<ShaderLights> createShaderLights();
+		_lights.insert({ id, std::make_shared<Light>(initialLight) });
+		_buildVersion++;
+		return id;
+	}
 
-	Light::ManagerId createNewLight(const Light& initial_light_data = Light());
+	inline void destroyLight(StaticLightId lightId)
+	{
+		auto it = _lights.find(lightId);
+		if (it != _lights.end())
+		{
+			_lights.erase(it);
+			_unusedIds.push(lightId);
+			_buildVersion++;
+		}
+	}
 
-	void updateLight(Light::ManagerId id, const Light& light);
+	inline void updateLight(StaticLightId id, const Light& light)
+	{
+		auto it = _lights.find(id);
+		if (it != _lights.end())
+		{
+			glm::vec3 oldPos = it->second->getPosition();
+			*it->second = light;
+			if (oldPos != it->second->getPosition())
+				_buildVersion++;
+		}
+	}
 
-	inline const Light& getLight(Light::ManagerId id) const { return *_lights[id].light.get(); }
+	inline const std::shared_ptr<Light>& getLight(StaticLightId lightId) const
+	{
+		auto it = _lights.find(lightId);
+		if (it != _lights.end())
+			return it->second;
 
+		static const std::shared_ptr<Light> invalid_ptr = nullptr;
+		return invalid_ptr;
+	}
 
-	inline const Light& operator[] (Light::ManagerId id) const { return *_lights[id].light.get(); }
-
-private:
-	void destroyShaderLights(Light::ListenerId id);
-	void releaseLightListener(Light::ManagerId lightId, Light::ListenerId listenerId);
+	inline const std::shared_ptr<Light>& operator[] (StaticLightId lightId) const { return getLight(lightId); }
 };
 
+inline void StaticLightContainer::build()
+{
+	struct LightIntensity
+	{
+		std::shared_ptr<Light>* light;
+		float intensity;
 
+		constexpr bool operator== (const LightIntensity& right) const { return intensity == right.intensity; };
+		constexpr auto operator<=> (const LightIntensity& right) const { return intensity <=> right.intensity; };
+	};
 
-inline const Light& ShaderLights::getLight(GLint index) const { return _manager->getLight(_lights[index]); }
+	if (_manager != nullptr)
+	{
+		_lights.clear();
+		std::vector<LightIntensity> potentialLights;
+		for (auto& light : _manager->_lights)
+		{
+			float intensity = light.second->computeAttenuatedIntensityFrom(_position);
+			if (intensity >= minIntensity)
+				potentialLights.push_back({ std::addressof(light.second), intensity });
+		}
+
+		if (!potentialLights.empty())
+		{
+			const std::size_t len = std::min(potentialLights.size(), maxStaticLights);
+			_lights.resize(len);
+			
+			std::sort(potentialLights.begin(), potentialLights.end());
+			for (std::size_t i = 0; i < len; ++i)
+				_lights[i] = *potentialLights[i].light;
+		}
+
+		_buildVersion = _manager->_buildVersion;
+	}
+}
+
+inline void StaticLightContainer::update()
+{
+	if (_manager != nullptr && _manager->_buildVersion != _buildVersion)
+		build();
+}

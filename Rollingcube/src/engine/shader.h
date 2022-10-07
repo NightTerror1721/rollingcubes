@@ -15,6 +15,8 @@
 class Shader
 {
 public:
+	using Id = std::uint32_t;
+
 	static constexpr GLuint vertices_array_attrib_index = 0;
 	static constexpr GLuint uvs_array_attrib_index = 1;
 	static constexpr GLuint normals_array_attrib_index = 2;
@@ -24,6 +26,9 @@ public:
 
 
 private:
+	static std::vector<std::shared_ptr<Shader>> ShadersCache;
+	static std::shared_ptr<Shader> DefaultShaderCache;
+
 	using uniform_index_t = decltype(glGetUniformLocation(0, nullptr));
 
 	static constexpr GLuint invalid_id = 0;
@@ -56,10 +61,33 @@ public:
 	inline void unbind() const { glUseProgram(invalid_id); }
 
 public:
-	static const std::shared_ptr<Shader>& get(std::string_view name);
+	static Shader::Id load(std::string_view name);
 	static void loadAll();
 
-	static inline bool exists(std::string_view name) { return get(name) != nullptr; }
+	static void loadDefault();
+
+	static inline const std::shared_ptr<Shader>& get(Id id)
+	{
+		#ifdef _DEBUG
+		static std::shared_ptr<Shader> invalid_shader = nullptr;
+		if (id >= ShadersCache.size())
+		{
+			logger::error("Shader with {} id not exists!", id);
+			return invalid_shader;
+		}
+		#endif
+
+		return ShadersCache[id];
+	}
+
+	static inline const std::shared_ptr<Shader>& getDefault()
+	{
+		if (DefaultShaderCache == nullptr)
+			loadDefault();
+		return DefaultShaderCache;
+	}
+
+	static inline bool exists(std::string_view name) { return load(name) != Id(-1); }
 
 private:
 	uniform_index_t getUniformLocation(std::string_view name) const;
@@ -127,13 +155,13 @@ public:
 
 	void setUniformMaterial(const Material& material) const;
 
-	void setUniformLights(const ShaderLights& lights) const;
+	void setUniformStaticLights(const StaticLightContainer& lights) const;
 
 	void setUniformDirectionalLight(const DirectionalLight& light) const;
 
 	void setUniformSpotLight(const SpotLight& light) const;
 
-	inline void setUniformLights(const std::shared_ptr<ShaderLights>& lights) const { setUniformLights(*lights.get()); }
+	inline void setUniformStaticLights(const std::shared_ptr<StaticLightContainer>& lights) const { setUniformStaticLights(*lights.get()); }
 };
 
 
@@ -343,44 +371,44 @@ inline void Shader::setUniformMaterial(const Material& material) const
 	setUniform("material.shininess", material.getShininess());
 }
 
-inline void Shader::setUniformLights(const ShaderLights& lights) const
+inline void Shader::setUniformStaticLights(const StaticLightContainer& lights) const
 {
-	static constexpr std::string_view position_names[ShaderLights::maxLights]{
+	static constexpr std::string_view position_names[StaticLightContainer::maxStaticLights]{
 		"pointLights[0].position", "pointLights[1].position", "pointLights[2].position", "pointLights[3].position",
 		"pointLights[4].position", "pointLights[5].position", "pointLights[6].position", "pointLights[7].position"
 	};
 
-	static constexpr std::string_view color_ambient_names[ShaderLights::maxLights]{
+	static constexpr std::string_view color_ambient_names[StaticLightContainer::maxStaticLights]{
 		"pointLights[0].color.ambient", "pointLights[1].color.ambient", "pointLights[2].color.ambient", "pointLights[3].color.ambient",
 		"pointLights[4].color.ambient", "pointLights[5].color.ambient", "pointLights[6].color.ambient", "pointLights[7].color.ambient"
 	};
 
-	static constexpr std::string_view color_diffuse_names[ShaderLights::maxLights]{
+	static constexpr std::string_view color_diffuse_names[StaticLightContainer::maxStaticLights]{
 		"pointLights[0].color.diffuse", "pointLights[1].color.diffuse", "pointLights[2].color.diffuse", "pointLights[3].color.diffuse",
 		"pointLights[4].color.diffuse", "pointLights[5].color.diffuse", "pointLights[6].color.diffuse", "pointLights[7].color.diffuse"
 	};
 
-	static constexpr std::string_view color_specular_names[ShaderLights::maxLights]{
+	static constexpr std::string_view color_specular_names[StaticLightContainer::maxStaticLights]{
 		"pointLights[0].color.specular", "pointLights[1].color.specular", "pointLights[2].color.specular", "pointLights[3].color.specular",
 		"pointLights[4].color.specular", "pointLights[5].color.specular", "pointLights[6].color.specular", "pointLights[7].color.specular"
 	};
 
-	static constexpr std::string_view constant_names[ShaderLights::maxLights]{
+	static constexpr std::string_view constant_names[StaticLightContainer::maxStaticLights]{
 		"pointLights[0].constant", "pointLights[1].constant", "pointLights[2].constant", "pointLights[3].constant",
 		"pointLights[4].constant", "pointLights[5].constant", "pointLights[6].constant", "pointLights[7].constant"
 	};
 
-	static constexpr std::string_view linear_names[ShaderLights::maxLights]{
+	static constexpr std::string_view linear_names[StaticLightContainer::maxStaticLights]{
 		"pointLights[0].linear", "pointLights[1].linear", "pointLights[2].linear", "pointLights[3].linear",
 		"pointLights[4].linear", "pointLights[5].linear", "pointLights[6].linear", "pointLights[7].linear"
 	};
 
-	static constexpr std::string_view quadratic_names[ShaderLights::maxLights]{
+	static constexpr std::string_view quadratic_names[StaticLightContainer::maxStaticLights]{
 		"pointLights[0].quadratic", "pointLights[1].quadratic", "pointLights[2].quadratic", "pointLights[3].quadratic",
 		"pointLights[4].quadratic", "pointLights[5].quadratic", "pointLights[6].quadratic", "pointLights[7].quadratic"
 	};
 
-	static constexpr std::string_view intensity_names[ShaderLights::maxLights]{
+	static constexpr std::string_view intensity_names[StaticLightContainer::maxStaticLights]{
 		"pointLights[0].intensity", "pointLights[1].intensity", "pointLights[2].intensity", "pointLights[3].intensity",
 		"pointLights[4].intensity", "pointLights[5].intensity", "pointLights[6].intensity", "pointLights[7].intensity"
 	};
@@ -390,7 +418,7 @@ inline void Shader::setUniformLights(const ShaderLights& lights) const
 
 	for (GLint i = 0; i < len; ++i)
 	{
-		const Light& light = lights.getLight(i);
+		const Light& light = lights[i];
 		setUniform(position_names[i], light.getPosition());
 		setUniform(color_ambient_names[i], light.getAmbientColor());
 		setUniform(color_diffuse_names[i], light.getDiffuseColor());

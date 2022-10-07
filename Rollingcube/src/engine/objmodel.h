@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <functional>
 
 #include "core/gl.h"
 #include "math/glm.h"
@@ -20,6 +21,7 @@ private:
 	using vertex_index_type = unsigned int;
 
 	static constexpr GLuint invalid_id = 0;
+
 
 	std::string _name;
 
@@ -50,6 +52,7 @@ public:
 	void clear();
 
 	void render(GLenum mode = GL_TRIANGLES) const;
+	void render(const std::function<void(const Mesh&)>& preRenderCallback, GLenum mode = GL_TRIANGLES) const;
 
 	void setColors(const std::vector<Color>& colors);
 
@@ -141,6 +144,7 @@ public:
 
 
 	void render(GLenum mode = GL_TRIANGLES) const;
+	void render(const std::function<void(const Mesh&)>& preMeshRenderCallback, GLenum mode = GL_TRIANGLES) const;
 
 
 	bool load(const std::string_view& filename);

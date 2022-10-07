@@ -9,6 +9,7 @@
 #include "engine/shader.h"
 #include "engine/camera.h"
 #include "engine/texture.h"
+#include "engine/entities.h"
 
 #include "utils/logger.h"
 #include "utils/bmp_decoder.h"
@@ -134,63 +135,59 @@ void tutos()
 
 
 
-    Shader shader;
-    shader.load("data/shaders/default.vert", "data/shaders/default.frag");
+    //Shader shader;
+    //shader.load("data/shaders/default.vert", "data/shaders/default.frag");
+    //std::shared_ptr<Shader> shader = Shader::getDefault();
 
 
-    const ObjModel& objmodel = *cubes::model::getModel().get();
-    //objmodel.load("test/suzanne.obj");
+    //const ObjModel& objmodel = *cubes::model::getModel().get();
+    std::shared_ptr<ObjModel> objmodel = std::make_shared<ObjModel>();
+    objmodel->load("test/suzanne.obj");
 
-    Material material;
+    ModeledEntity entity;
+    entity.setObjectModel(objmodel);
+
+    Material& material = entity.getMaterial();
     material.setDiffuseColor({ 1, 1, 1 });
-    material.setAmbientColor({ 0.1, 0.5, 0.1 });
+    material.setAmbientColor({ 0.1, 0.1, 0.1 });
     material.setSpecularColor({ 0.3, 0.3, 0.3 });
     material.setShininess(10);
     material.setDiffuseTexture(tex);
 
     TutoMove mover;
 
-    glm::mat4 model = glm::mat4(1.f);
-    model = glm::scale(model, { 3, 3, 3 });
+    //glm::mat4 model = glm::mat4(1.f);
+    //model = glm::scale(model, { 3, 3, 3 });
 
     DirectionalLight dirLight;
     dirLight.setColor(glm::vec3(1, 1, 1));
     dirLight.setDirection(glm::vec3(-0.2f, -1.0f, -0.3f));
     dirLight.setIntensity(0.5);
 
-    SpotLight spotLight;
-    spotLight.setColor({ 0, 0, 0 });
-    //spotLight.setAmbientColor({ 0, 0, 0 });
-    //spotLight.setDiffuseColor({ 0.1, 0.1, 0.1 });
-    //spotLight.setSpecularColor({ 1, 1, 1 });
-    spotLight.setIntensity(3);
-    spotLight.setCutOff(glm::cos(glm::radians(7.5f)));
-    spotLight.setOuterCutOff(glm::cos(glm::radians(30.5f)));
+    std::shared_ptr<StaticLightManager> lightManager = std::make_shared<StaticLightManager>();
+    entity.linkStaticLightManager(lightManager);
 
-    LightManager lightManager;
-    auto slights = lightManager.createShaderLights();
-    slights->setPosition(glm::vec3(0, 0, 0));
+    //auto slights = lightManager->createShaderLights();
 
     Light light;
-    light.setColor(glm::vec3(1, 1, 1));
+    //light.setColor(glm::vec3(1, 1, 1));
+    light.setAmbientColor({ 0, 0, 0 });
+    light.setDiffuseColor({ 0., 0., 0. });
+    light.setSpecularColor({ 1, 1, 1 });
     light.setIntensity(20.f);
     light.setPosition({ 5, 2, 0 });
     //light.setQuadraticAttenuation(0.25);
-    auto lightId = lightManager.createNewLight(light);
+    auto lightId = lightManager->createNewLight(light);
 
     Light light2;
-    light2.setColor(glm::vec3(1, 0, 0));
+    light2.setColor({ 1, 1, 1 });
     light2.setIntensity(30.f);
     light2.setPosition({ -5, 2, 0 });
-    auto lightId2 = lightManager.createNewLight(light2);
+    auto lightId2 = lightManager->createNewLight(light2);
 
     Camera cam;
     cam.setToPerspective(glm::radians(45.f), float(window::default_width) / float(window::default_height), 0.1f, 100.f);
     cam.lookAt(glm::vec3(4, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-    auto mvp = cam.mvp(model);
-
-
-    GLuint textureLoc = glGetUniformLocation(shader.programId(), "mainTexture");
 
 
     double lastTime = 0;
@@ -257,35 +254,47 @@ void tutos()
 
 
         light.setPosition(cam.getEye() + glm::vec3(0, 0, 0));
-        lightManager.updateLight(lightId, light);
-        slights->build();
+        lightManager->updateLight(lightId, light);
+        //slights->build();
 
         dirLight.setDirection(glm::normalize(cam.getFront()));
-        spotLight.setPosition(cam.getPosition());
-        spotLight.setDirection(cam.getFront());
 
-        shader.bind();
+        entity.update(elapsedTime);
 
-        material.bindTextures();
+        //cam.bindToDefaultShader();
+        //shader->bind();
+        //material.bindTextures();
+        //shader->unbind();
+
+        //entity.render();
 
         //tex.bind();
         //glActiveTexture(GL_TEXTURE0);
         //glUniform1i(textureLoc, 0);
 
-        shader.setUniformMatrix("model", model);
-        shader.setUniformMatrix("viewProjection", cam.getViewprojectionMatrix());
-        shader.setUniformMatrix("modelNormal", glm::utils::normalMatrix(model));
-        shader.setUniform("viewPos", cam.getPosition());
-        shader.setUniformLights(slights);
-        shader.setUniformDirectionalLight(dirLight);
-        //shader.setUniformSpotLight(spotLight);
-        shader.setUniformMaterial(material);
+        cam.bindToDefaultShader();
 
-        objmodel.render();
+        Shader::getDefault()->bind();
+        Shader::getDefault()->setUniformDirectionalLight(dirLight);
 
-        material.unbindTextures();
+        //entity.getMaterial().bindTextures();
 
-        shader.unbind();
+        //Shader::getDefault()->setUniformMatrix("model", entity.getModelMatrix());
+        //Shader::getDefault()->setUniformMatrix("viewProjection", cam.getViewprojectionMatrix());
+        //Shader::getDefault()->setUniformMatrix("modelNormal", glm::utils::normalMatrix(entity.getModelMatrix()));
+        //Shader::getDefault()->setUniform("viewPos", cam.getPosition());
+        //Shader::getDefault()->setUniformStaticLights(entity.getStaticLightContainer());
+        //Shader::getDefault()->setUniformDirectionalLight(dirLight);
+        //Shader::getDefault()->setUniformMaterial(material);
+
+        entity.render();
+
+        //entity.getObjectModel()->render();
+
+        //objmodel->render();
+
+        //material.unbindTextures();
+        //shader->unbind();
 
         Time t = clock.restart();
 
