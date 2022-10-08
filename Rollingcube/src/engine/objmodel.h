@@ -25,7 +25,9 @@ private:
 
 	std::string _name;
 
-	GLuint _vaoId = invalid_id;
+	gl::VAO _vao;
+
+	/*GLuint _vaoId = invalid_id;
 	
 	GLuint _verticesVboId = invalid_id;
 	GLuint _uvsVboId = invalid_id;
@@ -33,7 +35,7 @@ private:
 	GLuint _tangentsVboId = invalid_id;
 	GLuint _bitangentVboId = invalid_id;
 	GLuint _colorsVboId = invalid_id;
-	GLuint _elementsIboId = invalid_id;
+	GLuint _elementsIboId = invalid_id;*/
 
 	GLsizei _verticesCount = 0;
 	GLsizei _elementCount = 0;
@@ -58,20 +60,22 @@ public:
 
 	inline void setVertices(const std::vector<glm::vec3>& vertices)
 	{
-		createBuffer(_verticesVboId, Shader::vertices_array_attrib_index, vertices);
+		//createBuffer(_verticesVboId, Shader::vertices_array_attrib_index, vertices);
+		createVertexBuffer(Shader::vertices_array_attrib_index, vertices);
 		_verticesCount = GLsizei(vertices.size());
 	}
-	inline void setUVs(const std::vector<glm::vec2>& uvs) { createBuffer(_uvsVboId, Shader::uvs_array_attrib_index, uvs); }
-	inline void setNormals(const std::vector<glm::vec3>& normals) { createBuffer(_normalsVboId, Shader::normals_array_attrib_index, normals); }
-	inline void setTangents(const std::vector<glm::vec3>& tangents) { createBuffer(_tangentsVboId, Shader::tangents_array_attrib_index, tangents); }
+	inline void setUVs(const std::vector<glm::vec2>& uvs) { createVertexBuffer(Shader::uvs_array_attrib_index, uvs); }
+	inline void setNormals(const std::vector<glm::vec3>& normals) { createVertexBuffer(Shader::normals_array_attrib_index, normals); }
+	inline void setTangents(const std::vector<glm::vec3>& tangents) { createVertexBuffer(Shader::tangents_array_attrib_index, tangents); }
 	inline void setBitangents(const std::vector<glm::vec3>& bitangents)
 	{
-		createBuffer(_bitangentVboId, Shader::bitangents_array_attrib_index, bitangents);
+		createVertexBuffer(Shader::bitangents_array_attrib_index, bitangents);
 	}
-	inline void setColors(const std::vector<glm::vec4>& colors) { createBuffer(_colorsVboId, Shader::colors_array_attrib_index, colors); }
+	inline void setColors(const std::vector<glm::vec4>& colors) { createVertexBuffer(Shader::colors_array_attrib_index, colors); }
 	inline void setElements(const std::vector<vertex_index_type>& elements)
 	{
-		createBuffer(_elementsIboId, elements);
+		//createBuffer(_elementsIboId, elements);
+		createVertexArray(elements);
 		_elementCount = GLsizei(elements.size());
 	}
 
@@ -79,39 +83,26 @@ public:
 	inline const std::string& getName() const { return _name; }
 
 private:
-	static void destroyBuffer(GLuint& bufferId);
-
-	inline void enableVao()
-	{
-		if (_vaoId == invalid_id)
-			glGenVertexArrays(1, &_vaoId);
-
-		glBindVertexArray(_vaoId);
-	}
-
-	static inline void disableVao()
-	{
-		glBindVertexArray(invalid_id);
-	}
-
 	template <typename _Ty> requires
 		std::same_as<_Ty, glm::vec2> || std::same_as<_Ty, glm::vec3> || std::same_as<_Ty, glm::vec4>
-	void createBuffer(GLuint& bufferId, GLuint shaderAttribIndex, const std::vector<_Ty>&vector)
+	inline void createVertexBuffer(GLuint shaderAttribIndex, const std::vector<_Ty>&vector)
 	{
-		enableVao();
-		destroyBuffer(bufferId);
-		if (!vector.empty())
-		{
-			glGenBuffers(1, &bufferId);
-			glBindBuffer(GL_ARRAY_BUFFER, bufferId);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(_Ty) * vector.size(), &vector, GL_STATIC_DRAW);
-			glVertexAttribPointer(shaderAttribIndex, _Ty::length(), GL_FLOAT, GL_FALSE, 0, (void*)0);
-			glEnableVertexAttribArray(shaderAttribIndex);
-		}
-		disableVao();
+		_vao.setAttribute(
+			shaderAttribIndex,
+			gl::DataType::Float,
+			_Ty::length(),
+			GL_FALSE,
+			0,
+			&vector,
+			sizeof(_Ty) * vector.size(),
+			gl::BufferUsage::StaticDraw
+		);
 	}
 
-	void createBuffer(GLuint& bufferId, const std::vector<vertex_index_type>& vector);
+	inline void createVertexArray(const std::vector<vertex_index_type>& vector)
+	{
+		_vao.setEBO(vector.data(), sizeof(vertex_index_type) * vector.size(), gl::BufferUsage::StaticDraw);
+	}
 };
 
 

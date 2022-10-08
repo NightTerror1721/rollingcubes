@@ -19,6 +19,8 @@
 
 #include <JPEG/jpeglib.h>
 
+#include <ft2build.h>
+
 int test_window();
 void tutos();
 

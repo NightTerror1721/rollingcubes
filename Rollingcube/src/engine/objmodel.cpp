@@ -8,25 +8,10 @@
 
 
 Mesh::Mesh(Mesh&& other) noexcept :
-	_vaoId(other._vaoId),
-	_verticesVboId(other._verticesVboId),
-	_uvsVboId(other._uvsVboId),
-	_normalsVboId(other._normalsVboId),
-	_tangentsVboId(other._tangentsVboId),
-	_bitangentVboId(other._bitangentVboId),
-	_colorsVboId(other._colorsVboId),
-	_elementsIboId(other._elementsIboId),
+	_vao(std::move(other._vao)),
 	_verticesCount(other._verticesCount),
 	_elementCount(other._elementCount)
 {
-	other._vaoId = invalid_id;
-	other._verticesVboId = invalid_id;
-	other._uvsVboId = invalid_id;
-	other._normalsVboId = invalid_id;
-	other._tangentsVboId = invalid_id;
-	other._bitangentVboId = invalid_id;
-	other._colorsVboId = invalid_id;
-	other._elementsIboId = invalid_id;
 	other._verticesCount = 0;
 	other._elementCount = 0;
 }
@@ -44,34 +29,14 @@ Mesh& Mesh::operator= (Mesh&& other) noexcept
 
 void Mesh::clear()
 {
-	destroyBuffer(_verticesVboId);
-	destroyBuffer(_uvsVboId);
-	destroyBuffer(_normalsVboId);
-	destroyBuffer(_tangentsVboId);
-	destroyBuffer(_bitangentVboId);
-	destroyBuffer(_colorsVboId);
-	destroyBuffer(_elementsIboId);
+	_vao.destroy();
 	_verticesCount = 0;
 	_elementCount = 0;
 }
 
 void Mesh::render(GLenum mode) const
 {
-	if (_vaoId != invalid_id)
-	{
-		glBindVertexArray(_vaoId);
-
-		if (_elementCount > 0)
-		{
-			glDrawElements(mode, _elementCount, GL_UNSIGNED_INT, nullptr);
-		}
-		else if (_verticesCount > 0)
-		{
-			glDrawArrays(mode, 0, _verticesCount);
-		}
-
-		glBindVertexArray(invalid_id);
-	}
+	_vao.render(Shader::vertices_array_attrib_index, mode);
 }
 
 void Mesh::render(const std::function<void(const Mesh&)>& preRenderCallback, GLenum mode) const
@@ -87,29 +52,6 @@ void Mesh::setColors(const std::vector<Color>& colors)
 	for (const auto& color : colors)
 		vcolors.push_back(glm::vec4(color));
 	setColors(vcolors);
-}
-
-
-void Mesh::destroyBuffer(GLuint& bufferId)
-{
-	if (bufferId != invalid_id)
-	{
-		glDeleteBuffers(1, &bufferId);
-		bufferId = invalid_id;
-	}
-}
-
-void Mesh::createBuffer(GLuint& bufferId, const std::vector<vertex_index_type>& vector)
-{
-	destroyBuffer(bufferId);
-	if (!vector.empty())
-	{
-		enableVao();
-		glGenBuffers(1, &bufferId);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferId);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertex_index_type) * vector.size(), vector.data(), GL_STATIC_DRAW);
-		disableVao();
-	}
 }
 
 
