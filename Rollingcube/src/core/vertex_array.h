@@ -171,6 +171,7 @@ namespace gl
 			GLboolean normalized,
 			Attribute::SizeType stride,
 			VBO&& vertexBufferObject,
+			GLsizeiptr offset = 0,
 			bool enableOnCreate = true,
 			bool createIfNot = true
 
@@ -184,7 +185,7 @@ namespace gl
 			attr.set(componentCount, attributeDataType, stride, normalized, std::move(vertexBufferObject));
 
 			attr._vbo.bind();
-			glVertexAttribPointer(attributeId, GLint(componentCount), GLenum(attributeDataType), normalized, stride, nullptr);
+			glVertexAttribPointer(attributeId, GLint(componentCount), GLenum(attributeDataType), normalized, stride, reinterpret_cast<void*>(offset));
 			if (enableOnCreate)
 			{
 				glEnableVertexAttribArray(attributeId);
@@ -207,6 +208,7 @@ namespace gl
 			std::size_t dataTypeSize,
 			std::size_t count,
 			VBO::Usage usage,
+			GLsizeiptr offset = 0,
 			bool enableOnCreate = true,
 			bool createIfNot = true
 		) {
@@ -219,6 +221,7 @@ namespace gl
 				normalized,
 				stride,
 				std::move(vbo),
+				offset,
 				enableOnCreate,
 				createIfNot
 			);
@@ -234,6 +237,7 @@ namespace gl
 			const _Ty* data,
 			std::size_t count,
 			VBO::Usage usage,
+			GLsizeiptr offset = 0,
 			bool enableOnCreate = true,
 			bool createIfNot = true
 		) {
@@ -246,6 +250,7 @@ namespace gl
 				normalized,
 				stride,
 				std::move(vbo),
+				offset,
 				enableOnCreate,
 				createIfNot
 			);
@@ -260,6 +265,7 @@ namespace gl
 			Attribute::SizeType stride,
 			const std::vector<_Ty>& data,
 			VBO::Usage usage,
+			GLsizeiptr offset = 0,
 			bool enableOnCreate = true,
 			bool createIfNot = true
 		) {
@@ -272,6 +278,34 @@ namespace gl
 				normalized,
 				stride,
 				std::move(vbo),
+				offset,
+				enableOnCreate,
+				createIfNot
+			);
+		}
+
+		inline bool createAttribute(
+			Attribute::Id attributeId,
+			Attribute::ComponentCount componentCount,
+			DataType attributeDataType,
+			GLboolean normalized,
+			Attribute::SizeType stride,
+			const RawBuffer& data,
+			VBO::Usage usage,
+			GLsizeiptr offset = 0,
+			bool enableOnCreate = true,
+			bool createIfNot = true
+		) {
+			VBO vbo;
+			vbo.write(data, usage, true, true);
+			return createAttribute(
+				attributeId,
+				componentCount,
+				attributeDataType,
+				normalized,
+				stride,
+				std::move(vbo),
+				offset,
 				enableOnCreate,
 				createIfNot
 			);

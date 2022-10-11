@@ -9,6 +9,7 @@
 #include "math/glm.h"
 #include "utils/manager.h"
 #include "utils/resources.h"
+#include "utils/shader_constants.h"
 
 #include "light.h"
 #include "material.h"
@@ -197,8 +198,19 @@ public:
 
 	inline void clear() override { _internalsCache.clear(), Manager<ShaderProgram>::clear(); }
 
+	inline Reference load(const constants::shader::internals::ShaderFiles& internalShaderId)
+	{
+		return load(
+			std::string(internalShaderId.id),
+			internalShaderId.vertex,
+			internalShaderId.fragment,
+			internalShaderId.geometry
+		);
+	}
+
 public:
 	Reference getLightningShaderProgram();
+	Reference getFreetypeFontShaderProgram();
 
 private:
 	explicit ShaderProgramManager();

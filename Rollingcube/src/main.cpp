@@ -11,6 +11,7 @@
 #include "engine/texture.h"
 #include "engine/sampler.h"
 #include "engine/entities.h"
+#include "engine/text.h"
 
 #include "utils/logger.h"
 #include "utils/bmp_decoder.h"
@@ -147,13 +148,14 @@ void tutos()
     tex->setFilter(Texture::MinificationFilter::BilinearMipmap);
     tex->unbind();
 
-    /*tex->bind();
-    tex->setParameter(GL_TEXTURE_WRAP_S, GL_REPEAT, GL_TEXTURE_2D);
-    tex->setParameter(GL_TEXTURE_WRAP_T, GL_REPEAT, GL_TEXTURE_2D);
-    tex->setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR, GL_TEXTURE_2D);
-    tex->setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR, GL_TEXTURE_2D);
-    tex->unbind();*/
+    
+    Font font;
+    font.load("default.ttf", 128);
 
+    Camera ortoCam;
+    ortoCam.setToOrthographic(0, window::default_width, 0, window::default_height, -1.f, 1.f);
+
+    
 
 
 
@@ -313,6 +315,9 @@ void tutos()
         //Shader::getDefault()->setUniformMaterial(material);
 
         entity.render();
+
+        font.setColor({ 1, 1, 1, 1 });
+        font.print(ortoCam, 200, 200, 64, "Test");
 
         //entity.getObjectModel()->render();
 

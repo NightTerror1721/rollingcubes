@@ -33,12 +33,12 @@ namespace constants
 {
 	namespace attributes
 	{
-		static constinit GLuint vertices_array_attrib_index = 0;
-		static constinit GLuint uvs_array_attrib_index = 1;
-		static constinit GLuint normals_array_attrib_index = 2;
-		static constinit GLuint tangents_array_attrib_index = 3;
-		static constinit GLuint bitangents_array_attrib_index = 4;
-		static constinit GLuint colors_array_attrib_index = 5;
+		static constexpr GLuint vertices_array_attrib_index = 0;
+		static constexpr GLuint uvs_array_attrib_index = 1;
+		static constexpr GLuint normals_array_attrib_index = 2;
+		static constexpr GLuint tangents_array_attrib_index = 3;
+		static constexpr GLuint bitangents_array_attrib_index = 4;
+		static constexpr GLuint colors_array_attrib_index = 5;
 	}
 
 	namespace uniform
@@ -97,7 +97,8 @@ namespace constants
 			std::string_view name;
 		};
 
-		inline constexpr ShaderName lightning = { 0, "lightning" };
+		inline constexpr const ShaderName lightning = { 0, "lightning" };
+		inline constexpr const ShaderName freetype_font = { 1, "freetype_font" };
 
 		namespace internals
 		{
@@ -109,11 +110,14 @@ namespace constants
 				std::string_view geometry = "";
 			};
 
-			inline constexpr ShaderFiles shaders[]
+			inline constexpr const ShaderFiles shaders[]
 			{
-				{ lightning.name, "internal/lightning.vert", "internal/lightning.frag" }
+				{ lightning.name, "internal/lightning.vert", "internal/lightning.frag" },
+				{ freetype_font.name, "internal/freetype_font.vert", "internal/freetype_font.frag" }
 			};
-			inline constinit std::size_t count = sizeof(internals::shaders) / sizeof(ShaderFiles);
+			inline constexpr const std::size_t count = sizeof(internals::shaders) / sizeof(ShaderFiles);
+
+			inline constexpr const ShaderFiles& shaderFiles(const ShaderName& name) { return shaders[name.index]; }
 		}
 	}
 }

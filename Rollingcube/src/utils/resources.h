@@ -51,10 +51,13 @@ namespace resources
 			json::write(os, json);
 		}
 	};
+
+	inline Path absolute(const Path& path) { return std::filesystem::absolute(path); }
 }
 
 namespace resources
 {
 	inline const Directory data = { "data" };
 	inline const Directory shaders = { data, "shaders" };
+	inline const Directory fonts = { data, "fonts" };
 }

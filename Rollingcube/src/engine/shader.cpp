@@ -163,20 +163,29 @@ void ShaderProgramManager::loadInternalShaders()
 	using namespace constants::shader::internals;
 
 	for (std::size_t i = 0; i < count; ++i)
-		load(std::string(shaders[i].id), shaders[i].vertex, shaders[i].fragment, shaders[i].geometry);
+		load(shaders[i]);
 }
+
+#define GET_INTERNAL_SHADER(_Name)											\
+	using namespace constants::shader;										\
+																			\
+	ShaderProgram::Ref ref = _internalsCache[(_Name).index];				\
+	if (!ref)																\
+		ref = (_internalsCache[(_Name).index] = get((_Name).name));			\
+																			\
+	return ref
 
 ShaderProgramManager::Reference ShaderProgramManager::getLightningShaderProgram()
 {
-	using namespace constants::shader;
-
-	ShaderProgram::Ref ref = _internalsCache[lightning.index];
-	if (!ref)
-		ref = (_internalsCache[lightning.index] = get(lightning.name));
-
-	return ref;
+	GET_INTERNAL_SHADER(lightning);
 }
 
+ShaderProgramManager::Reference ShaderProgramManager::getFreetypeFontShaderProgram()
+{
+	GET_INTERNAL_SHADER(freetype_font);
+}
+
+#undef GET_INTERNAL_SHADER
 
 
 ShaderProgramUniform::ShaderProgramUniform(std::string_view name, ShaderProgram& shaderProgram) :

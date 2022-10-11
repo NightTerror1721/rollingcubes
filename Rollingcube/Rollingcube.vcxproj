@@ -173,6 +173,7 @@
     <ClCompile Include="src\utils\json.cpp" />
     <ClCompile Include="src\utils\logger.cpp" />
     <ClCompile Include="src\utils\png_decoder.cpp" />
+    <ClCompile Include="src\utils\raw_buffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\fps.h" />
@@ -208,8 +209,10 @@
     <ClInclude Include="src\utils\manager.h" />
     <ClInclude Include="src\utils\optref.h" />
     <ClInclude Include="src\utils\png_decoder.h" />
+    <ClInclude Include="src\utils\raw_buffer.h" />
     <ClInclude Include="src\utils\resources.h" />
     <ClInclude Include="src\utils\shader_constants.h" />
+    <ClInclude Include="src\utils\string_utils.h" />
     <ClInclude Include="src\utils\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

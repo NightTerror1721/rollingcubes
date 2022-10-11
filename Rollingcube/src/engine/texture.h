@@ -19,7 +19,8 @@ enum class TextureFormat : GLenum
 	bgr = GL_BGR,
 	bgra = GL_BGRA,
 	luminance = GL_LUMINANCE,
-	luminance_alpha = GL_LUMINANCE_ALPHA
+	luminance_alpha = GL_LUMINANCE_ALPHA,
+	depth_component = GL_DEPTH_COMPONENT
 };
 
 class Texture

@@ -126,7 +126,7 @@ private:
 	StaticLightContainer _staticLightContainer;
 	std::shared_ptr<StaticLightManager> _staticLightManager = nullptr;
 
-	ShaderProgram::Ref _lightningShader = nullptr;
+	mutable ShaderProgram::Ref _lightningShader = nullptr;
 
 public:
 	ModeledEntity() = default;
@@ -157,7 +157,7 @@ public:
 	inline const StaticLightContainer& getStaticLightContainer() { return _staticLightContainer; }
 
 protected:
-	inline ShaderProgram::Ref getLightningShader()
+	inline ShaderProgram::Ref getLightningShader() const
 	{
 		if (!_lightningShader)
 			_lightningShader = ShaderProgramManager::instance().getLightningShaderProgram();

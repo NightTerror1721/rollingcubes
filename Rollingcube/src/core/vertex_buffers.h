@@ -7,6 +7,8 @@
 
 #include <vector>
 
+#include "utils/raw_buffer.h"
+
 namespace gl
 {
 	enum class VertexBufferType : GLenum
@@ -142,6 +144,11 @@ namespace gl
 		inline bool write(const std::vector<_Ty>& data, Usage usage, bool createIfNot = true, bool unbindOnEnd = true)
 		{
 			return write(&data[0], sizeof(_Ty), data.size(), usage, createIfNot, unbindOnEnd);
+		}
+
+		inline bool write(const RawBuffer& data, Usage usage, bool createIfNot = true, bool unbindOnEnd = true)
+		{
+			return write(data.data(), 1, data.size(), usage, createIfNot, unbindOnEnd);
 		}
 	};
 }
