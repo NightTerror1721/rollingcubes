@@ -90,7 +90,7 @@ public:
 	void setTop(float top, bool update = false);
 	void setBottom(float bottom, bool update = false);
 
-	void bindToShader(const std::shared_ptr<Shader>& shader);
+	void bindToShader(ShaderProgram::Ref shader);
 
 
 
@@ -132,11 +132,6 @@ public:
 	inline void rotateVertical(float angle, bool enableUpRotation = false) { rotateLocal(angle, { 0, 1, 0 }, enableUpRotation); }
 	inline void rotateHorizontal(float angle, bool enableUpRotation = false) { rotateLocal(angle, { 1, 0, 0 }, enableUpRotation); }
 	inline void rotateLateral(float angle) { rotateLocal(angle, { 0, 0, 1 }, true); }
-
-
-	inline void bindToShader(Shader::Id shaderId) { bindToShader(Shader::get(shaderId)); }
-
-	inline void bindToDefaultShader() { bindToShader(Shader::getDefault()); }
 };
 
 inline glm::mat4 operator* (const Camera& cam, const glm::mat4& model) { return model * cam.getViewprojectionMatrix(); }

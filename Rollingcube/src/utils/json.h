@@ -2,7 +2,11 @@
 
 #include <string_view>
 
+#pragma warning(push)
+#pragma warning(disable: 26800)
+#pragma warning(disable: 26819)
 #include <nlohmann/json.hpp>
+#pragma warning(pop)
 
 #include "io_utils.h"
 

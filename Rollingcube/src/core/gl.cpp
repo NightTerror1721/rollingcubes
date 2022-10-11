@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+#include "engine/texture.h"
+#include "engine/shader.h"
+
 namespace gl
 {
 	bool initGLFW()
@@ -39,6 +42,12 @@ namespace gl
 
 	void terminate()
 	{
+		TextureManager::root().clear();
+		ShaderManager::vertex().clear();
+		ShaderManager::fragment().clear();
+		ShaderManager::geometry().clear();
+		ShaderProgramManager::instance().clear();
+
 		glfwTerminate();
 	}
 }

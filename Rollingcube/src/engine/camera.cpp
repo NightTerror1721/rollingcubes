@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "utils/shader_constants.h"
+
 
 Camera::Camera() :
 	_type(),
@@ -197,12 +199,14 @@ void Camera::setBottom(float bottom, bool update)
 }
 
 
-void Camera::bindToShader(const std::shared_ptr<Shader>& shader)
+void Camera::bindToShader(ShaderProgram::Ref shader)
 {
+	using namespace constants::uniform::camera;
+
 	if (shader != nullptr)
 	{
-		shader->bind();
-		shader->setUniformMatrix("viewProjection", _viewprojectionMatrix);
-		shader->setUniform("viewPos", _eye);
+		shader->use();
+		shader[viewProjection()] = _viewprojectionMatrix;
+		shader[viewPos()] = _eye;
 	}
 }

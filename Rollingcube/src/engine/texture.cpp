@@ -2,57 +2,33 @@
 
 #include "utils/logger.h"
 
-Texture::~Texture()
+
+bool Texture::createFromData(const unsigned char* data, SizeType width, SizeType height, Format format, bool generateMipmaps)
 {
-	clear();
-}
-
-Texture& Texture::operator= (Texture&& t) noexcept
-{
-	this->~Texture();
-	_id = t._id;
-	t._id = invalid_id;
-	return *this;
-}
-
-
-void Texture::clear()
-{
-
-}
-
-bool Texture::createTexture(const TextureGLInfo& info, const void* pixels)
-{
-	if (_id != invalid_id)
-	{
-		logger::warn("Attempt to rebuild an existing texture.");
+	if (isCreated())
 		return false;
-	}
+
+	_width = width;
+	_height = height;
+	_format = format;
 
 	glGenTextures(1, &_id);
-	glBindTexture(GL_TEXTURE_2D, _id);
-	glTexImage2D(
-		GL_TEXTURE_2D,
-		info.level,
-		static_cast<GLint>(info.internal_format),
-		info.width,
-		info.height,
-		0,
-		static_cast<GLenum>(info.format),
-		static_cast<GLenum>(info.type),
-		pixels
-	);
-	if (info.generate_mipmap)
+	bind();
+	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(_format), _width, _height, 0, static_cast<GLenum>(_format), GL_UNSIGNED_BYTE, data);
+
+	if (generateMipmaps)
 		glGenerateMipmap(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, invalid_id);
 
 	return true;
 }
 
-bool Texture::load(std::string_view filename)
+bool Texture::loadFromImage(std::string_view name, bool generateMipmaps)
 {
+	if (isCreated())
+		return false;
+
 	Image img;
-	if (!img.load(filename))
+	if (!img.load(name))
 	{
 		logger::error("Cannot load texture because it's image cannot be read.");
 		return false;
@@ -61,18 +37,48 @@ bool Texture::load(std::string_view filename)
 	if (img.hasInvertedPixelRows())
 		img.invertRows();
 
-	TextureGLInfo info;
-	info.width = GLsizei(img.width());
-	info.height = GLsizei(img.height());
-	info.internal_format = img.hasAlpha() ? TextureComponentType::rgba : TextureComponentType::rgb;
-	info.level = 0;
-	info.type = TextureDataType::unsigned_byte;
-	info.generate_mipmap = true;
+	Format fmt = img.hasAlpha() ? Format::rgba : Format::rgb;
 
-	if (img.hasInvertedColorComponents())
-		info.format = img.hasAlpha() ? TextureFormat::bgra : TextureFormat::bgr;
-	else
-		info.format = img.hasAlpha() ? TextureFormat::rgba : TextureFormat::rgb;
+	if (!createFromData(img.data(), SizeType(img.width()), SizeType(img.height()), fmt, generateMipmaps))
+		return false;
 
-	return createTexture(info, img.data());
+	_file = name;
+
+	return true;
 }
+
+bool Texture::resize(SizeType width, SizeType height, bool generateMipmaps)
+{
+	if (!checkIsCreated())
+		return false;
+
+	const Format fmt = _format;
+	destroy();
+
+	return create(width, height, fmt, generateMipmaps);
+}
+
+void Texture::destroy()
+{
+	if (isCreated())
+		glDeleteTextures(1, &_id);
+
+	_id = 0;
+	_width = 0;
+	_height = 0;
+	_format = Format(0);
+}
+
+GLint Texture::getNumTextureImageUnits()
+{
+	static GLint max_texture_units = 0;
+	if (max_texture_units == 0)
+		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_units);
+
+	return max_texture_units;
+}
+
+
+
+
+TextureManager TextureManager::Root = TextureManager(nullptr);

@@ -1,286 +1,245 @@
 #include "shader.h"
 
-#include <unordered_map>
-#include <string>
-
-#include "utils/io_utils.h"
 #include "utils/logger.h"
-#include "utils/resources.h"
+#include "utils/shader_constants.h"
 
 
-std::optional<std::string> Shader::readShader(const std::string_view& filename)
+bool Shader::loadFromFile(std::string_view filename, Type type)
 {
+	destroy();
+
 	std::ifstream sfile = std::ifstream(std::string(filename));
 	if (!sfile)
 	{
 		logger::error("Cannot read shader file {}.", filename);
-		return {};
+		return false;
 	}
 
 	std::stringstream ss;
 	ss << sfile.rdbuf();
-	std::string code = ss.str();
+	std::string scode = ss.str();
 	sfile.close();
+	auto code = scode.c_str();
 
-	return code;
-}
 
-void Shader::compileShader(GLuint shaderId, const std::string& code)
-{
-	auto code_ptr = code.c_str();
-	glShaderSource(shaderId, 1, &code_ptr, nullptr);
-	glCompileShader(shaderId);
-}
+	_id = glCreateShader(static_cast<GLenum>(type));
+	glShaderSource(_id, 1, &code, nullptr);
+	glCompileShader(_id);
 
-bool Shader::checkShader(GLuint shaderId)
-{
-	GLint result = GL_FALSE;
-	GLint infoLogLen;
-	glGetShaderiv(shaderId, GL_COMPILE_STATUS, &result);
-	glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLogLen);
-
-	if (infoLogLen > 0)
+	GLint compilationStatus;
+	glGetShaderiv(_id, GL_COMPILE_STATUS, &compilationStatus);
+	if (compilationStatus == GL_FALSE)
 	{
-		GLchar* errorMsg = new GLchar[infoLogLen + 1];
-		glGetShaderInfoLog(shaderId, infoLogLen, nullptr, errorMsg);
-		logger::error("Shader compilation error: {}.", errorMsg);
-		delete[] errorMsg;
-		return false;
-	}
+		logger::error("Error! Shader file {} wasn't compiled!", filename);
 
-	return true;
-}
-
-std::optional<GLuint> Shader::loadShader(bool isVertexShader, const std::string_view& filename)
-{
-	GLuint shaderId = isVertexShader ? createVertexShader() : createFragmentShader();
-
-	logger::info("Reading '{}' {} shader source code.", filename, (isVertexShader ? "vertex" : "fragment"));
-	auto code = readShader(filename);
-	if (!code.has_value())
-	{
-		deleteShader(shaderId);
-		return {};
-	}
-
-	logger::info("Compiling '{}' {} shader source code.", filename, (isVertexShader ? "vertex" : "fragment"));
-	compileShader(shaderId, code.value());
-	if (!checkShader(shaderId))
-	{
-		deleteShader(shaderId);
-		return {};
-	}
-
-	return shaderId;
-}
-
-void Shader::linkProgram(GLuint programId, GLuint vertexShaderId, GLuint fragmentShaderId)
-{
-	attachShader(programId, vertexShaderId);
-	attachShader(programId, fragmentShaderId);
-	glLinkProgram(programId);
-}
-
-bool Shader::checkProgram(GLuint programId)
-{
-	GLint result = GL_FALSE;
-	GLint infoLogLen;
-	glGetProgramiv(programId, GL_LINK_STATUS, &result);
-	glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLogLen);
-
-	if (infoLogLen > 0)
-	{
-		GLchar* errorMsg = new GLchar[infoLogLen + 1];
-		glGetProgramInfoLog(programId, infoLogLen, nullptr, errorMsg);
-		logger::error("Shader compilation error: {}.", errorMsg);
-		delete[] errorMsg;
-		return false;
-	}
-
-	return true;
-}
-
-
-
-
-Shader::~Shader()
-{
-	if(_programId != invalid_id)
-		deleteProgram(_programId);
-}
-
-void Shader::release()
-{
-	if (_programId != invalid_id)
-		deleteProgram(_programId);
-
-	_programId = invalid_id;
-	clearCache();
-}
-
-void Shader::clearCache() const
-{
-	_uniformCache.clear();
-}
-
-bool Shader::load(std::string_view vertexShaderFilename, std::string_view fragmentShaderFilename)
-{
-	auto vertexShaderId = loadShader(true, vertexShaderFilename);
-	if (!vertexShaderId.has_value())
-		return false;
-
-	auto fragmentShaderId = loadShader(false, fragmentShaderFilename);
-	if (!fragmentShaderId.has_value())
-	{
-		deleteShader(vertexShaderId.value());
-		return false;
-	}
-
-	logger::info("Creating Shader Program");
-	GLuint programId = createProgram();
-	linkProgram(programId, vertexShaderId.value(), fragmentShaderId.value());
-	if (!checkProgram(programId))
-	{
-		deleteShader(vertexShaderId.value());
-		deleteShader(fragmentShaderId.value());
-		deleteProgram(programId);
-		return false;
-	}
-
-	detachShader(programId, vertexShaderId.value());
-	detachShader(programId, fragmentShaderId.value());
-
-	deleteShader(vertexShaderId.value());
-	deleteShader(fragmentShaderId.value());
-
-	release();
-
-	_programId = programId;
-	return true;
-}
-
-Shader::uniform_index_t Shader::getUniformLocation(std::string_view vs_name) const
-{
-	auto name = std::string(vs_name);
-	auto it = _uniformCache.find(name);
-	if (it != _uniformCache.end())
-		return it->second;
-
-	auto loc = glGetUniformLocation(_programId, name.c_str());
-	if (loc < 0)
-	{
-		logger::error("Cannot get uniform '{}' location.", name);
-		return -1;
-	}
-
-	_uniformCache.emplace(name, loc);
-	return loc;
-}
-
-
-
-
-
-std::vector<std::shared_ptr<Shader>> Shader::ShadersCache;
-std::shared_ptr<Shader> Shader::DefaultShaderCache = nullptr;
-
-namespace shaders::manager
-{
-	struct ShaderEntry
-	{
-		std::string vertex;
-		std::string fragment;
-		Shader::Id id;
-		bool loaded;
-	};
-
-	static std::unordered_map<std::string, ShaderEntry> ShadersNames;
-	static bool ShadersNamesLoaded = false;
-
-
-	static void loadNames()
-	{
-		if (ShadersNamesLoaded)
-			return;
-
-		try
+		GLint logLen;
+		glGetShaderiv(_id, GL_INFO_LOG_LENGTH, &logLen);
+		if (logLen > 0)
 		{
-			JsonValue json = resources::shaders.readJson("config.json");
-			if (json.is_object())
-			{
-				const JsonObject& shadersMap = json.get_ref<const JsonObject&>();
-				for (const auto& e : shadersMap)
-				{
-					std::string_view shaderName;
-					try
-					{
-						shaderName = e.first;
-						if (e.second.is_object())
-						{
-							const JsonObject& rawShaderEntry = e.second.get_ref<const JsonObject&>();
-							auto vertexIt = rawShaderEntry.find("vertex");
-							if (vertexIt == rawShaderEntry.end())
-								throw std::exception("Vertex Shader not found.");
-							auto fragmentIt = rawShaderEntry.find("fragment");
-							if (fragmentIt == rawShaderEntry.end())
-								throw std::exception("Fragment Shader not found.");
-
-							ShaderEntry entry = {
-								.vertex = (resources::shaders / vertexIt->second.get_ref<const std::string&>()).string(),
-								.fragment = (resources::shaders / fragmentIt->second.get_ref<const std::string&>()).string(),
-								.loaded = false
-							};
-							ShadersNames.insert({ shaderName.data(), entry });
-						}
-					}
-					catch (const std::exception& ex)
-					{
-						logger::error("Exception during shader name {} load: {}", shaderName, ex.what());
-					}
-				}
-			}
-		}
-		catch (const std::exception& ex)
-		{
-			logger::fatal("Exception during shader names load: {}", ex.what());
+			GLchar* logMessage = new GLchar[logLen];
+			glGetShaderInfoLog(_id, logLen, nullptr, logMessage);
+			logger::error("The compiler returned: {}", logMessage);
+			delete[] logMessage;
 		}
 
-		ShadersNamesLoaded = true;
+		return false;
 	}
+
+	_type = type;
+	_compiled = true;
+
+	return true;
+}
+
+void Shader::destroy()
+{
+	if (isCreated())
+		glDeleteShader(_id);
+
+	_id = 0;
+	_type = Type(0);
+	_compiled = false;
 }
 
 
-Shader::Id Shader::load(std::string_view name)
+DedicatedShaderManager<Shader::Type::Vertex> ShaderManager::VertexShaderManager = DedicatedShaderManager<Shader::Type::Vertex>();
+DedicatedShaderManager<Shader::Type::Fragment> ShaderManager::FragmentShaderManager = DedicatedShaderManager<Shader::Type::Fragment>();
+DedicatedShaderManager<Shader::Type::Geometry> ShaderManager::GeometryShaderManager = DedicatedShaderManager<Shader::Type::Geometry>();
+
+
+
+
+
+
+
+bool ShaderProgram::link()
 {
-	if (!shaders::manager::ShadersNamesLoaded)
-		shaders::manager::loadNames();
+	if (!isCreated() || isLinked())
+		return false;
 
-	auto namesIt = shaders::manager::ShadersNames.find(name.data());
-	if (namesIt != shaders::manager::ShadersNames.end() && namesIt->second.loaded)
-		return namesIt->second.id;
+	glLinkProgram(_id);
 
-	std::shared_ptr<Shader> ptr = std::make_shared<Shader>();
-	if (!ptr->load(namesIt->second.vertex, namesIt->second.fragment))
-		return Id(-1);
+	GLint status;
+	glGetProgramiv(_id, GL_LINK_STATUS, &status);
+	_linked = status == GL_TRUE;
 
-	Id id = Id(ShadersCache.size());
-	ShadersCache.push_back(std::move(ptr));
-	namesIt->second.id = id;
+	if (!isLinked())
+	{
+		logger::error("Error! Shader program wasn't linked!");
 
-	return id;
+		GLint logLen;
+		glGetProgramiv(_id, GL_INFO_LOG_LENGTH, &logLen);
+		if (logLen > 0)
+		{
+			GLchar* logMessage = new GLchar[logLen];
+			glGetProgramInfoLog(_id, logLen, nullptr, logMessage);
+			logger::error("The linker returned: {}", logMessage);
+			delete[] logMessage;
+		}
+	}
+
+	return _linked;
 }
 
-void Shader::loadDefault()
+void ShaderProgram::destroy()
 {
-	Shader::Id id = load("default");
-	DefaultShaderCache = get(id);
+	if (isCreated())
+		glDeleteProgram(_id);
+
+	_id = 0;
+	_linked = false;
+	_uniforms.clear();
 }
 
-void Shader::loadAll()
-{
-	if (!shaders::manager::ShadersNamesLoaded)
-		shaders::manager::loadNames();
 
-	for (auto e : shaders::manager::ShadersNames)
-		load(e.first);
+
+ShaderProgramManager ShaderProgramManager::Instance = ShaderProgramManager();
+
+ShaderProgramManager::ShaderProgramManager() :
+	Manager(nullptr), _internalsCache()
+{
+	_internalsCache.resize(constants::shader::internals::count);
+}
+
+ShaderProgramManager::Reference ShaderProgramManager::load(
+	const IdType& id,
+	const std::string_view vertexShaderPath,
+	std::string_view fragmentShaderPath,
+	std::string_view geometryShaderPath
+) {
+	Reference program = get(id);
+	if (program)
+		return program;
+
+	Shader::Ref vertex = ShaderManager::vertex().load(vertexShaderPath);
+	Shader::Ref fragment = ShaderManager::fragment().load(fragmentShaderPath);
+	Shader::Ref geometry = geometryShaderPath.empty() ? Shader::Ref() : ShaderManager::geometry().load(geometryShaderPath);
+
+	if (!vertex || !fragment)
+		return nullptr;
+
+	program = emplace(id);
+	if (!program)
+		return nullptr;
+
+	program->create();
+
+	program->addShader(vertex);
+	program->addShader(fragment);
+	if (geometry)
+		program->addShader(geometry);
+
+	if (!program->link())
+	{
+		destroy(id);
+		return nullptr;
+	}
+
+	return program;
+}
+
+void ShaderProgramManager::loadInternalShaders()
+{
+	using namespace constants::shader::internals;
+
+	for (std::size_t i = 0; i < count; ++i)
+		load(std::string(shaders[i].id), shaders[i].vertex, shaders[i].fragment, shaders[i].geometry);
+}
+
+ShaderProgramManager::Reference ShaderProgramManager::getLightningShaderProgram()
+{
+	using namespace constants::shader;
+
+	ShaderProgram::Ref ref = _internalsCache[lightning.index];
+	if (!ref)
+		ref = (_internalsCache[lightning.index] = get(lightning.name));
+
+	return ref;
+}
+
+
+
+ShaderProgramUniform::ShaderProgramUniform(std::string_view name, ShaderProgram& shaderProgram) :
+	_name(name),
+	_program(std::addressof(shaderProgram)),
+	_location(glGetUniformLocation(shaderProgram.getId(), name.data()))
+{
+	if (_location == -1)
+		logger::warn("Uniform with name {} does not exist, setting it will fail!", name);
+}
+
+
+
+void ShaderProgram::setUniformMaterial(const Material& material)
+{
+	using namespace constants::uniform::material;
+
+	getUniform(ambientColor()) = material.getAmbientColor();
+	getUniform(diffuseColor()) = material.getDiffuseColor();
+	getUniform(specularColor()) = material.getSpecularColor();
+
+	if (material.getDiffuseTexture() != nullptr)
+	{
+		material.getDiffuseTexture()->activate(0);
+		getUniform(diffuseTexture()) = 0;
+	}
+
+	if (material.getSpecularTexture() != nullptr)
+	{
+		material.getSpecularTexture()->activate(1);
+		getUniform(specularTexture()) = 1;
+	}
+
+	getUniform(shininess()) = material.getShininess();
+}
+
+void ShaderProgram::setUniformStaticLightsCount(GLint lightCount)
+{
+	using namespace constants::uniform::static_lights;
+	getUniform(count()) = glm::clamp(lightCount, 0, GLint(StaticLightContainer::maxStaticLights));
+}
+
+void ShaderProgram::setUniformStaticLight(const Light& light, GLint index)
+{
+	using namespace constants::uniform::static_lights;
+
+	getUniform(position(index)) = light.getPosition();
+	getUniform(ambientColor(index)) = light.getAmbientColor();
+	getUniform(diffuseColor(index)) = light.getDiffuseColor();
+	getUniform(specularColor(index)) = light.getSpecularColor();
+	getUniform(constant(index)) = light.getConstantAttenuation();
+	getUniform(linear(index)) = light.getLinearAttenuation();
+	getUniform(quadratic(index)) = light.getQuadraticAttenuation();
+	getUniform(intensity(index)) = light.getIntensity();
+}
+
+void ShaderProgram::setUniformDirectionalLight(const DirectionalLight& light)
+{
+	using namespace constants::uniform::directional_light;
+
+	getUniform(direction()) = light.getDirection();
+	getUniform(ambientColor()) = light.getAmbientColor();
+	getUniform(diffuseColor()) = light.getDiffuseColor();
+	getUniform(specularColor()) = light.getSpecularColor();
+	getUniform(intensity()) = light.getIntensity();
 }

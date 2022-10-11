@@ -12,8 +12,8 @@
 class Material : public ColorChannels
 {
 private:
-	std::shared_ptr<Texture> _diffuseTexture = nullptr;
-	std::shared_ptr<Texture> _specularTexture = nullptr;
+	Texture::Ref _diffuseTexture = nullptr;
+	Texture::Ref _specularTexture = nullptr;
 
 	float _shininess = 5;
 
@@ -31,11 +31,11 @@ public:
 	inline Material() : ColorChannels({ 1, 1, 1 }, {}, {}) {}
 
 
-	inline void setDiffuseTexture(const std::shared_ptr<Texture>& texture) { _diffuseTexture = texture; }
-	inline const std::shared_ptr<Texture>& getDiffuseTexture() const { return _diffuseTexture; }
+	inline void setDiffuseTexture(Texture::Ref texture) { _diffuseTexture = texture; }
+	inline Texture::Ref getDiffuseTexture() const { return _diffuseTexture; }
 
-	inline void setSpecularTexture(const std::shared_ptr<Texture>& texture) { _specularTexture = texture; }
-	inline const std::shared_ptr<Texture>& getSpecularTexture() const { return _specularTexture; }
+	inline void setSpecularTexture(Texture::Ref texture) { _specularTexture = texture; }
+	inline Texture::Ref getSpecularTexture() const { return _specularTexture; }
 
 
 	inline void setShininess(float shininess) { _shininess = shininess; }
@@ -45,10 +45,14 @@ public:
 	inline void bindTextures()
 	{
 		if (_diffuseTexture != nullptr)
-			_diffuseTexture->bind();
+			_diffuseTexture->activate(0);
+		else
+			Texture::deactivate(0);
 
 		if (_specularTexture != nullptr)
-			_specularTexture->bind();
+			_specularTexture->activate(1);
+		else
+			Texture::deactivate(1);
 	}
 
 	inline void unbindTextures()

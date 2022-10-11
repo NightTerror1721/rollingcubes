@@ -1,18 +1,11 @@
 #pragma once
 
+#include <string>
+#include <utility>
+
 #include "core/gl.h"
 #include "utils/image.h"
-
-
-enum class TextureComponentType : GLint
-{
-	depth_component = GL_DEPTH_COMPONENT,
-	depth_stencil = GL_DEPTH_STENCIL,
-	red = GL_RED,
-	rg = GL_RG,
-	rgb = GL_RGB,
-	rgba = GL_RGBA
-};
+#include "utils/manager.h"
 
 enum class TextureFormat : GLenum
 {
@@ -29,88 +22,152 @@ enum class TextureFormat : GLenum
 	luminance_alpha = GL_LUMINANCE_ALPHA
 };
 
-enum class TextureDataType : GLenum
-{
-	unsigned_byte = GL_UNSIGNED_BYTE,
-	byte = GL_BYTE,
-	bitmap = GL_BITMAP,
-	unsigned_short = GL_UNSIGNED_SHORT,
-	short_ = GL_SHORT,
-	unsigned_int = GL_UNSIGNED_INT,
-	int_ = GL_INT,
-	float_ = GL_FLOAT
-};
-
-struct TextureGLInfo
-{
-	GLint level = 0;
-	TextureComponentType internal_format = TextureComponentType::rgb;
-	GLsizei width = 0;
-	GLsizei height = 0;
-	TextureFormat format = TextureFormat::rgb;
-	TextureDataType type = TextureDataType::unsigned_byte;
-	bool generate_mipmap = true;
-};
-
-
 class Texture
 {
 public:
-	static constexpr GLuint invalid_id = 0;
+	using Id = GLuint;
+	using Format = TextureFormat;
+	using MagnificationFilter = gl::MagnificationFilter;
+	using MinificationFilter = gl::MinificationFilter;
+	using SizeType = GLsizei;
+	using Ref = ManagerReference<Texture>;
 
 private:
-	GLuint _id = invalid_id;
+	Id _id = 0;
+	SizeType _width = 0;
+	SizeType _height = 0;
+	Format _format = Format(0);
+	std::string _file = {};
 
 public:
 	Texture() = default;
 	Texture(const Texture&) = delete;
-	inline Texture(Texture&& t) noexcept : _id(t._id) { t._id = invalid_id; }
-
 	Texture& operator= (const Texture&) = delete;
 
-	bool operator== (const Texture&) const = default;
+	inline Texture(Texture&& right) noexcept :
+		_id(right._id), _width(right._width), _height(right._height), _format(right._format), _file(std::move(_file))
+	{
+		right._id = 0;
+		right._width = 0;
+		right._height = 0;
+		right._format = Format(0);
+	}
 
+	Texture& operator= (Texture&& right) noexcept
+	{
+		std::destroy_at(this);
+		return *std::construct_at<Texture, Texture&&>(this, std::move(right));
+	}
 
-	Texture& operator= (Texture&& t) noexcept;
-	~Texture();
+	inline ~Texture() { destroy(); }
 
-	void clear();
+public:
+	constexpr bool isCreated() const { return _id != 0; }
+	constexpr Id getId() const { return _id; }
+	constexpr SizeType getWidth() const { return _width; }
+	constexpr SizeType getHeight() const { return _height; }
+	constexpr bool hasFile() const { return !_file.empty(); }
+	constexpr std::string_view getFilePath() const { return _file; }
 
-	bool createTexture(const TextureGLInfo& info, const void* pixels);
+	inline void bind() { glBindTexture(GL_TEXTURE_2D, _id); }
+	inline void unbind() { glBindTexture(GL_TEXTURE_2D, 0); }
 
-	bool load(std::string_view filename);
+	inline void activate(GLint textureUnit = 0) { if(checkIsCreated()) glActiveTexture(GL_TEXTURE0 + textureUnit), bind(); }
 
+	inline void setFilter(MagnificationFilter filter) { if (checkIsCreated()) glTextureParameteri(_id, GL_TEXTURE_MAG_FILTER, GLint(filter)); }
+	inline void setFilter(MinificationFilter filter) { if (checkIsCreated()) glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GLint(filter)); }
 
-	inline void bind() const { glBindTexture(GL_TEXTURE_2D, _id); }
-	inline void unbind() const { glBindTexture(GL_TEXTURE_2D, invalid_id); }
+	inline void setRepeat(bool repeat)
+	{
+		if (checkIsCreated())
+		{
+			GLint param = repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+			glTextureParameteri(_id, GL_TEXTURE_WRAP_S, param);
+			glTextureParameteri(_id, GL_TEXTURE_WRAP_T, param);
+		}
+	}
 
+	inline bool create(SizeType width, SizeType height, Format format, bool generateMipmaps = false)
+	{
+		return createFromData(nullptr, width, height, format, generateMipmaps);
+	}
 
-	template <typename _Ty> void setParameter(GLenum parameterId, _Ty value, GLenum target = GL_TEXTURE_2D) const;
+	bool createFromData(const unsigned char* data, SizeType width, SizeType height, Format format, bool generateMipmaps = false);
 
-	template <typename _Ty> void setParameterArray(GLenum parameterId, const _Ty* value, GLenum target = GL_TEXTURE_2D) const;
+	bool loadFromImage(std::string_view filename, bool generateMipmaps = true);
 
-	template <typename _Ty> void setParameterIArray(GLenum parameterId, const _Ty* values, GLenum target = GL_TEXTURE_2D) const;
+	bool resize(SizeType width, SizeType height, bool generateMipmaps = false);
+
+	void destroy();
+
+public:
+	static GLint getNumTextureImageUnits();
+
+	static inline void deactivate(GLint textureUnit = 0) { glActiveTexture(GL_TEXTURE0 + textureUnit), glBindTexture(GL_TEXTURE_2D, 0); }
+
+private:
+	inline bool checkIsCreated()
+	{
+		if (!isCreated())
+		{
+			logger::error("Attempting to access non loaded texture!");
+			return false;
+		}
+		return true;
+	}
 };
 
 
-template <> inline void Texture::setParameter<GLfloat>(GLenum parameterId, GLfloat value, GLenum target) const { glTexParameterf(target, parameterId, value); }
-template <> inline void Texture::setParameter<GLint>(GLenum parameterId, GLint value, GLenum target) const { glTexParameteri(target, parameterId, value); }
+class TextureManager : public Manager<Texture>
+{
+private:
+	static TextureManager Root;
 
-template <> inline void Texture::setParameterArray<GLfloat>(GLenum parameterId, const GLfloat* values, GLenum target) const
-{
-	glTexParameterfv(target, parameterId, values);
-}
-template <> inline void Texture::setParameterArray<GLint>(GLenum parameterId, const GLint* values, GLenum target) const
-{
-	glTexParameteriv(target, parameterId, values);
-}
+public:
+	static inline TextureManager& root() { return Root; }
 
-template <> inline void Texture::setParameterIArray<GLint>(GLenum parameterId, const GLint* values, GLenum target) const
-{
-	glTexParameterIiv(target, parameterId, values);
-}
+	inline TextureManager createChildManager() { return TextureManager(this); }
 
-template <> inline void Texture::setParameterIArray<GLuint>(GLenum parameterId, const GLuint* values, GLenum target) const
-{
-	glTexParameterIuiv(target, parameterId, values);
-}
+	inline Reference create(const IdType& id) { return emplace(id); }
+
+	Reference create(const IdType& id, Texture::SizeType width, Texture::SizeType height, Texture::Format format, bool generateMipmaps = false)
+	{
+		Reference ref = create(id);
+		if (!ref)
+			return nullptr;
+
+		if (!ref->create(width, height, format, generateMipmaps))
+			return destroy(id), nullptr;
+
+		return ref;
+	}
+
+	Reference createFromData(const IdType& id, const unsigned char* data, Texture::SizeType width, Texture::SizeType height, Texture::Format format, bool generateMipmaps = false)
+	{
+		Reference ref = create(id);
+		if (!ref)
+			return nullptr;
+
+		if (!ref->createFromData(data, width, height, format, generateMipmaps))
+			return destroy(id), nullptr;
+
+		return ref;
+	}
+
+	Reference loadFromImage(const IdType& id, std::string_view filename, bool generateMipmaps = true)
+	{
+		Reference ref = create(id);
+		if (!ref)
+			return nullptr;
+
+		if (!ref->loadFromImage(filename, generateMipmaps))
+			return destroy(id), nullptr;
+
+		return ref;
+	}
+
+private:
+	inline explicit TextureManager(Manager<Texture>* parent) :
+		Manager(parent)
+	{}
+};

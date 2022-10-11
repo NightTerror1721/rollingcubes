@@ -9,11 +9,13 @@
 #include "engine/shader.h"
 #include "engine/camera.h"
 #include "engine/texture.h"
+#include "engine/sampler.h"
 #include "engine/entities.h"
 
 #include "utils/logger.h"
 #include "utils/bmp_decoder.h"
 #include "utils/image.h"
+#include "utils/shader_constants.h"
 
 #include "game/cube_model.h"
 
@@ -123,16 +125,34 @@ void tutos()
     };*/
 
 
-    std::shared_ptr<Texture> tex = std::make_shared<Texture>();
-    if (!tex->load("test/tile1.jpg"))
+    //std::shared_ptr<Texture> tex = std::make_shared<Texture>();
+    //if (!tex->loadFromImage("test/tile1.jpg"))
+        //return;
+
+    ShaderProgramManager::instance().loadInternalShaders();
+    ShaderProgram::Ref lightningShader = ShaderProgramManager::instance().getLightningShaderProgram();
+
+    Texture::Ref tex = TextureManager::root().loadFromImage("tuto01", "test/tile1.jpg");
+    if (!tex)
         return;
 
+    //Sampler sampler;
+    //sampler.create();
+    //sampler.setFilter(Sampler::MagnificationFilter::Bilinear);
+    //sampler.setFilter(Sampler::MinificationFilter::BilinearMipmap);
+
     tex->bind();
+    tex->setRepeat(true);
+    tex->setFilter(Texture::MagnificationFilter::Bilinear);
+    tex->setFilter(Texture::MinificationFilter::BilinearMipmap);
+    tex->unbind();
+
+    /*tex->bind();
     tex->setParameter(GL_TEXTURE_WRAP_S, GL_REPEAT, GL_TEXTURE_2D);
     tex->setParameter(GL_TEXTURE_WRAP_T, GL_REPEAT, GL_TEXTURE_2D);
     tex->setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR, GL_TEXTURE_2D);
     tex->setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR, GL_TEXTURE_2D);
-    tex->unbind();
+    tex->unbind();*/
 
 
 
@@ -176,13 +196,13 @@ void tutos()
     light.setAmbientColor({ 0, 0, 0 });
     light.setDiffuseColor({ 0., 0., 0. });
     light.setSpecularColor({ 1, 1, 1 });
-    light.setIntensity(20.f);
+    light.setIntensity(50.f);
     light.setPosition({ 5, 2, 0 });
     //light.setQuadraticAttenuation(0.25);
     auto lightId = lightManager->createNewLight(light);
 
     Light light2;
-    light2.setColor({ 1, 1, 1 });
+    light2.setColor({ 1, 0, 0 });
     light2.setIntensity(30.f);
     light2.setPosition({ -5, 2, 0 });
     auto lightId2 = lightManager->createNewLight(light2);
@@ -270,14 +290,17 @@ void tutos()
 
         //entity.render();
 
-        //tex.bind();
+        //tex->bind();
         //glActiveTexture(GL_TEXTURE0);
         //glUniform1i(textureLoc, 0);
 
-        cam.bindToDefaultShader();
+        //sampler.activate(0);
+        //sampler.activate(1);
 
-        Shader::getDefault()->bind();
-        Shader::getDefault()->setUniformDirectionalLight(dirLight);
+        cam.bindToShader(lightningShader);
+
+        lightningShader->use();
+        lightningShader->setUniformDirectionalLight(dirLight);
 
         //entity.getMaterial().bindTextures();
 

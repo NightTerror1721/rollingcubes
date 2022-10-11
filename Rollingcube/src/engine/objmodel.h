@@ -8,9 +8,11 @@
 #include <functional>
 
 #include "core/gl.h"
+#include "core/render.h"
 #include "math/glm.h"
 #include "math/color.h"
 #include "utils/optref.h"
+#include "utils/shader_constants.h"
 
 #include "shader.h"
 
@@ -26,16 +28,8 @@ private:
 	std::string _name;
 
 	gl::VAO _vao;
+	gl::EBO _ebo;
 
-	/*GLuint _vaoId = invalid_id;
-	
-	GLuint _verticesVboId = invalid_id;
-	GLuint _uvsVboId = invalid_id;
-	GLuint _normalsVboId = invalid_id;
-	GLuint _tangentsVboId = invalid_id;
-	GLuint _bitangentVboId = invalid_id;
-	GLuint _colorsVboId = invalid_id;
-	GLuint _elementsIboId = invalid_id;*/
 
 	GLsizei _verticesCount = 0;
 	GLsizei _elementCount = 0;
@@ -60,21 +54,19 @@ public:
 
 	inline void setVertices(const std::vector<glm::vec3>& vertices)
 	{
-		//createBuffer(_verticesVboId, Shader::vertices_array_attrib_index, vertices);
-		createVertexBuffer(Shader::vertices_array_attrib_index, vertices);
+		createVertexBuffer(constants::attributes::vertices_array_attrib_index, vertices);
 		_verticesCount = GLsizei(vertices.size());
 	}
-	inline void setUVs(const std::vector<glm::vec2>& uvs) { createVertexBuffer(Shader::uvs_array_attrib_index, uvs); }
-	inline void setNormals(const std::vector<glm::vec3>& normals) { createVertexBuffer(Shader::normals_array_attrib_index, normals); }
-	inline void setTangents(const std::vector<glm::vec3>& tangents) { createVertexBuffer(Shader::tangents_array_attrib_index, tangents); }
+	inline void setUVs(const std::vector<glm::vec2>& uvs) { createVertexBuffer(constants::attributes::uvs_array_attrib_index, uvs); }
+	inline void setNormals(const std::vector<glm::vec3>& normals) { createVertexBuffer(constants::attributes::normals_array_attrib_index, normals); }
+	inline void setTangents(const std::vector<glm::vec3>& tangents) { createVertexBuffer(constants::attributes::tangents_array_attrib_index, tangents); }
 	inline void setBitangents(const std::vector<glm::vec3>& bitangents)
 	{
-		createVertexBuffer(Shader::bitangents_array_attrib_index, bitangents);
+		createVertexBuffer(constants::attributes::bitangents_array_attrib_index, bitangents);
 	}
-	inline void setColors(const std::vector<glm::vec4>& colors) { createVertexBuffer(Shader::colors_array_attrib_index, colors); }
+	inline void setColors(const std::vector<glm::vec4>& colors) { createVertexBuffer(constants::attributes::colors_array_attrib_index, colors); }
 	inline void setElements(const std::vector<vertex_index_type>& elements)
 	{
-		//createBuffer(_elementsIboId, elements);
 		createVertexArray(elements);
 		_elementCount = GLsizei(elements.size());
 	}
@@ -87,21 +79,20 @@ private:
 		std::same_as<_Ty, glm::vec2> || std::same_as<_Ty, glm::vec3> || std::same_as<_Ty, glm::vec4>
 	inline void createVertexBuffer(GLuint shaderAttribIndex, const std::vector<_Ty>&vector)
 	{
-		_vao.setAttribute(
+		_vao.createAttribute(
 			shaderAttribIndex,
+			gl::to_component_count(_Ty::length()),
 			gl::DataType::Float,
-			_Ty::length(),
 			GL_FALSE,
 			0,
-			&vector,
-			sizeof(_Ty) * vector.size(),
-			gl::BufferUsage::StaticDraw
+			vector,
+			gl::VBO::Usage::StaticDraw
 		);
 	}
 
 	inline void createVertexArray(const std::vector<vertex_index_type>& vector)
 	{
-		_vao.setEBO(vector.data(), sizeof(vertex_index_type) * vector.size(), gl::BufferUsage::StaticDraw);
+		_ebo.write(vector, gl::EBO::Usage::StaticDraw);
 	}
 };
 

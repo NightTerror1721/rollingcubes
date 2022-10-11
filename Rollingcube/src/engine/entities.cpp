@@ -1,5 +1,7 @@
 #include "entities.h"
 
+#include "utils/shader_constants.h"
+
 
 ModeledEntity::~ModeledEntity()
 {
@@ -20,15 +22,15 @@ void ModeledEntity::update(Time elapsedTime)
 
 void ModeledEntity::renderDefault(GLenum mode)
 {
-    const auto& shader = Shader::getDefault();
+    auto shader = getLightningShader();
 	if (shader == nullptr || _objModel == nullptr)
 		return;
 
-	shader->bind();
+	shader->use();
 	_material.bindTextures();
 
-    shader->setUniformMatrix("model", getModelMatrix());
-    shader->setUniformMatrix("modelNormal", getNormalMatrix());
+	shader[constants::uniform::model_data::model()] = getModelMatrix();
+	shader[constants::uniform::model_data::modelNormal()] = getNormalMatrix();
 	if (_staticLightManager != nullptr)
 		shader->setUniformStaticLights(_staticLightContainer);
 	shader->setUniformMaterial(_material);
@@ -36,7 +38,7 @@ void ModeledEntity::renderDefault(GLenum mode)
 	_objModel->render(mode);
 
 	_material.unbindTextures();
-	shader->unbind();
+	shader->notUse();
 }
 
 void ModeledEntity::linkStaticLightManager(const std::shared_ptr<StaticLightManager>& lightManager)

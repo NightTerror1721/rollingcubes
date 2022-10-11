@@ -159,8 +159,11 @@
     <ClCompile Include="src\engine\entities.cpp" />
     <ClCompile Include="src\engine\frustum.cpp" />
     <ClCompile Include="src\engine\light.cpp" />
-    <ClCompile Include="src\engine\objmodel.cpp" />
     <ClCompile Include="src\engine\shader.cpp" />
+    <ClCompile Include="src\engine\objmodel.cpp" />
+    <ClCompile Include="src\engine\sampler.cpp" />
+    <ClCompile Include="src\engine\old_shader.cpp" />
+    <ClCompile Include="src\engine\text.cpp" />
     <ClCompile Include="src\engine\texture.cpp" />
     <ClCompile Include="src\game\cube_model.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -174,7 +177,10 @@
   <ItemGroup>
     <ClInclude Include="src\core\fps.h" />
     <ClInclude Include="src\core\gl.h" />
+    <ClInclude Include="src\core\render.h" />
     <ClInclude Include="src\core\time.h" />
+    <ClInclude Include="src\core\vertex_array.h" />
+    <ClInclude Include="src\core\vertex_buffers.h" />
     <ClInclude Include="src\core\window.h" />
     <ClInclude Include="src\engine\basics.h" />
     <ClInclude Include="src\engine\camera.h" />
@@ -182,8 +188,10 @@
     <ClInclude Include="src\engine\frustum.h" />
     <ClInclude Include="src\engine\light.h" />
     <ClInclude Include="src\engine\material.h" />
-    <ClInclude Include="src\engine\objmodel.h" />
     <ClInclude Include="src\engine\shader.h" />
+    <ClInclude Include="src\engine\objmodel.h" />
+    <ClInclude Include="src\engine\sampler.h" />
+    <ClInclude Include="src\engine\old_shader.h" />
     <ClInclude Include="src\engine\text.h" />
     <ClInclude Include="src\engine\texture.h" />
     <ClInclude Include="src\game\cube_model.h" />
@@ -197,9 +205,11 @@
     <ClInclude Include="src\utils\jpeg_decoder.h" />
     <ClInclude Include="src\utils\json.h" />
     <ClInclude Include="src\utils\logger.h" />
+    <ClInclude Include="src\utils\manager.h" />
     <ClInclude Include="src\utils\optref.h" />
     <ClInclude Include="src\utils\png_decoder.h" />
     <ClInclude Include="src\utils\resources.h" />
+    <ClInclude Include="src\utils\shader_constants.h" />
     <ClInclude Include="src\utils\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
