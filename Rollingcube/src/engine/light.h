@@ -184,7 +184,7 @@ private:
 private:
 	std::shared_ptr<StaticLightManager> _manager = nullptr;
 	std::vector<std::shared_ptr<Light>> _lights;
-	glm::vec3 _position;
+	glm::vec3 _position = { 0, 0, 0 };
 	std::uint64_t _buildVersion = 0;
 
 public:

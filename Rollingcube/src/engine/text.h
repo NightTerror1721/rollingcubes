@@ -75,6 +75,7 @@ public:
     constexpr void addCharacterRange(unsigned int from, unsigned int to) { _characterRanges.push_back({ from, to }); }
 
     constexpr void setColor(const glm::vec4& color) { _color = color; }
+    constexpr void setColor(const glm::vec3& color) { _color = { color.r, color.g, color.b, _color.a }; }
     constexpr const glm::vec4& getColor() const { return _color; }
 
     template <typename... _ArgsTys>

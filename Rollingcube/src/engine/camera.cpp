@@ -3,24 +3,27 @@
 #include <iostream>
 
 #include "utils/shader_constants.h"
+#include "basics.h"
 
 
 Camera::Camera() :
 	_type(),
-	_eye(),
-	_center(),
-	_up(),
-	_fov(),
-	_aspect(),
-	_nearPlane(),
-	_farPlane(),
-	_left(),
-	_right(),
-	_top(),
-	_bottom(),
+	_eye(0, 0, 0),
+	_center(0, 0, 1),
+	_up(0, 1, 0),
+	_fov(0),
+	_aspect(0),
+	_nearPlane(0),
+	_farPlane(0),
+	_left(0),
+	_right(0),
+	_top(0),
+	_bottom(0),
 	_viewMatrix(glm::identity<glm::mat4>()),
 	_projectionMatrix(glm::identity<glm::mat4>()),
-	_viewprojectionMatrix(glm::identity<glm::mat4>())
+	_viewprojectionMatrix(glm::identity<glm::mat4>()),
+	_eulerAngles(),
+	_updateEulerAngles(true)
 {}
 
 void Camera::setToGL()
@@ -45,10 +48,13 @@ void Camera::move(const glm::vec3& delta)
 
 void Camera::rotate(float angle, const glm::vec3& axis, bool enableUpRotation)
 {
-	glm::vec3 front = glm::angleAxis(angle, axis) * (_center - _eye);
+	angle = glm::radians(angle);
+	auto localAxis = getLocalVector(axis);
+
+	glm::vec3 front = glm::angleAxis(angle, localAxis) * (_center - _eye);
 	_center = _eye + front;
 	if(enableUpRotation)
-		_up = glm::rotate(_up, angle, axis);
+		_up = glm::rotate(_up, angle, localAxis);
 
 	updateViewMatrix();
 }
@@ -59,6 +65,11 @@ void Camera::rotate(const glm::vec3& angles)
 	glm::vec3 front = qt * (_center - _eye);
 	_center = _eye + front;
 	_up = qt * _up;
+}
+
+void Camera::rotateUp(const glm::vec3& angles)
+{
+
 }
 
 void Camera::setOrientation(const glm::vec3& angles)
@@ -123,6 +134,8 @@ void Camera::lookAt(const glm::vec3& eye, const glm::vec3& center, const glm::ve
 
 void Camera::updateViewMatrix()
 {
+	_updateEulerAngles = true;
+
 	if (_type == Type::Perspective)
 		_viewMatrix = glm::lookAt(_eye, _center, _up);
 	else
@@ -139,6 +152,13 @@ void Camera::updateProjectionMatrix()
 		_projectionMatrix = glm::perspective(_fov, _aspect, _nearPlane, _farPlane);
 
 	_viewprojectionMatrix = _projectionMatrix * _viewMatrix;
+}
+
+void Camera::updateEulerAngles() const
+{
+	glm::extractEulerAngleXYZ(_viewMatrix, _eulerAngles.x, _eulerAngles.y, _eulerAngles.z);
+	_eulerAngles = glm::degrees(_eulerAngles);
+	_updateEulerAngles = false;
 }
 
 

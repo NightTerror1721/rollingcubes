@@ -57,7 +57,8 @@ bool Font::load(std::string_view filepath, int pixelSize)
     int currentRenderIndex = 0;
     std::unique_ptr<Texture> texture = std::make_unique<Texture>();
 
-    RawBuffer rawData;
+    std::vector<glm::vec2> vertData;
+    std::vector<glm::vec2> texCoordData;
 
     auto finalizeTexture = [this, &texture, &textureData](bool createNext)
     {
@@ -149,10 +150,8 @@ bool Font::load(std::string_view filepath, int pixelSize)
 
             for (int i = 0; i < 4; i++)
             {
-                rawData.push_back(vertices[i]);
-                rawData.push_back(textureCoordinates[i]);
-                //_vbo.addRawData(&vertices[i], sizeof(glm::vec2));
-                //_vbo.addRawData(&textureCoordinates[i], sizeof(glm::vec2));
+                vertData.push_back(vertices[i]);
+                texCoordData.push_back(textureCoordinates[i]);
             }
 
             charProps.renderIndex = currentRenderIndex;
@@ -173,10 +172,9 @@ bool Font::load(std::string_view filepath, int pixelSize)
         gl::VAO::Attribute::ComponentCount::Two,
         gl::DataType::Float,
         GL_FALSE,
-        sizeof(glm::vec2) * 2,
-        rawData,
-        gl::VBO::Usage::StaticDraw,
-        0
+        0,
+        vertData,
+        gl::VBO::Usage::StaticDraw
     );
 
     _vao.createAttribute(
@@ -184,19 +182,10 @@ bool Font::load(std::string_view filepath, int pixelSize)
         gl::VAO::Attribute::ComponentCount::Two,
         gl::DataType::Float,
         GL_FALSE,
-        sizeof(glm::vec2) * 2,
-        rawData,
-        gl::VBO::Usage::StaticDraw,
-        sizeof(glm::vec2)
+        0,
+        texCoordData,
+        gl::VBO::Usage::StaticDraw
     );
-    //_vbo.uploadDataToGPU(GL_STATIC_DRAW);
-    // Setup vertex positions pointers
-    //glEnableVertexAttribArray(0);
-    //glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2) * 2, reinterpret_cast<void*>(0));
-
-    // Setup texture coordinates pointers
-    //glEnableVertexAttribArray(1);
-    //glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2) * 2, reinterpret_cast<void*>(sizeof(glm::vec2)));
 
     // Now we're done with loading, release FreeType structures
     FT_Done_Face(freeTypeFace);

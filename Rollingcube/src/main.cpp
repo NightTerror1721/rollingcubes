@@ -4,6 +4,7 @@
 #include "core/window.h"
 
 #include "math/color.h"
+#include "math/bases.h"
 
 #include "engine/objmodel.h"
 #include "engine/shader.h"
@@ -119,6 +120,10 @@ void tutos()
 {
     window::createMainWindow();
 
+    CoordSystem cs0 = CoordSystem::fromYAxis(0, 1, 0);
+    CoordSystem cs1 = CoordSystem::fromYAxis(1, 0, 0);
+    CoordSystem cs2 = cs0.rotate(45, 45, 0);
+
     /*static constexpr GLfloat g_vertex_buffer_data[] = {
         -1.0f, -1.0f, 0.0f,
         1.0f, -1.0f, 0.0f,
@@ -150,7 +155,7 @@ void tutos()
 
     
     Font font;
-    font.load("default.ttf", 128);
+    font.load("default.ttf", 256);
 
     Camera ortoCam;
     ortoCam.setToOrthographic(0, window::default_width, 0, window::default_height, -1.f, 1.f);
@@ -211,7 +216,7 @@ void tutos()
 
     Camera cam;
     cam.setToPerspective(glm::radians(45.f), float(window::default_width) / float(window::default_height), 0.1f, 100.f);
-    cam.lookAt(glm::vec3(4, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    cam.lookAt(glm::vec3(0, 0, 5), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
 
     double lastTime = 0;
@@ -238,14 +243,14 @@ void tutos()
         mpos.x = (window::default_width / 2) - mpos.x;
         mpos.y = (window::default_height / 2) - mpos.y;
 
-        cam.rotateLocal(0.1f * float(deltaTime) * mpos.x, { 0, 1, 0 }, false);
-        cam.rotateLocal(0.1f * float(deltaTime) * mpos.y, { 1, 0, 0 }, false);
+        cam.rotate(5.0f * float(deltaTime) * mpos.x, { 0, 1, 0 }, true);
+        cam.rotate(5.0f * float(deltaTime) * mpos.y, { 1, 0, 0 }, true);
 
 
         if (glfwGetKey(window::getMainWindow(), GLFW_KEY_Z) == GLFW_PRESS)
-            cam.rotateLocal(2.0f * float(deltaTime), { 0, 0, 1 }, true);
+            cam.rotate(60.0f * float(deltaTime), { 0, 0, 1 }, true);
         else if (glfwGetKey(window::getMainWindow(), GLFW_KEY_C) == GLFW_PRESS)
-            cam.rotateLocal(-2.0f * float(deltaTime), { 0, 0, 1 }, true);
+            cam.rotate(-60.0f * float(deltaTime), { 0, 0, 1 }, true);
 
         if (glfwGetKey(window::getMainWindow(), GLFW_KEY_R) == GLFW_PRESS)
             cam.setOrientation({0, 0, 0});
@@ -316,8 +321,18 @@ void tutos()
 
         entity.render();
 
-        font.setColor({ 1, 1, 1, 1 });
-        font.print(ortoCam, 200, 200, 64, "Test");
+        const auto& pos = cam.getPosition();
+        const auto& rot = cam.getEulerAngles();
+        const auto& camFront = cam.getFront();
+        const auto& camUp = cam.getUp();
+        font.setColor({ 1, 1, 1 });
+        font.print(ortoCam, 5, 5, 16, "Cam pos: (x:{:.2f}, y:{:.2f}, z:{:.2f})", pos.x, pos.y, pos.z);
+        font.print(ortoCam, 5, 5 + 16 + 5, 16, "Cam rot: (pitch:{:.2f}, yaw:{:.2f}, roll:{:.2f})", rot.x, rot.y, rot.z);
+        font.print(ortoCam, 5, 5 + 32 + 10, 16, "Cam FRONT: (x:{:.2f}, y:{:.2f}, z:{:.2f})", camFront.x, camFront.y, camFront.z);
+        font.print(ortoCam, 5, 5 + 48 + 15, 16, "Cam UP: (x:{:.2f}, y:{:.2f}, z:{:.2f})", camUp.x, camUp.y, camUp.z);
+
+        //font.setColor({ 1, 0, 0 });
+        //font.print(ortoCam, 5, window::default_height - 80, 64, "Test");
 
         //entity.getObjectModel()->render();
 
@@ -342,6 +357,9 @@ void tutos()
             maxTime = Time::zero();
             marksCount = 0;
         }
+    }, [&](const TimeController& tc) {
+        font.setColor({ 0, 1, 0 });
+        font.print(ortoCam, 5, window::default_height - 16, 16, "{} fps", tc.getFPS());
     });
 
     gl::terminate();

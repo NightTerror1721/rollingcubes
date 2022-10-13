@@ -3,8 +3,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "fps.h"
-
 
 namespace window
 {
@@ -47,7 +45,7 @@ namespace window
 		return true;
 	}
 
-	void simpleLoop(bool terminateOnEnd, const std::function<void(Time)>& drawFunction)
+	void simpleLoop(bool terminateOnEnd, const std::function<void(Time)>& drawFunction, const std::function<void(const TimeController&)>& endDrawFunction)
 	{
 		TimeController timeController;
 		do
@@ -60,6 +58,7 @@ namespace window
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			drawFunction(elapsedTime);
+			endDrawFunction(timeController);
 
 			glfwSwapBuffers(mainw);
 			glfwPollEvents();

@@ -42,6 +42,9 @@ private:
 	glm::mat4 _projectionMatrix;
 	glm::mat4 _viewprojectionMatrix;
 
+	mutable glm::vec3 _eulerAngles;
+	mutable bool _updateEulerAngles;
+
 public:
 	~Camera() noexcept = default;
 
@@ -61,6 +64,8 @@ public:
 	void move(const glm::vec3& delta);
 	void rotate(float angle, const glm::vec3& axis, bool enableUpRotation = false);
 	void rotate(const glm::vec3& angles);
+
+	void rotateUp(const glm::vec3& angles);
 
 	void setOrientation(const glm::vec3& angles);
 
@@ -92,9 +97,10 @@ public:
 
 	void bindToShader(ShaderProgram::Ref shader);
 
+private:
+	void updateEulerAngles() const;
 
-
-
+public:
 	inline Type getType() const { return _type; }
 
 	inline void setEye(const glm::vec3& eye) { _eye = eye; }
@@ -132,6 +138,13 @@ public:
 	inline void rotateVertical(float angle, bool enableUpRotation = false) { rotateLocal(angle, { 0, 1, 0 }, enableUpRotation); }
 	inline void rotateHorizontal(float angle, bool enableUpRotation = false) { rotateLocal(angle, { 1, 0, 0 }, enableUpRotation); }
 	inline void rotateLateral(float angle) { rotateLocal(angle, { 0, 0, 1 }, true); }
+
+	inline const glm::vec3& getEulerAngles() const
+	{
+		if (_updateEulerAngles)
+			updateEulerAngles();
+		return _eulerAngles;
+	}
 };
 
 inline glm::mat4 operator* (const Camera& cam, const glm::mat4& model) { return model * cam.getViewprojectionMatrix(); }

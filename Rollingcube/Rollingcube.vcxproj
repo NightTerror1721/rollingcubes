@@ -151,8 +151,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\core\fps.cpp" />
     <ClCompile Include="src\core\gl.cpp" />
+    <ClCompile Include="src\core\time.cpp" />
     <ClCompile Include="src\core\window.cpp" />
     <ClCompile Include="src\engine\basics.cpp" />
     <ClCompile Include="src\engine\camera.cpp" />
@@ -176,7 +176,6 @@
     <ClCompile Include="src\utils\raw_buffer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\core\fps.h" />
     <ClInclude Include="src\core\gl.h" />
     <ClInclude Include="src\core\render.h" />
     <ClInclude Include="src\core\time.h" />
@@ -189,6 +188,7 @@
     <ClInclude Include="src\engine\frustum.h" />
     <ClInclude Include="src\engine\light.h" />
     <ClInclude Include="src\engine\material.h" />
+    <ClInclude Include="src\engine\new_camera.h" />
     <ClInclude Include="src\engine\shader.h" />
     <ClInclude Include="src\engine\objmodel.h" />
     <ClInclude Include="src\engine\sampler.h" />
@@ -196,6 +196,7 @@
     <ClInclude Include="src\engine\text.h" />
     <ClInclude Include="src\engine\texture.h" />
     <ClInclude Include="src\game\cube_model.h" />
+    <ClInclude Include="src\math\bases.h" />
     <ClInclude Include="src\math\color.h" />
     <ClInclude Include="src\math\glm.h" />
     <ClInclude Include="src\math\MathUtils.h" />

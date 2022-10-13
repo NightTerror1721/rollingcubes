@@ -84,9 +84,6 @@
     <ClCompile Include="src\engine\texture.cpp">
       <Filter>Source Files\engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\fps.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\light.cpp">
       <Filter>Source Files\engine</Filter>
     </ClCompile>
@@ -113,6 +110,9 @@
     </ClCompile>
     <ClCompile Include="src\utils\raw_buffer.cpp">
       <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\time.cpp">
+      <Filter>Source Files\core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -170,9 +170,6 @@
     <ClInclude Include="src\engine\texture.h">
       <Filter>Header Files\engine</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\fps.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\time.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
@@ -229,6 +226,12 @@
     </ClInclude>
     <ClInclude Include="src\utils\raw_buffer.h">
       <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\new_camera.h">
+      <Filter>Header Files\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\math\bases.h">
+      <Filter>Header Files\math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

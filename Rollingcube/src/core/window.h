@@ -15,5 +15,5 @@ namespace window
 
 	bool createMainWindow();
 
-	void simpleLoop(bool terminateOnEnd, const std::function<void(Time)>& drawFunction = {});
+	void simpleLoop(bool terminateOnEnd, const std::function<void(Time)>& drawFunction = {}, const std::function<void(const TimeController&)>& endDrawFunction = {});
 }

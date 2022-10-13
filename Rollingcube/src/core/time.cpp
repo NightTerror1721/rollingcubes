@@ -1,4 +1,4 @@
-#include "fps.h"
+#include "time.h"
 
 TimeController::TimeController() :
 	_frameClock(),
@@ -14,7 +14,7 @@ Time TimeController::update()
 	Time currentTime = _secClock.getElapsedTime();
 	_elapsedTime = _frameClock.restart();
 	_nbFrames++;
-	if (currentTime >=  sec_mark)
+	if (currentTime >= sec_mark)
 	{
 		_fps = static_cast<double>(static_cast<float>(_nbFrames) / currentTime.toSeconds());
 
