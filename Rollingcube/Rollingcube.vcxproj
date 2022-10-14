@@ -174,6 +174,7 @@
     <ClCompile Include="src\utils\logger.cpp" />
     <ClCompile Include="src\utils\png_decoder.cpp" />
     <ClCompile Include="src\utils\raw_buffer.cpp" />
+    <ClCompile Include="src\utils\tangent_space.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\gl.h" />
@@ -214,6 +215,7 @@
     <ClInclude Include="src\utils\resources.h" />
     <ClInclude Include="src\utils\shader_constants.h" />
     <ClInclude Include="src\utils\string_utils.h" />
+    <ClInclude Include="src\utils\tangent_space.h" />
     <ClInclude Include="src\utils\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

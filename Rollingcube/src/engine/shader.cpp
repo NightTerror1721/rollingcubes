@@ -202,6 +202,7 @@ ShaderProgramUniform::ShaderProgramUniform(std::string_view name, ShaderProgram&
 void ShaderProgram::setUniformMaterial(const Material& material)
 {
 	using namespace constants::uniform::material;
+	using namespace constants::uniform::flags;
 
 	getUniform(ambientColor()) = material.getAmbientColor();
 	getUniform(diffuseColor()) = material.getDiffuseColor();
@@ -218,6 +219,15 @@ void ShaderProgram::setUniformMaterial(const Material& material)
 		material.getSpecularTexture()->activate(1);
 		getUniform(specularTexture()) = 1;
 	}
+
+	if (material.getNormalsTexture() != nullptr)
+	{
+		material.getNormalsTexture()->activate(2);
+		getUniform(normalsTexture()) = 2;
+		getUniform(useNormalMapping()) = true;
+	}
+	else
+		getUniform(useNormalMapping()) = false;
 
 	getUniform(shininess()) = material.getShininess();
 }

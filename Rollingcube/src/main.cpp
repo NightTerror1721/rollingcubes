@@ -142,16 +142,27 @@ void tutos()
     if (!tex)
         return;
 
-    //Sampler sampler;
-    //sampler.create();
-    //sampler.setFilter(Sampler::MagnificationFilter::Bilinear);
-    //sampler.setFilter(Sampler::MinificationFilter::BilinearMipmap);
-
     tex->bind();
     tex->setRepeat(true);
     tex->setFilter(Texture::MagnificationFilter::Bilinear);
     tex->setFilter(Texture::MinificationFilter::BilinearMipmap);
     tex->unbind();
+
+    Texture::Ref tex_sm = TextureManager::root().loadFromImage("tuto01_sm", "test/tile1_sm.jpg");
+
+    tex_sm->bind();
+    tex_sm->setRepeat(true);
+    tex_sm->setFilter(Texture::MagnificationFilter::Bilinear);
+    tex_sm->setFilter(Texture::MinificationFilter::BilinearMipmap);
+    tex_sm->unbind();
+
+    Texture::Ref tex_nm = TextureManager::root().loadFromImage("tuto01_nm", "test/tile1_nm.jpg");
+
+    tex_sm->bind();
+    tex_sm->setRepeat(true);
+    tex_sm->setFilter(Texture::MagnificationFilter::Bilinear);
+    tex_sm->setFilter(Texture::MinificationFilter::BilinearMipmap);
+    tex_sm->unbind();
 
     
     Font font;
@@ -184,8 +195,10 @@ void tutos()
     material.setDiffuseColor({ 1, 1, 1 });
     material.setAmbientColor({ 0.1, 0.1, 0.1 });
     material.setSpecularColor({ 0.3, 0.3, 0.3 });
-    material.setShininess(10);
+    material.setShininess(50);
     material.setDiffuseTexture(tex);
+    material.setSpecularTexture(tex_sm);
+    material.setNormalsTexture(tex_nm);
 
     entityCube1.setMaterial(material);
     entityCube2.setMaterial(material);

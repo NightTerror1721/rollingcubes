@@ -328,6 +328,10 @@ public:
 	inline void set(const std::vector<glm::mat4>& v) const { glUniformMatrix4fv(_location, GLsizei(v.size()), false, reinterpret_cast<const GLfloat*>(v.data())); }
 	inline const ShaderProgramUniform& operator= (const glm::mat4& value) const { return set(value), *this; }
 	inline const ShaderProgramUniform& operator= (const std::vector<glm::mat4>& value) const { return set(value), *this; }
+
+
+	inline void set(bool value) const { glUniform1i(_location, static_cast<GLint>(value)); }
+	inline const ShaderProgramUniform& operator= (bool value) const { return set(value), *this; }
 };
 
 

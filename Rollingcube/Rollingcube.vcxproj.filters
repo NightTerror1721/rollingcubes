@@ -114,6 +114,9 @@
     <ClCompile Include="src\core\time.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\tangent_space.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\math\MathUtils.h">
@@ -232,6 +235,9 @@
     </ClInclude>
     <ClInclude Include="src\math\bases.h">
       <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\tangent_space.h">
+      <Filter>Header Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -43,6 +43,11 @@ namespace constants
 
 	namespace uniform
 	{
+		namespace flags
+		{
+			DEFINE_SHADER_UNIFORM_CONSTANT(useNormalMapping, "useNormalMapping")
+		}
+
 		namespace material
 		{
 			DEFINE_SHADER_UNIFORM_CONSTANT(ambientColor, "material.color.ambient")
@@ -50,6 +55,7 @@ namespace constants
 			DEFINE_SHADER_UNIFORM_CONSTANT(specularColor, "material.color.specular")
 			DEFINE_SHADER_UNIFORM_CONSTANT(diffuseTexture, "material.diffuse")
 			DEFINE_SHADER_UNIFORM_CONSTANT(specularTexture, "material.specular")
+			DEFINE_SHADER_UNIFORM_CONSTANT(normalsTexture, "material.normals")
 			DEFINE_SHADER_UNIFORM_CONSTANT(shininess, "material.shininess")
 		}
 

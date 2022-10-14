@@ -5,6 +5,7 @@
 #include <Bly7/OBJ_loader.hpp>
 
 #include "utils/io_utils.h"
+#include "utils/tangent_space.h"
 
 
 Mesh::Mesh(Mesh&& other) noexcept :
@@ -136,7 +137,8 @@ static bool loader_newMesh(
 	ObjModel& model,
 	const std::string& name,
 	const std::vector<objl::Vertex>& vertices,
-	const std::vector<loader_vertex_index_t>& indices)
+	const std::vector<loader_vertex_index_t>& indices,
+	bool computeTangentBasis)
 {
 	auto omesh = model.createMesh(name);
 	if (!omesh)
@@ -166,6 +168,19 @@ static bool loader_newMesh(
 	mesh.setNormals(gl_normals);
 
 
+	// TANGENT PART //
+	if (computeTangentBasis)
+	{
+		std::vector<glm::vec3> gl_tangents;
+		std::vector<glm::vec3> gl_bitangents;
+
+		tangents::computeTangentBasis(gl_vertices, gl_uvs, gl_normals, gl_tangents, gl_bitangents);
+
+		mesh.setTangents(gl_tangents);
+		mesh.setBitangents(gl_bitangents);
+	}
+
+
 	// INDEX PART //
 	std::vector<GLuint> gl_indices;
 	if constexpr (std::same_as<GLuint, loader_vertex_index_t>)
@@ -186,7 +201,7 @@ static bool loader_newMesh(
 	return true;
 }
 
-bool ObjModel::load(const std::string_view& filename)
+bool ObjModel::load(const std::string_view& filename, bool computeTangentBasis)
 {
 	clear();
 
@@ -200,13 +215,13 @@ bool ObjModel::load(const std::string_view& filename)
 	if (loader.LoadedMeshes.empty())
 	{
 		if (!loader.LoadedVertices.empty())
-			return loader_newMesh(*this, "default", loader.LoadedVertices, loader.LoadedIndices);
+			return loader_newMesh(*this, "default", loader.LoadedVertices, loader.LoadedIndices, computeTangentBasis);
 	}
 	else
 	{
 		for (const auto& mesh : loader.LoadedMeshes)
 		{
-			if (!loader_newMesh(*this, mesh.MeshName, mesh.Vertices, mesh.Indices))
+			if (!loader_newMesh(*this, mesh.MeshName, mesh.Vertices, mesh.Indices, computeTangentBasis))
 				std::cerr << "Loading OBJ error. Cannot load " << mesh.MeshName << " mesh. File: " << filename << std::endl;
 		}
 	}

@@ -14,6 +14,7 @@ struct Material
 	ColorChannels color;
 	sampler2D diffuse;
 	sampler2D specular;
+    sampler2D normals;
 	float shininess;
 };
 
@@ -50,11 +51,13 @@ struct SpotLight
 in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
+in mat3 TBN;
 
 out vec4 FragColor;
 
 uniform vec3 viewPos;
 uniform int pointLightsCount;
+uniform bool useNormalMapping;
 uniform DirectionalLight dirLight;
 uniform PointLight pointLights[MAX_LIGHTS];
 uniform SpotLight spotLight;
@@ -67,7 +70,18 @@ vec3 computeColorFromSpotlLight(vec3 normal, vec3 viewDir);
 
 void main()
 {
-	vec3 normal = normalize(Normal);
+    vec3 normal;
+    if(useNormalMapping)
+    {
+        normal = texture(material.normals, TexCoords).rgb;
+        normal = normal * 2 - 1;
+        normal = normalize(TBN * normal);
+    }
+    else
+    {
+        normal = normalize(Normal);
+    }
+
 	vec3 viewDir = normalize(viewPos - FragPos);
 
 	// == =====================================================

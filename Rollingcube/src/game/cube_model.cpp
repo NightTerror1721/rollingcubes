@@ -1,6 +1,7 @@
 #include "cube_model.h"
 
 #include "utils/logger.h"
+#include "utils/tangent_space.h"
 
 
 namespace cubes::model
@@ -107,6 +108,15 @@ namespace cubes::model
 		mesh.setVertices(gl_vertices);
 		mesh.setUVs(gl_uvs);
 		mesh.setNormals(gl_normals);
+
+
+		std::vector<glm::vec3> gl_tangents;
+		std::vector<glm::vec3> gl_bitangents;
+
+		tangents::computeTangentBasis(gl_vertices, gl_uvs, gl_normals, gl_tangents, gl_bitangents);
+
+		mesh.setTangents(gl_tangents);
+		mesh.setBitangents(gl_bitangents);
 
 
 		// INDEX PART //

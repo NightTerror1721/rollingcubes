@@ -129,7 +129,7 @@ public:
 	void render(const std::function<void(const Mesh&)>& preMeshRenderCallback, GLenum mode = GL_TRIANGLES) const;
 
 
-	bool load(const std::string_view& filename);
+	bool load(const std::string_view& filename, bool computeTangentBasis);
 	
 
 
