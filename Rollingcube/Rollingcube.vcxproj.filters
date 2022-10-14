@@ -117,6 +117,9 @@
     <ClCompile Include="src\utils\tangent_space.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
+    <ClCompile Include="src\engine\skybox.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\math\MathUtils.h">
@@ -238,6 +241,9 @@
     </ClInclude>
     <ClInclude Include="src\utils\tangent_space.h">
       <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\skybox.h">
+      <Filter>Header Files\engine</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

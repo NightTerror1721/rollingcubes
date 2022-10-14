@@ -185,6 +185,11 @@ ShaderProgramManager::Reference ShaderProgramManager::getFreetypeFontShaderProgr
 	GET_INTERNAL_SHADER(freetype_font);
 }
 
+ShaderProgramManager::Reference ShaderProgramManager::getSkyShaderProgram()
+{
+	GET_INTERNAL_SHADER(sky);
+}
+
 #undef GET_INTERNAL_SHADER
 
 

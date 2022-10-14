@@ -82,3 +82,73 @@ GLint Texture::getNumTextureImageUnits()
 
 
 TextureManager TextureManager::Root = TextureManager(nullptr);
+
+
+
+
+
+
+
+bool CubeMapTexture::loadFromImage(const FacesFiles& filenames)
+{
+	if (isCreated())
+		return false;
+
+	glGenTextures(1, &_id);
+	bind();
+
+	for (std::size_t i = 0; i < FacesCount; i++)
+	{
+		const std::string& filename = filenames[i];
+		if (!filename.empty())
+		{
+			Image img;
+			if (!img.load(filename))
+			{
+				logger::error("Cannot load cubemap face texture because it's image cannot be read. Image filanem: {}", filename);
+				continue;
+			}
+
+			if (img.hasInvertedPixelRows())
+				img.invertRows();
+
+			Format fmt = img.hasAlpha() ? Format::rgba : Format::rgb;
+
+			glTexImage2D(
+				static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i),
+				0,
+				static_cast<GLint>(fmt),
+				static_cast<GLsizei>(img.width()),
+				static_cast<GLsizei>(img.height()),
+				0,
+				static_cast<GLenum>(fmt),
+				GL_UNSIGNED_BYTE,
+				img.data()
+			);
+		}
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return true;
+}
+
+void CubeMapTexture::destroy()
+{
+	if (isCreated())
+		glDeleteTextures(1, &_id);
+
+	_id = 0;
+	_width = 0;
+	_height = 0;
+	_format = Format(0);
+	_files = {};
+}
+
+
+
+
+CubeMapTextureManager CubeMapTextureManager::Root = CubeMapTextureManager(nullptr);

@@ -43,6 +43,7 @@ namespace gl
 	void terminate()
 	{
 		TextureManager::root().clear();
+		CubeMapTextureManager::root().clear();
 		ShaderManager::vertex().clear();
 		ShaderManager::fragment().clear();
 		ShaderManager::geometry().clear();

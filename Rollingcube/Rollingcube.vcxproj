@@ -163,6 +163,7 @@
     <ClCompile Include="src\engine\objmodel.cpp" />
     <ClCompile Include="src\engine\sampler.cpp" />
     <ClCompile Include="src\engine\old_shader.cpp" />
+    <ClCompile Include="src\engine\skybox.cpp" />
     <ClCompile Include="src\engine\text.cpp" />
     <ClCompile Include="src\engine\texture.cpp" />
     <ClCompile Include="src\game\cube_model.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="src\engine\objmodel.h" />
     <ClInclude Include="src\engine\sampler.h" />
     <ClInclude Include="src\engine\old_shader.h" />
+    <ClInclude Include="src\engine\skybox.h" />
     <ClInclude Include="src\engine\text.h" />
     <ClInclude Include="src\engine\texture.h" />
     <ClInclude Include="src\game\cube_model.h" />

@@ -13,6 +13,7 @@
 #include "engine/sampler.h"
 #include "engine/entities.h"
 #include "engine/text.h"
+#include "engine/skybox.h"
 
 #include "utils/logger.h"
 #include "utils/bmp_decoder.h"
@@ -163,6 +164,20 @@ void tutos()
     tex_sm->setFilter(Texture::MagnificationFilter::Bilinear);
     tex_sm->setFilter(Texture::MinificationFilter::BilinearMipmap);
     tex_sm->unbind();
+
+
+    CubeMapTexture::Ref cmTex = CubeMapTextureManager::root().loadFromImage("sky01", {
+        "test/skybox/front.jpg",
+        "test/skybox/back.jpg",
+        "test/skybox/left.jpg",
+        "test/skybox/right.jpg",
+        "test/skybox/up.jpg",
+        "test/skybox/down.jpg"
+    });
+
+    Skybox skybox;
+    skybox.setTexture(cmTex);
+
 
     
     Font font;
@@ -327,6 +342,9 @@ void tutos()
         //sampler.activate(1);
 
         cam.bindToShader(lightningShader);
+        skybox.bindCameraToShader(cam);
+
+        skybox.render();
 
         lightningShader->use();
         lightningShader->setUniformDirectionalLight(dirLight);
