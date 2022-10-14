@@ -28,82 +28,42 @@ namespace cubes::model
 		using CubeTriangle = unsigned int[vertices_per_triangle];
 
 
-		static constexpr glm::vec3 normals[cube_side_count] = {
-			{ 0, 1, 0 },  // up //
-			{ 0, -1, 0 }, // down //
-			{ 1, 0, 0 },  // left //
-			{ -1, 0, 0 }, // right //
-			{ 0, 0, 1 },  // front //
-			{ 0, 0, -1 }  // back //
+		static constexpr glm::vec3 cubeVertices[36] =
+		{
+			// Front face
+			{ 0.5f, -0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f }, { -0.5f, 0.5f, 0.5f }, { -0.5f, 0.5f, 0.5f }, { -0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, 0.5f },
+			// Back face
+			{ -0.5f, -0.5f, -0.5f } , { -0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f }, { -0.5f, -0.5f, -0.5f },
+			// Left face
+			{ -0.5f, -0.5f, 0.5f }, { -0.5f, 0.5f, 0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, -0.5f, -0.5f }, { -0.5f, -0.5f, 0.5f },
+			// Right face
+			{ 0.5f, -0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f }, { 0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, -0.5f },
+			// Top face
+			{ 0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f },
+			// Bottom face
+			{ 0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, 0.5f }, { -0.5f, -0.5f, 0.5f }, { -0.5f, -0.5f, 0.5f }, { -0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f },
 		};
 
-		static constexpr glm::vec2 tex_coords[vertices_per_side] = {
-			{ 0, 0 }, // down-left //
-			{ 1, 0 }, // down-right //
-			{ 0, 1 }, // up-left //
-			{ 1, 1 }, // up-right //
+		static constexpr glm::vec2 cubeTexCoords[6] =
+		{
+			{ 0.0f, 1.0f }, { 1.0f, 1.0f }, { 1.0f, 0.0f },
+			{ 1.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 1.0f }
 		};
 
-		static constexpr glm::vec3 vertices[vertices_count] = {
-			{ 1, 1, -1 },	// up-face: down-left //
-			{ -1, 1, -1 },	// up-face: down-right //
-			{ 1, 1, 1 },	// up-face: up-left //
-			{ -1, 1, 1 },	// up-face: up-right //
-
-			{ 1, -1, -1 },	// down-face: down-left //
-			{ -1, -1, -1 },	// down-face: down-right //
-			{ 1, -1, 1 },	// down-face: up-left //
-			{ -1, -1, 1 }	// down-face: up-right //
+		static constexpr glm::vec3 cubeNormals[6] =
+		{
+			{ 0, 0, 1 },  // Front face //
+			{ 0, 0, -1 }, // Back face //
+			{ -1, 0, 0 }, // Left face //
+			{ 1, 0, 0 },  // Right face //
+			{ 0, 1, 0 },  // Top face //
+			{ 0, -1, 0 }, // Bottom face //
 		};
 
-		static constexpr CubeVertex cube_vertices[cube_side_count * cube_side_count] = {
-			// up //
-			{ vertices[0], normals[0], tex_coords[0] },
-			{ vertices[1], normals[0], tex_coords[1] },
-			{ vertices[2], normals[0], tex_coords[2] },
-			{ vertices[1], normals[0], tex_coords[1] },
-			{ vertices[2], normals[0], tex_coords[2] },
-			{ vertices[3], normals[0], tex_coords[3] },
-
-			// down //
-			{ vertices[4], normals[1], tex_coords[2] },
-			{ vertices[5], normals[1], tex_coords[3] },
-			{ vertices[6], normals[1], tex_coords[0] },
-			{ vertices[5], normals[1], tex_coords[3] },
-			{ vertices[6], normals[1], tex_coords[0] },
-			{ vertices[7], normals[1], tex_coords[1] },
-
-			// left //
-			{ vertices[6], normals[2], tex_coords[0] },
-			{ vertices[4], normals[2], tex_coords[1] },
-			{ vertices[2], normals[2], tex_coords[2] },
-			{ vertices[4], normals[2], tex_coords[1] },
-			{ vertices[2], normals[2], tex_coords[2] },
-			{ vertices[0], normals[2], tex_coords[3] },
-
-			// right //
-			{ vertices[5], normals[3], tex_coords[2] },
-			{ vertices[7], normals[3], tex_coords[3] },
-			{ vertices[1], normals[3], tex_coords[0] },
-			{ vertices[7], normals[3], tex_coords[3] },
-			{ vertices[1], normals[3], tex_coords[0] },
-			{ vertices[3], normals[3], tex_coords[1] },
-
-			// front //
-			{ vertices[6], normals[4], tex_coords[2] },
-			{ vertices[7], normals[4], tex_coords[3] },
-			{ vertices[2], normals[4], tex_coords[0] },
-			{ vertices[7], normals[4], tex_coords[3] },
-			{ vertices[2], normals[4], tex_coords[0] },
-			{ vertices[3], normals[4], tex_coords[1] },
-
-			// back //
-			{ vertices[4], normals[5], tex_coords[0] },
-			{ vertices[5], normals[5], tex_coords[1] },
-			{ vertices[0], normals[5], tex_coords[2] },
-			{ vertices[5], normals[5], tex_coords[1] },
-			{ vertices[0], normals[5], tex_coords[2] },
-			{ vertices[1], normals[5], tex_coords[3] }
+		static constexpr glm::vec3 cubeFaceColors[6] =
+		{
+			{ 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f },
+			{ 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }
 		};
 
 		/*static constexpr CubeTriangle indices[cube_side_count * triangles_per_side] = {
@@ -130,16 +90,18 @@ namespace cubes::model
 		std::vector<glm::vec3> gl_vertices;
 		std::vector<glm::vec2> gl_uvs;
 		std::vector<glm::vec3> gl_normals;
-		gl_vertices.resize(cube_side_count);
-		gl_uvs.resize(cube_side_count);
-		gl_normals.resize(cube_side_count);
+		gl_vertices.resize(cube_side_count * cube_side_count);
+		gl_uvs.resize(cube_side_count * cube_side_count);
+		gl_normals.resize(cube_side_count * cube_side_count);
 
-		for (std::size_t i = 0; i < cube_side_count; ++i)
+		for (side_id = 0; side_id < cube_side_count; ++side_id)
 		{
-			const auto& vertex = raw::cube_vertices[side_id * cube_side_count];
-			gl_vertices[i] = vertex.position;
-			gl_uvs[i] = vertex.tex_coord;
-			gl_normals[i] = vertex.normal;
+			for (std::size_t i = 0; i < cube_side_count; ++i)
+			{
+				gl_vertices[side_id * cube_side_count + i] = raw::cubeVertices[side_id * cube_side_count + i];
+				gl_uvs[side_id * cube_side_count + i] = raw::cubeTexCoords[i];
+				gl_normals[side_id * cube_side_count + i] = raw::cubeNormals[side_id];
+			}
 		}
 
 		mesh.setVertices(gl_vertices);
@@ -166,7 +128,7 @@ namespace cubes::model
 		{
 			CubeModel = std::make_shared<ObjModel>();
 
-			for (unsigned int i = 0; i < cube_side_count; ++i)
+			for (unsigned int i = 0; i < 1; ++i)
 			{
 				if (!create_mesh(*CubeModel.get(), cube_side_id[i]))
 					logger::fatal("CANNOT LOAD '{}' CUBE SIDE!!", cube_side_name[i]);

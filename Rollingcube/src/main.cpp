@@ -170,18 +170,25 @@ void tutos()
 
 
     //const ObjModel& objmodel = *cubes::model::getModel().get();
-    std::shared_ptr<ObjModel> objmodel = std::make_shared<ObjModel>();
-    objmodel->load("test/suzanne.obj");
+    //std::shared_ptr<ObjModel> objmodel = std::make_shared<ObjModel>();
+    //objmodel->load("test/suzanne.obj");
+    std::shared_ptr<ObjModel> objmodel = cubes::model::getModel();
 
-    ModeledEntity entity;
-    entity.setObjectModel(objmodel);
+    ModeledEntity entityCube1, entityCube2;
+    entityCube1.setObjectModel(objmodel);
+    entityCube2.setObjectModel(objmodel);
 
-    Material& material = entity.getMaterial();
+    entityCube2.move(1, 0, 0);
+
+    Material material;
     material.setDiffuseColor({ 1, 1, 1 });
     material.setAmbientColor({ 0.1, 0.1, 0.1 });
     material.setSpecularColor({ 0.3, 0.3, 0.3 });
     material.setShininess(10);
     material.setDiffuseTexture(tex);
+
+    entityCube1.setMaterial(material);
+    entityCube2.setMaterial(material);
 
     TutoMove mover;
 
@@ -194,7 +201,8 @@ void tutos()
     dirLight.setIntensity(0.5);
 
     std::shared_ptr<StaticLightManager> lightManager = std::make_shared<StaticLightManager>();
-    entity.linkStaticLightManager(lightManager);
+    entityCube1.linkStaticLightManager(lightManager);
+    entityCube2.linkStaticLightManager(lightManager);
 
     //auto slights = lightManager->createShaderLights();
 
@@ -288,7 +296,8 @@ void tutos()
 
         dirLight.setDirection(glm::normalize(cam.getFront()));
 
-        entity.update(elapsedTime);
+        entityCube1.update(elapsedTime);
+        entityCube2.update(elapsedTime);
 
         //cam.bindToDefaultShader();
         //shader->bind();
@@ -319,7 +328,8 @@ void tutos()
         //Shader::getDefault()->setUniformDirectionalLight(dirLight);
         //Shader::getDefault()->setUniformMaterial(material);
 
-        entity.render();
+        entityCube1.render();
+        entityCube2.render();
 
         const auto& pos = cam.getPosition();
         const auto& rot = cam.getEulerAngles();

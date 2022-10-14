@@ -31,6 +31,8 @@ private:
 	glm::vec3 _center;
 	glm::vec3 _up;
 
+	bool _lockedUp;
+
 	float _fov;
 	float _aspect;
 	float _nearPlane;
@@ -111,6 +113,9 @@ public:
 
 	inline void setUp(const glm::vec3& up) { _up = up; }
 	inline const glm::vec3& getUp() const { return _up; }
+
+	inline void setLockedUp(bool flag) { _lockedUp = flag; }
+	inline bool isLockedUp() const { return _lockedUp; }
 
 	inline float getFov() const { return _fov; }
 	inline float getAspect() const { return _aspect; }

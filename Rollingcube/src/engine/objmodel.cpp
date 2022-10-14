@@ -37,7 +37,10 @@ void Mesh::clear()
 void Mesh::render(GLenum mode) const
 {
 	//_vao.render(Shader::vertices_array_attrib_index, mode);
-	gl::render(_vao, _ebo, mode);
+	if (_ebo.isCreated())
+		gl::render(_vao, _ebo, mode);
+	else
+		gl::render(_vao, mode);
 }
 
 void Mesh::render(const std::function<void(const Mesh&)>& preRenderCallback, GLenum mode) const

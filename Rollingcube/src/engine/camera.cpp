@@ -11,6 +11,7 @@ Camera::Camera() :
 	_eye(0, 0, 0),
 	_center(0, 0, 1),
 	_up(0, 1, 0),
+	_lockedUp(true),
 	_fov(0),
 	_aspect(0),
 	_nearPlane(0),
@@ -53,7 +54,7 @@ void Camera::rotate(float angle, const glm::vec3& axis, bool enableUpRotation)
 
 	glm::vec3 front = glm::angleAxis(angle, localAxis) * (_center - _eye);
 	_center = _eye + front;
-	if(enableUpRotation)
+	if(enableUpRotation && !_lockedUp)
 		_up = glm::rotate(_up, angle, localAxis);
 
 	updateViewMatrix();
