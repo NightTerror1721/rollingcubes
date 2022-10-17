@@ -29,5 +29,17 @@ public:
 
 	constexpr void setShader(ShaderProgram::Ref shader) { _shader = shader; }
 	constexpr ShaderProgram::Ref getShader() const { return _shader; }
+
+private:
+	static std::unique_ptr<ObjModel> DefaultModel;
+
+	static void loadDefaultModel();
+
+	static inline const ObjModel& getDefaultModel()
+	{
+		if (DefaultModel == nullptr)
+			loadDefaultModel();
+		return *DefaultModel;
+	}
 };
 

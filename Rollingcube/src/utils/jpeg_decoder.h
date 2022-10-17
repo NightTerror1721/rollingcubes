@@ -12,6 +12,8 @@ namespace marengo
 {
     namespace jpeg
     {
+        std::vector<unsigned char> load(const std::string& fileName, size_t& width, size_t& height, size_t& pixelSize);
+
 
         class Image
         {

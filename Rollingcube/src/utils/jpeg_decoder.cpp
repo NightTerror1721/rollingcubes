@@ -7,10 +7,116 @@
 #include <string>
 #include <vector>
 
+#include "core/time.h"
+
 namespace marengo
 {
     namespace jpeg
     {
+        std::vector<unsigned char> load(const std::string& fileName, size_t& width, size_t& height, size_t& pixelSize)
+        {
+            // Creating a custom deleter for the decompressInfo pointer
+            // to ensure ::jpeg_destroy_compress() gets called even if
+            // we throw out of this function.
+            auto dt = [](::jpeg_decompress_struct* ds)
+            {
+                ::jpeg_destroy_decompress(ds);
+            };
+            std::unique_ptr<::jpeg_decompress_struct, decltype(dt)> decompressInfo(
+                new ::jpeg_decompress_struct,
+                dt
+            );
+
+            // Note this is a shared pointer as we can share this 
+            // between objects which have copy constructed from each other
+            auto m_errorMgr = std::make_shared<::jpeg_error_mgr>();
+
+            // Using fopen here ( and in save() ) because libjpeg expects
+            // a FILE pointer.
+            // We store the FILE* in a unique_ptr so we can also use the custom
+            // deleter here to ensure fclose() gets called even if we throw.
+            auto fdt = [](FILE* fp)
+            {
+                fclose(fp);
+            };
+            std::unique_ptr<FILE, decltype(fdt)> infile(
+                fopen(fileName.c_str(), "rb"),
+                fdt
+            );
+            if (infile.get() == NULL)
+            {
+                throw std::runtime_error("Could not open " + fileName);
+            }
+
+            decompressInfo->err = ::jpeg_std_error(m_errorMgr.get());
+            // Note this usage of a lambda to provide our own error handler
+            // to libjpeg. If we do not supply a handler, and libjpeg hits
+            // a problem, it just prints the error message and calls exit().
+            m_errorMgr->error_exit = [](::j_common_ptr cinfo)
+            {
+                char jpegLastErrorMsg[JMSG_LENGTH_MAX];
+                // Call the function pointer to get the error message
+                (*(cinfo->err->format_message))
+                    (cinfo, jpegLastErrorMsg);
+                throw std::runtime_error(jpegLastErrorMsg);
+            };
+            ::jpeg_create_decompress(decompressInfo.get());
+
+            // Read the file:
+            ::jpeg_stdio_src(decompressInfo.get(), infile.get());
+
+            int rc = ::jpeg_read_header(decompressInfo.get(), TRUE);
+            if (rc != 1)
+            {
+                throw std::runtime_error(
+                    "File does not seem to be a normal JPEG"
+                );
+            }
+            ::jpeg_start_decompress(decompressInfo.get());
+
+            auto m_width = decompressInfo->output_width;
+            auto m_height = decompressInfo->output_height;
+            auto m_pixelSize = decompressInfo->output_components;
+            auto m_colourSpace = decompressInfo->out_color_space;
+
+            width = m_width;
+            height = m_height;
+            pixelSize = m_pixelSize;
+
+            size_t const row_stride = m_width * m_pixelSize;
+            size_t const size = row_stride * m_height;
+
+            //m_bitmapData.clear();
+            //m_bitmapData.reserve(m_height);
+
+            std::vector<unsigned char> bitmapData;
+            bitmapData.resize(size);
+            unsigned char* const begin_pdata = bitmapData.data();
+
+            //Clock clock;
+
+            while (decompressInfo->output_scanline < m_height)
+            {
+                //unsigned char* pdata = begin_pdata + (size - (row_stride * (decompressInfo->output_scanline + 1)));
+                unsigned char* pdata = begin_pdata + (row_stride * decompressInfo->output_scanline);
+                ::jpeg_read_scanlines(decompressInfo.get(), &pdata, 1);
+            }
+
+            /*while (decompressInfo->output_scanline < m_height)
+            {
+                
+
+                std::vector<uint8_t> vec(row_stride);
+                uint8_t* p = vec.data();
+                ::jpeg_read_scanlines(decompressInfo.get(), &p, 1);
+                m_bitmapData.push_back(vec);
+            }*/
+            //auto t = clock.getElapsedTime();
+            //std::cout << "time: " << t.toSeconds() << std::endl;
+            ::jpeg_finish_decompress(decompressInfo.get());
+
+            return bitmapData;
+        }
 
         Image::Image(const std::string& fileName)
         {
@@ -83,6 +189,7 @@ namespace marengo
             m_bitmapData.clear();
             m_bitmapData.reserve(m_height);
 
+            //Clock clock;
             while (decompressInfo->output_scanline < m_height)
             {
                 std::vector<uint8_t> vec(row_stride);
@@ -90,6 +197,8 @@ namespace marengo
                 ::jpeg_read_scanlines(decompressInfo.get(), &p, 1);
                 m_bitmapData.push_back(vec);
             }
+            //auto t = clock.getElapsedTime();
+            //std::cout << "time: " << t.toSeconds() << std::endl;
             ::jpeg_finish_decompress(decompressInfo.get());
         }
 

@@ -105,7 +105,7 @@ namespace constants
 
 		inline constexpr const ShaderName lightning = { 0, "lightning" };
 		inline constexpr const ShaderName freetype_font = { 1, "freetype_font" };
-		inline constexpr const ShaderName sky = { 1, "sky" };
+		inline constexpr const ShaderName sky = { 2, "sky" };
 
 		namespace internals
 		{

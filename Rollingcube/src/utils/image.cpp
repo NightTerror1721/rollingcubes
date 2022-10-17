@@ -11,6 +11,8 @@
 #include "jpeg_decoder.h"
 #include "png_decoder.h"
 
+#include "core/time.h"
+
 
 namespace fs = std::filesystem;
 using Path = fs::path;
@@ -74,31 +76,22 @@ bool Image::loadFromJPG(std::string_view filename)
 
 	try
 	{
-		marengo::jpeg::Image file{ std::string(filename) };
+		std::size_t width;
+		std::size_t height;
+		std::size_t pixelSize;
 
-		auto psize = file.getPixelSize();
-		if (psize != 3 && psize != 4)
+		std::vector<unsigned char> data = marengo::jpeg::load(std::string(filename), width, height, pixelSize);
+
+		if (pixelSize != 3 && pixelSize != 4)
 		{
-			logger::error("Error during JPEG image file read: Not supported images with {} bit-depth.", (psize * 8));
+			logger::error("Error during JPEG image file read: Not supported images with {} bit-depth.", (pixelSize * 8));
 			return false;
 		}
 		
-		_width = std::uint32_t(file.getWidth());
-		_height = std::uint32_t(file.getHeight());
-		_bit_depth = psize == 4 ? BitDepth::bd32 : BitDepth::bd24;
-
-		const std::size_t rowsize = _width * psize;
-		const std::size_t lastRowPos = std::size_t(_height - 1);
-
-		_data.resize(file.getPixelsCount() * psize);
-		for (size_t row = 0; row < _height; ++row)
-			for (size_t col = 0; col < _width; ++col)
-			{
-				const std::size_t idx = ((lastRowPos - row) * rowsize) + (col * psize);
-				auto pixel = file.getPixel(col, row);
-				std::memcpy(&_data[idx], pixel.data(), psize);
-			}
-
+		_width = std::uint32_t(width);
+		_height = std::uint32_t(height);
+		_bit_depth = pixelSize == 4 ? BitDepth::bd32 : BitDepth::bd24;
+		_data = std::move(data);
 
 		return true;
 	}

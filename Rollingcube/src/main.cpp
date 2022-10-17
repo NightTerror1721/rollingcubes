@@ -169,14 +169,18 @@ void tutos()
     CubeMapTexture::Ref cmTex = CubeMapTextureManager::root().loadFromImage("sky01", {
         "test/skybox/front.jpg",
         "test/skybox/back.jpg",
+
         "test/skybox/left.jpg",
         "test/skybox/right.jpg",
+
         "test/skybox/up.jpg",
         "test/skybox/down.jpg"
     });
 
     Skybox skybox;
     skybox.setTexture(cmTex);
+
+    skybox.setPosition({ 5, 0, 0 });
 
 
     
@@ -342,9 +346,6 @@ void tutos()
         //sampler.activate(1);
 
         cam.bindToShader(lightningShader);
-        skybox.bindCameraToShader(cam);
-
-        skybox.render();
 
         lightningShader->use();
         lightningShader->setUniformDirectionalLight(dirLight);
@@ -361,6 +362,9 @@ void tutos()
 
         entityCube1.render();
         entityCube2.render();
+
+        skybox.bindCameraToShader(cam);
+        skybox.render();
 
         const auto& pos = cam.getPosition();
         const auto& rot = cam.getEulerAngles();
