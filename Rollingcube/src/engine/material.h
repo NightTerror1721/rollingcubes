@@ -17,6 +17,7 @@ private:
 	Texture::Ref _normalsTexture = nullptr;
 
 	float _shininess = 5;
+	float _opacity = 1;
 
 public:
 	Material(const Material&) = default;
@@ -44,6 +45,10 @@ public:
 
 	inline void setShininess(float shininess) { _shininess = shininess; }
 	inline float getShininess() const { return _shininess; }
+
+	inline void setOpacity(float opacity) { _opacity = glm::clamp(opacity, 0.f, 1.f); }
+	inline float getOpacity() const { return _opacity; }
+	inline bool hasTransparency() const { return _opacity < 1; }
 
 
 	inline void bindTextures()

@@ -5,6 +5,7 @@
 #include "math/glm.h"
 #include "frustum.h"
 #include "shader.h"
+#include "basics.h"
 
 
 enum class CameraType
@@ -46,6 +47,9 @@ private:
 
 	mutable glm::vec3 _eulerAngles;
 	mutable bool _updateEulerAngles;
+
+	mutable Frustum _frustum;
+	mutable bool _updateFrustum;
 
 public:
 	~Camera() noexcept = default;
@@ -97,10 +101,15 @@ public:
 	void setTop(float top, bool update = false);
 	void setBottom(float bottom, bool update = false);
 
-	void bindToShader(ShaderProgram::Ref shader);
+	void bindToShader(ShaderProgram::Ref shader) const;
+
+	float getDistanceTo(const glm::vec3& position) const;
+	float getZDistanceTo(const glm::vec3& position) const;
 
 private:
 	void updateEulerAngles() const;
+
+	inline void updateFrustum() const { _frustum.extract(_viewMatrix, _projectionMatrix), _updateFrustum = true; }
 
 public:
 	inline Type getType() const { return _type; }
@@ -131,7 +140,7 @@ public:
 	inline const glm::mat4& getProjectionMatrix() const { return _projectionMatrix; }
 	inline const glm::mat4& getViewprojectionMatrix() const { return _viewprojectionMatrix; }
 
-	inline glm::mat4 mvp(const glm::mat4& model) { return model * _viewprojectionMatrix; }
+	inline glm::mat4 mvp(const glm::mat4& model) const { return model * _viewprojectionMatrix; }
 
 	inline void setPosition(const glm::vec3& position) { setEye(position); }
 	inline const glm::vec3& getPosition() const { return getEye(); }
@@ -150,6 +159,18 @@ public:
 			updateEulerAngles();
 		return _eulerAngles;
 	}
+
+	inline const Frustum& getFrustum() const
+	{
+		if (_updateFrustum)
+			updateFrustum();
+		return _frustum;
+	}
+
+	inline bool isPointVisible(const glm::vec3& point) const { return getFrustum().isPointVisible(point); }
+	inline bool isSphereVisible(const glm::vec3& position, float radius) const { return getFrustum().isSphereVisible(position, radius); }
+
+	inline bool isVisible(const CullSphere& cullSphere) const { return isSphereVisible(cullSphere.getCenter(), cullSphere.getRadius()); }
 };
 
 inline glm::mat4 operator* (const Camera& cam, const glm::mat4& model) { return model * cam.getViewprojectionMatrix(); }

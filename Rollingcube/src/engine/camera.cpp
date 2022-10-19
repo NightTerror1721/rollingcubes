@@ -24,7 +24,9 @@ Camera::Camera() :
 	_projectionMatrix(glm::identity<glm::mat4>()),
 	_viewprojectionMatrix(glm::identity<glm::mat4>()),
 	_eulerAngles(),
-	_updateEulerAngles(true)
+	_updateEulerAngles(true),
+	_frustum(),
+	_updateFrustum(true)
 {}
 
 void Camera::setToGL()
@@ -220,7 +222,7 @@ void Camera::setBottom(float bottom, bool update)
 }
 
 
-void Camera::bindToShader(ShaderProgram::Ref shader)
+void Camera::bindToShader(ShaderProgram::Ref shader) const
 {
 	using namespace constants::uniform::camera;
 
@@ -230,4 +232,17 @@ void Camera::bindToShader(ShaderProgram::Ref shader)
 		shader[viewProjection()] = _viewprojectionMatrix;
 		shader[viewPos()] = _eye;
 	}
+}
+
+float Camera::getDistanceTo(const glm::vec3& position) const
+{
+	return glm::length(position - getPosition());
+}
+
+float Camera::getZDistanceTo(const glm::vec3& position) const
+{
+	glm::vec3 d = position - getPosition();
+	glm::vec3 front = -getFront();
+
+	return glm::dot(d, front);
 }

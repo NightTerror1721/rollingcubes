@@ -235,6 +235,7 @@ void ShaderProgram::setUniformMaterial(const Material& material)
 		getUniform(useNormalMapping()) = false;
 
 	getUniform(shininess()) = material.getShininess();
+	getUniform(opacity()) = material.getOpacity();
 }
 
 void ShaderProgram::setUniformStaticLightsCount(GLint lightCount)

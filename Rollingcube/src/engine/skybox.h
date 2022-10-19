@@ -20,8 +20,7 @@ public:
 	Skybox& operator= (Skybox&&) noexcept = default;
 
 public:
-	void render(GLenum mode = GL_TRIANGLES) override;
-	void bindCameraToShader(const Camera& cam);
+	void render(const Camera& cam) override;
 
 public:
 	constexpr void setTexture(CubeMapTexture::Ref texture) { _texture = texture; }

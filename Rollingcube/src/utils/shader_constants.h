@@ -57,6 +57,7 @@ namespace constants
 			DEFINE_SHADER_UNIFORM_CONSTANT(specularTexture, "material.specular")
 			DEFINE_SHADER_UNIFORM_CONSTANT(normalsTexture, "material.normals")
 			DEFINE_SHADER_UNIFORM_CONSTANT(shininess, "material.shininess")
+			DEFINE_SHADER_UNIFORM_CONSTANT(opacity, "material.opacity")
 		}
 
 		namespace static_lights

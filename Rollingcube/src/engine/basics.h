@@ -4,10 +4,11 @@
 #include "core/time.h"
 #include "math/glm.h"
 
+class Camera;
 
 struct Renderable
 {
-	virtual void render(GLenum mode = GL_TRIANGLES) = 0;
+	virtual void render(const Camera& cam) = 0;
 };
 
 
@@ -79,4 +80,31 @@ public:
 protected:
 	constexpr bool isAlteredFlagEnabled() const { return _alteredFlag; }
 	constexpr void disableAlteredFlag() { _alteredFlag = false; }
+};
+
+
+
+class CullSphere
+{
+private:
+	float _radius = 0;
+	glm::vec3 _center = { 0, 0, 0 };
+
+public:
+	constexpr CullSphere() = default;
+	constexpr CullSphere(const CullSphere&) = default;
+	constexpr CullSphere(CullSphere&&) noexcept = default;
+	constexpr ~CullSphere() = default;
+
+	constexpr CullSphere& operator= (const CullSphere&) = default;
+	constexpr CullSphere& operator= (CullSphere&&) noexcept = default;
+
+public:
+	constexpr float getRadius() const { return _radius; }
+	constexpr const glm::vec3& getCenter() const { return _center; }
+
+	constexpr void setRadius(float radius) { _radius = radius; }
+	constexpr void setCenter(const glm::vec3& center) { _center = center; }
+
+	constexpr void setCenterFrom(const Transformable& obj) { setCenter(obj.getPosition()); }
 };

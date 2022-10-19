@@ -3,6 +3,7 @@
 #include "utils/shader_constants.h"
 
 
+
 ModeledEntity::~ModeledEntity()
 {
 	_staticLightManager.reset();
@@ -20,13 +21,17 @@ void ModeledEntity::update(Time elapsedTime)
 	disableAlteredFlag();
 }
 
-void ModeledEntity::renderDefault(GLenum mode)
+void ModeledEntity::renderDefault(const Camera& cam)
 {
     auto shader = getLightningShader();
 	if (shader == nullptr || _objModel == nullptr)
 		return;
 
 	shader->use();
+
+	shader[constants::uniform::camera::viewProjection()] = cam.getViewprojectionMatrix();
+	shader[constants::uniform::camera::viewPos()] = cam.getPosition();
+
 	_material.bindTextures();
 
 	shader[constants::uniform::model_data::model()] = getModelMatrix();
@@ -35,7 +40,7 @@ void ModeledEntity::renderDefault(GLenum mode)
 		shader->setUniformStaticLights(_staticLightContainer);
 	shader->setUniformMaterial(_material);
 
-	_objModel->render(mode);
+	_objModel->render();
 
 	_material.unbindTextures();
 	shader->notUse();

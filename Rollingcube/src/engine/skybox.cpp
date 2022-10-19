@@ -16,31 +16,21 @@ Skybox::Skybox() : TransformableEntity()
 	_shader = ShaderProgramManager::instance().getSkyShaderProgram();
 }
 
-void Skybox::render(GLenum mode)
+void Skybox::render(const Camera& cam)
 {
 	if (_shader != nullptr && _texture != nullptr)
 	{
 		const auto& model = getDefaultModel();
+        glm::mat4 view = glm::mat4(glm::mat3(cam.getViewMatrix()));
 
         glDepthFunc(GL_LEQUAL);
 		_shader->use();
 		_texture->activate(0);
 		_shader["skybox"] = 0;
-		model.render(mode);
+        _shader["view"] = view;
+        _shader["projection"] = cam.getProjectionMatrix();
+		model.render();
         glDepthFunc(GL_LESS);
-	}
-}
-
-void Skybox::bindCameraToShader(const Camera& cam)
-{
-	if (_shader != nullptr)
-	{
-        glm::mat4 view = glm::mat4(glm::mat3(cam.getViewMatrix()));
-
-		_shader->use();
-		_shader["view"] = view;
-		_shader["projection"] = cam.getProjectionMatrix();
-		_shader->notUse();
 	}
 }
 

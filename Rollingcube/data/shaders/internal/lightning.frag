@@ -16,6 +16,7 @@ struct Material
 	sampler2D specular;
     sampler2D normals;
 	float shininess;
+    float opacity;
 };
 
 struct PointLight
@@ -102,7 +103,8 @@ void main()
     // phase 3: spot light
     //result += computeColorFromSpotlLight(normal, viewDir);
 
-	FragColor = vec4(result, 1);
+	FragColor = vec4(result, clamp(material.opacity, 0, 1));
+    //FragColor = vec4(result, 1);
 }
 
 vec3 computeColorFromDirectionalLight(vec3 normal, vec3 viewDir)

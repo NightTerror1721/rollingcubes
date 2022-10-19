@@ -117,6 +117,16 @@ ObjModel createTexturedModel(const std::vector<glm::vec3>& vertices, const std::
     return model;
 }
 
+
+
+static void renderIfNotTransparency(EntityCameraDistanceCollection<ModeledEntity>& transps, std::shared_ptr<ModeledEntity>& entity, const Camera& cam)
+{
+    if (entity->hasTransparency())
+        entity->render(cam);
+    else
+        transps.addEntity(entity, cam);
+}
+
 void tutos()
 {
     window::createMainWindow();
@@ -204,11 +214,11 @@ void tutos()
     //objmodel->load("test/suzanne.obj");
     std::shared_ptr<ObjModel> objmodel = cubes::model::getModel();
 
-    ModeledEntity entityCube1, entityCube2;
-    entityCube1.setObjectModel(objmodel);
-    entityCube2.setObjectModel(objmodel);
+    std::shared_ptr<ModeledEntity> entityCube1 = std::make_shared<ModeledEntity>(), entityCube2 = std::make_shared<ModeledEntity>();
+    entityCube1->setObjectModel(objmodel);
+    entityCube2->setObjectModel(objmodel);
 
-    entityCube2.move(1, 0, 0);
+    entityCube2->move(1, 0, 0);
 
     Material material;
     material.setDiffuseColor({ 1, 1, 1 });
@@ -218,9 +228,12 @@ void tutos()
     material.setDiffuseTexture(tex);
     material.setSpecularTexture(tex_sm);
     material.setNormalsTexture(tex_nm);
+    material.setOpacity(0.5);
 
-    entityCube1.setMaterial(material);
-    entityCube2.setMaterial(material);
+    entityCube1->setMaterial(material);
+
+    material.setOpacity(0.75);
+    entityCube2->setMaterial(material);
 
     TutoMove mover;
 
@@ -233,8 +246,8 @@ void tutos()
     dirLight.setIntensity(0.5);
 
     std::shared_ptr<StaticLightManager> lightManager = std::make_shared<StaticLightManager>();
-    entityCube1.linkStaticLightManager(lightManager);
-    entityCube2.linkStaticLightManager(lightManager);
+    entityCube1->linkStaticLightManager(lightManager);
+    entityCube2->linkStaticLightManager(lightManager);
 
     //auto slights = lightManager->createShaderLights();
 
@@ -262,6 +275,8 @@ void tutos()
     double lastTime = 0;
 
     resetMousePosition();
+
+    EntityCameraDistanceCollection<ModeledEntity> transparentEntities;
 
     Time timeAccum;
     Time marksAccum;
@@ -328,8 +343,8 @@ void tutos()
 
         dirLight.setDirection(glm::normalize(cam.getFront()));
 
-        entityCube1.update(elapsedTime);
-        entityCube2.update(elapsedTime);
+        entityCube1->update(elapsedTime);
+        entityCube2->update(elapsedTime);
 
         //cam.bindToDefaultShader();
         //shader->bind();
@@ -345,7 +360,7 @@ void tutos()
         //sampler.activate(0);
         //sampler.activate(1);
 
-        cam.bindToShader(lightningShader);
+        //cam.bindToShader(lightningShader);
 
         lightningShader->use();
         lightningShader->setUniformDirectionalLight(dirLight);
@@ -360,11 +375,31 @@ void tutos()
         //Shader::getDefault()->setUniformDirectionalLight(dirLight);
         //Shader::getDefault()->setUniformMaterial(material);
 
-        entityCube1.render();
-        entityCube2.render();
+        
+        transparentEntities.clear();
+        //entityCube1->render(cam);
+        //entityCube2->render(cam);
 
-        skybox.bindCameraToShader(cam);
-        skybox.render();
+        using WP = EntityCameraDistanceWrapper<ModeledEntity>;
+
+        WP wCube1;
+        wCube1.setEntity(entityCube1);
+        wCube1.setDistance(-cam.getDistanceTo(entityCube1->getPosition()));
+        transparentEntities.addWrappedEntity(wCube1);
+
+        WP wCube2;
+        wCube2.setEntity(entityCube2);
+        wCube2.setDistance(-cam.getDistanceTo(entityCube2->getPosition()));
+        transparentEntities.addWrappedEntity(wCube2);
+
+        skybox.render(cam);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        transparentEntities.render(cam);
+
+        glDisable(GL_BLEND);
 
         const auto& pos = cam.getPosition();
         const auto& rot = cam.getEulerAngles();
@@ -375,6 +410,11 @@ void tutos()
         font.print(ortoCam, 5, 5 + 16 + 5, 16, "Cam rot: (pitch:{:.2f}, yaw:{:.2f}, roll:{:.2f})", rot.x, rot.y, rot.z);
         font.print(ortoCam, 5, 5 + 32 + 10, 16, "Cam FRONT: (x:{:.2f}, y:{:.2f}, z:{:.2f})", camFront.x, camFront.y, camFront.z);
         font.print(ortoCam, 5, 5 + 48 + 15, 16, "Cam UP: (x:{:.2f}, y:{:.2f}, z:{:.2f})", camUp.x, camUp.y, camUp.z);
+
+        font.print(ortoCam, 5, 5 + 64 + 20, 16, "Cube1 ZDist: {}", wCube1.getDistance());
+        font.print(ortoCam, 5, 5 + 80 + 25, 16, "Cube2 ZDist: {}", wCube2.getDistance());
+
+
 
         //font.setColor({ 1, 0, 0 });
         //font.print(ortoCam, 5, window::default_height - 80, 64, "Test");
