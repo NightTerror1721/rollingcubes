@@ -212,6 +212,7 @@ public:
 	Reference getLightningShaderProgram();
 	Reference getFreetypeFontShaderProgram();
 	Reference getSkyShaderProgram();
+	Reference getLinesShaderProgram();
 
 private:
 	explicit ShaderProgramManager();

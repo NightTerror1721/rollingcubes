@@ -107,6 +107,7 @@ namespace constants
 		inline constexpr const ShaderName lightning = { 0, "lightning" };
 		inline constexpr const ShaderName freetype_font = { 1, "freetype_font" };
 		inline constexpr const ShaderName sky = { 2, "sky" };
+		inline constexpr const ShaderName lines = { 3, "lines" };
 
 		namespace internals
 		{
@@ -122,7 +123,8 @@ namespace constants
 			{
 				{ lightning.name, "internal/lightning.vert", "internal/lightning.frag" },
 				{ freetype_font.name, "internal/freetype_font.vert", "internal/freetype_font.frag" },
-				{ sky.name, "internal/sky.vert", "internal/sky.frag" }
+				{ sky.name, "internal/sky.vert", "internal/sky.frag" },
+				{ lines.name, "internal/lines.vert", "internal/lines.frag" }
 			};
 			inline constexpr const std::size_t count = sizeof(internals::shaders) / sizeof(ShaderFiles);
 

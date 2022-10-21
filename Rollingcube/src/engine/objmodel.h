@@ -30,8 +30,9 @@ private:
 	gl::VAO _vao;
 	gl::EBO _ebo;
 
+	std::vector<glm::vec3> _verticesCache;
 
-	GLsizei _verticesCount = 0;
+
 	GLsizei _elementCount = 0;
 
 public:
@@ -55,7 +56,7 @@ public:
 	inline void setVertices(const std::vector<glm::vec3>& vertices)
 	{
 		createVertexBuffer(constants::attributes::vertices_array_attrib_index, vertices);
-		_verticesCount = GLsizei(vertices.size());
+		_verticesCache = vertices;
 	}
 	inline void setUVs(const std::vector<glm::vec2>& uvs) { createVertexBuffer(constants::attributes::uvs_array_attrib_index, uvs); }
 	inline void setNormals(const std::vector<glm::vec3>& normals) { createVertexBuffer(constants::attributes::normals_array_attrib_index, normals); }
@@ -73,6 +74,9 @@ public:
 
 	inline void setName(const std::string_view& name) { _name = name; }
 	inline const std::string& getName() const { return _name; }
+
+
+	inline const std::vector<glm::vec3>& getVertices() const { return _verticesCache; }
 
 private:
 	template <typename _Ty> requires
@@ -100,6 +104,10 @@ private:
 
 class ObjModel
 {
+public:
+	using iterator = std::vector<std::shared_ptr<Mesh>>::iterator;
+	using const_iterator = std::vector<std::shared_ptr<Mesh>>::const_iterator;
+
 private:
 	std::vector<std::shared_ptr<Mesh>> _meshes;
 	std::unordered_map<std::string, std::shared_ptr<Mesh>> _meshesMap;
@@ -138,4 +146,13 @@ public:
 
 	inline Mesh& getMesh(const std::string_view& name) { return *safeGetMesh(name); }
 	inline const Mesh& getMesh(const std::string_view& name) const { return *safeGetMesh(name); }
+
+
+public:
+	inline iterator begin() noexcept { return _meshes.begin(); }
+	inline const_iterator begin() const noexcept { return _meshes.begin(); }
+	inline const_iterator cbegin() const noexcept { return _meshes.cbegin(); }
+	inline iterator end() noexcept { return _meshes.end(); }
+	inline const_iterator end() const noexcept { return _meshes.end(); }
+	inline const_iterator cend() const noexcept { return _meshes.cend(); }
 };

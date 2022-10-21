@@ -155,6 +155,7 @@
     <ClCompile Include="src\core\time.cpp" />
     <ClCompile Include="src\core\window.cpp" />
     <ClCompile Include="src\engine\basics.cpp" />
+    <ClCompile Include="src\engine\bounding.cpp" />
     <ClCompile Include="src\engine\camera.cpp" />
     <ClCompile Include="src\engine\entities.cpp" />
     <ClCompile Include="src\engine\frustum.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="src\core\vertex_buffers.h" />
     <ClInclude Include="src\core\window.h" />
     <ClInclude Include="src\engine\basics.h" />
+    <ClInclude Include="src\engine\bounding.h" />
     <ClInclude Include="src\engine\camera.h" />
     <ClInclude Include="src\engine\entities.h" />
     <ClInclude Include="src\engine\frustum.h" />

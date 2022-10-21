@@ -6,6 +6,7 @@
 #include "frustum.h"
 #include "shader.h"
 #include "basics.h"
+#include "bounding.h"
 
 
 enum class CameraType
@@ -109,7 +110,21 @@ public:
 private:
 	void updateEulerAngles() const;
 
-	inline void updateFrustum() const { _frustum.extract(_viewMatrix, _projectionMatrix), _updateFrustum = true; }
+	inline void updateFrustum() const
+	{
+		AxisBase abase = _viewMatrix;
+		_frustum.extract(
+			getPosition(),
+			abase.front,
+			abase.right,
+			abase.up,
+			_aspect,
+			_fov,
+			_nearPlane,
+			_farPlane
+		);
+		_updateFrustum = true;
+	}
 
 public:
 	inline Type getType() const { return _type; }
@@ -167,10 +182,7 @@ public:
 		return _frustum;
 	}
 
-	inline bool isPointVisible(const glm::vec3& point) const { return getFrustum().isPointVisible(point); }
-	inline bool isSphereVisible(const glm::vec3& position, float radius) const { return getFrustum().isSphereVisible(position, radius); }
-
-	inline bool isVisible(const CullSphere& cullSphere) const { return isSphereVisible(cullSphere.getCenter(), cullSphere.getRadius()); }
+	inline bool isVisible(const BoundingVolume& bv, const Transformable& transf) const { return bv.isOnFrustum(getFrustum(), transf); }
 };
 
 inline glm::mat4 operator* (const Camera& cam, const glm::mat4& model) { return model * cam.getViewprojectionMatrix(); }

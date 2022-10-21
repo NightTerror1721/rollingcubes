@@ -214,11 +214,21 @@ void tutos()
     //objmodel->load("test/suzanne.obj");
     std::shared_ptr<ObjModel> objmodel = cubes::model::getModel();
 
-    std::shared_ptr<ModeledEntity> entityCube1 = std::make_shared<ModeledEntity>(), entityCube2 = std::make_shared<ModeledEntity>();
+    std::shared_ptr<ModeledEntity> entityCube1 = std::make_shared<ModeledEntity>(),
+        entityCube2 = std::make_shared<ModeledEntity>(),
+        entityCube3 = std::make_shared<ModeledEntity>();
     entityCube1->setObjectModel(objmodel);
     entityCube2->setObjectModel(objmodel);
+    entityCube3->setObjectModel(objmodel);
+
+    entityCube1->setBoundingType(BoundingVolumeType::AABB);
+    entityCube2->setBoundingType(BoundingVolumeType::AABB);
+    entityCube3->setBoundingType(BoundingVolumeType::AABB);
 
     entityCube2->move(1, 0, 0);
+    entityCube3->move(-1, -2, 0);
+
+    const glm::vec3 cube3InitialPos = entityCube3->getPosition();
 
     Material material;
     material.setDiffuseColor({ 1, 1, 1 });
@@ -235,6 +245,10 @@ void tutos()
     material.setOpacity(0.75);
     entityCube2->setMaterial(material);
 
+    material.setOpacity(1);
+    entityCube3->setMaterial(material);
+
+
     TutoMove mover;
 
     //glm::mat4 model = glm::mat4(1.f);
@@ -248,6 +262,7 @@ void tutos()
     std::shared_ptr<StaticLightManager> lightManager = std::make_shared<StaticLightManager>();
     entityCube1->linkStaticLightManager(lightManager);
     entityCube2->linkStaticLightManager(lightManager);
+    entityCube3->linkStaticLightManager(lightManager);
 
     //auto slights = lightManager->createShaderLights();
 
@@ -277,6 +292,7 @@ void tutos()
     resetMousePosition();
 
     EntityCameraDistanceCollection<ModeledEntity> transparentEntities;
+    transparentEntities.setRenderBoundings(true);
 
     Time timeAccum;
     Time marksAccum;
@@ -343,8 +359,17 @@ void tutos()
 
         dirLight.setDirection(glm::normalize(cam.getFront()));
 
+        static float sangle = 0;
+        sangle += float(deltaTime) * 90;
+        float fsin = glm::sin(glm::radians(sangle));
+
+        entityCube3->rotate({ 0, float(deltaTime) * 20, 0});
+
+        entityCube3->setPosition({ cube3InitialPos.x, cube3InitialPos.y + (0.5 * fsin), cube3InitialPos.z});
+
         entityCube1->update(elapsedTime);
         entityCube2->update(elapsedTime);
+        entityCube3->update(elapsedTime);
 
         //cam.bindToDefaultShader();
         //shader->bind();
@@ -392,6 +417,11 @@ void tutos()
         wCube2.setDistance(-cam.getDistanceTo(entityCube2->getPosition()));
         transparentEntities.addWrappedEntity(wCube2);
 
+        WP wCube3;
+        wCube3.setEntity(entityCube3);
+        wCube3.setDistance(-cam.getDistanceTo(entityCube3->getPosition()));
+        transparentEntities.addWrappedEntity(wCube3);
+
         skybox.render(cam);
 
         glEnable(GL_BLEND);
@@ -411,8 +441,9 @@ void tutos()
         font.print(ortoCam, 5, 5 + 32 + 10, 16, "Cam FRONT: (x:{:.2f}, y:{:.2f}, z:{:.2f})", camFront.x, camFront.y, camFront.z);
         font.print(ortoCam, 5, 5 + 48 + 15, 16, "Cam UP: (x:{:.2f}, y:{:.2f}, z:{:.2f})", camUp.x, camUp.y, camUp.z);
 
-        font.print(ortoCam, 5, 5 + 64 + 20, 16, "Cube1 ZDist: {}", wCube1.getDistance());
-        font.print(ortoCam, 5, 5 + 80 + 25, 16, "Cube2 ZDist: {}", wCube2.getDistance());
+        font.print(ortoCam, 5, 5 + 64 + 20, 16, "Cube3 Is Visible: {}", entityCube3->isVisibleInCamera(cam));
+        font.print(ortoCam, 5, 5 + 80 + 25, 16, "Cube2 Is Visible: {}", entityCube2->isVisibleInCamera(cam));
+        font.print(ortoCam, 5, 5 + 96 + 30, 16, "Cube1 Is Visible: {}", entityCube1->isVisibleInCamera(cam));
 
 
 

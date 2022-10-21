@@ -24,6 +24,47 @@ struct EventDispatcher
 };
 
 
+struct AxisBase
+{
+	glm::vec3 front = { 0, 0, 1 };
+	glm::vec3 right = { 1, 0, 0 };
+	glm::vec3 up = { 0, 1, 0 };
+
+	constexpr AxisBase() = default;
+	constexpr AxisBase(const AxisBase&) = default;
+	constexpr AxisBase(AxisBase&&) noexcept = default;
+	constexpr ~AxisBase() = default;
+
+	constexpr AxisBase& operator= (const AxisBase&) = default;
+	constexpr AxisBase& operator= (AxisBase&&) noexcept = default;
+
+	constexpr AxisBase(const glm::vec3& front, const glm::vec3& right, const glm::vec3& up) :
+		front(front),
+		right(right),
+		up(up)
+	{}
+
+	constexpr void extractFromView(const glm::mat4& view)
+	{
+		right.x = view[0][0];
+		right.y = view[1][0];
+		right.z = view[2][0];
+		up.x = view[0][1];
+		up.y = view[1][1];
+		up.z = view[2][1];
+		front.x = -view[0][2];
+		front.y = -view[1][2];
+		front.z = -view[2][2];
+	}
+
+	constexpr AxisBase(const glm::mat4& view) :
+		right(view[0][0], view[1][0], view[2][0]),
+		up(view[0][1], view[1][1], view[2][1]),
+		front(-view[0][2], -view[1][2], -view[2][2])
+	{}
+};
+
+
 class Transformable
 {
 private:
@@ -77,34 +118,17 @@ public:
 
 	inline glm::mat3 getNormalMatrix() const { return glm::mat3(glm::transpose(getInvertedModelMatrix())); }
 
+	inline glm::vec3 getRight() const { return getModelMatrix()[0]; }
+	inline glm::vec3 getUp() const { return getModelMatrix()[1]; }
+	inline glm::vec3 getForward() const { return -getModelMatrix()[2]; }
+	inline glm::vec3 getFront() const { return -getModelMatrix()[2]; }
+	inline glm::vec3 getBackward() const { return getModelMatrix()[2]; }
+
+	inline const glm::vec3& getGlobalPosition() const { return getModelMatrix()[3]; }
+
+	inline glm::vec3 getGlobalScale() const { return { glm::length(getRight()), glm::length(getUp()), glm::length(getBackward()) }; }
+
 protected:
 	constexpr bool isAlteredFlagEnabled() const { return _alteredFlag; }
 	constexpr void disableAlteredFlag() { _alteredFlag = false; }
-};
-
-
-
-class CullSphere
-{
-private:
-	float _radius = 0;
-	glm::vec3 _center = { 0, 0, 0 };
-
-public:
-	constexpr CullSphere() = default;
-	constexpr CullSphere(const CullSphere&) = default;
-	constexpr CullSphere(CullSphere&&) noexcept = default;
-	constexpr ~CullSphere() = default;
-
-	constexpr CullSphere& operator= (const CullSphere&) = default;
-	constexpr CullSphere& operator= (CullSphere&&) noexcept = default;
-
-public:
-	constexpr float getRadius() const { return _radius; }
-	constexpr const glm::vec3& getCenter() const { return _center; }
-
-	constexpr void setRadius(float radius) { _radius = radius; }
-	constexpr void setCenter(const glm::vec3& center) { _center = center; }
-
-	constexpr void setCenterFrom(const Transformable& obj) { setCenter(obj.getPosition()); }
 };

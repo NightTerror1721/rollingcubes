@@ -10,10 +10,8 @@
 
 Mesh::Mesh(Mesh&& other) noexcept :
 	_vao(std::move(other._vao)),
-	_verticesCount(other._verticesCount),
 	_elementCount(other._elementCount)
 {
-	other._verticesCount = 0;
 	other._elementCount = 0;
 }
 
@@ -30,8 +28,9 @@ Mesh& Mesh::operator= (Mesh&& other) noexcept
 
 void Mesh::clear()
 {
+	_verticesCache.clear();
+
 	_vao.destroy();
-	_verticesCount = 0;
 	_elementCount = 0;
 }
 

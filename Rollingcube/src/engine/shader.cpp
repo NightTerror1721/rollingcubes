@@ -190,6 +190,11 @@ ShaderProgramManager::Reference ShaderProgramManager::getSkyShaderProgram()
 	GET_INTERNAL_SHADER(sky);
 }
 
+ShaderProgramManager::Reference ShaderProgramManager::getLinesShaderProgram()
+{
+	GET_INTERNAL_SHADER(lines);
+}
+
 #undef GET_INTERNAL_SHADER
 
 

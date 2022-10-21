@@ -13,6 +13,8 @@ void ModeledEntity::update(Time elapsedTime)
 {
 	if (isAlteredFlagEnabled())
 	{
+		_updateBoundingVolume = true;
+
 		if (_staticLightManager != nullptr)
 			_staticLightContainer.setPosition(getPosition());
 	}

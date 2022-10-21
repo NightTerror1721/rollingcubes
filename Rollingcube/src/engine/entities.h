@@ -12,6 +12,7 @@
 #include "material.h"
 #include "light.h"
 #include "camera.h"
+#include "bounding.h"
 
 #include "utils/logger.h"
 
@@ -129,11 +130,14 @@ class ModeledEntity : public TransformableEntity
 {
 private:
 	std::shared_ptr<ObjModel> _objModel = nullptr;
-	CullSphere _cullSphere;
 	Material _material;
 	StaticLightContainer _staticLightContainer;
 	std::shared_ptr<StaticLightManager> _staticLightManager = nullptr;
 	bool _transparency = false;
+
+	BoundingVolumeType _boundingType = BoundingVolumeType::Sphere;
+	mutable std::unique_ptr<BoundingVolume> _boundingVolume = nullptr;
+	mutable bool _updateBoundingVolume = true;
 
 	mutable ShaderProgram::Ref _lightningShader = nullptr;
 
@@ -156,16 +160,27 @@ public:
 public:
 	virtual inline void render(const Camera& cam) { renderDefault(cam); }
 
-	constexpr void setCullSphere(const CullSphere& cullSphere) { _cullSphere = cullSphere; }
-	constexpr CullSphere& getCullSphere() { return _cullSphere; }
-	constexpr const CullSphere& getCullSphere() const { return _cullSphere; }
-
 	constexpr void setForceTransparency(bool flag) { _transparency = flag; }
 	constexpr bool isForceTransparencyEnabled() const { return _transparency; }
 
 	constexpr bool hasTransparency() const { return _transparency || _material.hasTransparency(); }
 
-	inline bool isVisibleInCamera(const Camera& cam) const { return cam.isVisible(_cullSphere); }
+	inline void setBoundingType(BoundingVolumeType type)
+	{
+		_boundingType = type;
+		_boundingVolume = nullptr;
+		_updateBoundingVolume = true;
+	}
+	constexpr BoundingVolumeType getBoundingType() const { return _boundingType; }
+
+	inline const BoundingVolume& getBoundingVolume() const
+	{
+		if (_updateBoundingVolume || _boundingVolume == nullptr)
+			updateBoundingVolume();
+		return *_boundingVolume;
+	}
+
+	inline bool isVisibleInCamera(const Camera& cam) const { return cam.isVisible(getBoundingVolume(), *this); }
 
 	inline void setObjectModel(const std::shared_ptr<ObjModel>& objModel) { _objModel = objModel; }
 	inline const std::shared_ptr<ObjModel>& getObjectModel() const { return _objModel; }
@@ -176,12 +191,27 @@ public:
 
 	inline const StaticLightContainer& getStaticLightContainer() { return _staticLightContainer; }
 
+	inline void renderBoundingVolume(const Camera& cam) const
+	{
+		getBoundingVolume().render(cam, *this);
+	}
+
 protected:
 	inline ShaderProgram::Ref getLightningShader() const
 	{
 		if (!_lightningShader)
 			_lightningShader = ShaderProgramManager::instance().getLightningShaderProgram();
 		return _lightningShader;
+	}
+
+private:
+	inline void updateBoundingVolume() const
+	{
+		if(_boundingVolume == nullptr)
+			_boundingVolume = BoundingVolume::createUniqueFromType(_boundingType);
+		if (_boundingVolume != nullptr)
+			_boundingVolume->extract(*_objModel);
+		_updateBoundingVolume = false;
 	}
 };
 
@@ -221,6 +251,15 @@ public:
 		if (_entity != nullptr && _entity->isVisibleInCamera(cam))
 			_entity->render(cam);
 	}
+
+	void renderWithBoundingVolume(const Camera& cam)
+	{
+		if (_entity != nullptr && _entity->isVisibleInCamera(cam))
+		{
+			_entity->render(cam);
+			_entity->renderBoundingVolume(cam);
+		}
+	}
 };
 
 
@@ -242,6 +281,8 @@ public:
 private:
 	mutable Container _entities = {};
 
+	bool _renderBoundings = false;
+
 	mutable bool _sorted = false;
 
 public:
@@ -258,6 +299,9 @@ public:
 	inline SizeType size() const { return _entities.size(); }
 
 	inline void clear() { _entities.clear(); }
+
+	inline void setRenderBoundings(bool flag) { _renderBoundings = flag; }
+	inline bool isRenderBoundingsEnabled() const { return _renderBoundings; }
 
 	inline void addWrappedEntity(const Wrapper& wrappedEntity)
 	{
@@ -300,8 +344,16 @@ public:
 		if (!_sorted)
 			sort();
 
-		for (auto& e : _entities)
-			e.render(cam);
+		if (!_renderBoundings)
+		{
+			for (auto& e : _entities)
+				e.render(cam);
+		}
+		else
+		{
+			for (auto& e : _entities)
+				e.renderWithBoundingVolume(cam);
+		}
 	}
 
 

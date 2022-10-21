@@ -1,6 +1,34 @@
 #include "frustum.h"
 
-void Frustum::extract(glm::mat4 projectionView)
+void Frustum::extract(
+	const glm::vec3& position,
+	const glm::vec3& front,
+	const glm::vec3& right,
+	const glm::vec3& up,
+	float aspect,
+	float fov,
+	float near,
+	float far
+) {
+	const float halfVSide = far * glm::tan(fov * .5f);
+	const float halfHSide = halfVSide * aspect;
+	const glm::vec3 frontMultFar = far * front;
+
+	_near = { position + near * front, front };
+	_far = { position + frontMultFar, -front };
+	_right = { position, glm::cross(up, frontMultFar + right * halfHSide) };
+	_left = { position, glm::cross(frontMultFar - right * halfHSide, up) };
+	_top = { position, glm::cross(right, frontMultFar - up * halfVSide) };
+	_bottom = { position, glm::cross(frontMultFar + up * halfVSide, right) };
+}
+
+
+
+
+
+
+
+/*void Frustum::extract(glm::mat4 projectionView)
 {
 	projectionView = glm::transpose(projectionView);
 
@@ -74,7 +102,7 @@ bool Frustum::isSphereVisible(const glm::vec3& position, float radius) const
 	return true;
 
 #undef SPHERE_OUT_PLANE
-}
+}*/
 
 
 /*void Frustum::fillFromGL()
