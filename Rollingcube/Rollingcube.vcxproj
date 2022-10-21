@@ -120,7 +120,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>libs\static-libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;user32.lib;gdi32.lib;shell32.lib;JPEG\jpeg.lib;GLEW\glew32.lib;GLFW\glfw3.lib;lua\liblua54.a;zlib\zlibwapi.lib;freetype\freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;user32.lib;gdi32.lib;shell32.lib;JPEG\jpeg.lib;GLEW\glew32.lib;GLFW\glfw3.lib;nativelua\liblua54.a;zlib\zlibwapi.lib;freetype\freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y /d  "$(ProjectDir)libs\dynamic-libs\*.*" "$(OutDir)"</Command>
@@ -144,7 +144,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>libs\static-libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;user32.lib;gdi32.lib;shell32.lib;JPEG\jpeg.lib;GLEW\glew32.lib;GLFW\glfw3.lib;lua\liblua54.a;zlib\zlibwapi.lib;freetype\freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;user32.lib;gdi32.lib;shell32.lib;JPEG\jpeg.lib;GLEW\glew32.lib;GLFW\glfw3.lib;nativelua\liblua54.a;zlib\zlibwapi.lib;freetype\freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y /d  "$(ProjectDir)libs\dynamic-libs\*.*" "$(OutDir)"</Command>
@@ -160,6 +160,9 @@
     <ClCompile Include="src\engine\entities.cpp" />
     <ClCompile Include="src\engine\frustum.cpp" />
     <ClCompile Include="src\engine\light.cpp" />
+    <ClCompile Include="src\engine\lua\chunk.cpp" />
+    <ClCompile Include="src\engine\lua\libs.cpp" />
+    <ClCompile Include="src\engine\lua\manager.cpp" />
     <ClCompile Include="src\engine\shader.cpp" />
     <ClCompile Include="src\engine\objmodel.cpp" />
     <ClCompile Include="src\engine\sampler.cpp" />
@@ -191,6 +194,15 @@
     <ClInclude Include="src\engine\entities.h" />
     <ClInclude Include="src\engine\frustum.h" />
     <ClInclude Include="src\engine\light.h" />
+    <ClInclude Include="src\engine\lua\chunk.h" />
+    <ClInclude Include="src\engine\lua\global_state.h" />
+    <ClInclude Include="src\engine\lua\libs.h" />
+    <ClInclude Include="src\engine\lua\link.h" />
+    <ClInclude Include="src\engine\lua\lua.h" />
+    <ClInclude Include="src\engine\lua\constants.h" />
+    <ClInclude Include="src\engine\lua\manager.h" />
+    <ClInclude Include="src\engine\lua\natives.h" />
+    <ClInclude Include="src\engine\lua\script.h" />
     <ClInclude Include="src\engine\material.h" />
     <ClInclude Include="src\engine\new_camera.h" />
     <ClInclude Include="src\engine\shader.h" />

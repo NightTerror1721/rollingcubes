@@ -25,6 +25,7 @@
 #include <JPEG/jpeglib.h>
 
 #include <ft2build.h>
+#include "nativelua/lua.h"
 
 int test_window();
 void tutos();

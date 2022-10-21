@@ -43,6 +43,12 @@
     <Filter Include="Source Files\game">
       <UniqueIdentifier>{ac98539f-a48e-4e49-b133-2fcfa13556c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\engine\lua">
+      <UniqueIdentifier>{fc7d6493-4639-46ec-885e-88c5864bdde4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\engine\lua">
+      <UniqueIdentifier>{ecdbf4a6-764f-4a5a-872c-477efe0f5e32}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -122,6 +128,15 @@
     </ClCompile>
     <ClCompile Include="src\engine\bounding.cpp">
       <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\lua\chunk.cpp">
+      <Filter>Source Files\engine\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\lua\manager.cpp">
+      <Filter>Source Files\engine\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\lua\libs.cpp">
+      <Filter>Source Files\engine\lua</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -250,6 +265,33 @@
     </ClInclude>
     <ClInclude Include="src\engine\bounding.h">
       <Filter>Header Files\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\lua.h">
+      <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\constants.h">
+      <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\chunk.h">
+      <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\natives.h">
+      <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\link.h">
+      <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\script.h">
+      <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\manager.h">
+      <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\global_state.h">
+      <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\libs.h">
+      <Filter>Header Files\engine\lua</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
