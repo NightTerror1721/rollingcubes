@@ -172,6 +172,7 @@
     <ClCompile Include="src\engine\texture.cpp" />
     <ClCompile Include="src\game\cube_model.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\math\glm.cpp" />
     <ClCompile Include="src\utils\bmp_decoder.cpp" />
     <ClCompile Include="src\utils\image.cpp" />
     <ClCompile Include="src\utils\jpeg_decoder.cpp" />

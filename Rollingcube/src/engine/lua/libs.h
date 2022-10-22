@@ -8,11 +8,17 @@
 #include "natives.h"
 
 
+namespace lua
+{
+	void initCustomLibs();
+}
+
+
 class LuaGlobalState;
 class LuaScriptManager;
 class LuaLibraryManager;
 
-using LuaLibraryConstructor = std::function<bool (luabridge::Namespace, lua_State*)>;
+using LuaLibraryConstructor = std::function<bool (luabridge::Namespace&, lua_State*)>;
 
 class LuaLibrary
 {
@@ -37,7 +43,7 @@ private:
 	NativeId _nativeId = NativeId::NonNative;
 	std::string _name = std::string("", 0);
 	LuaLibraryConstructor _constructor = {};
-	bool _loaded = false;
+	mutable bool _loaded = false;
 
 public:
 	LuaLibrary() = default;
@@ -94,7 +100,7 @@ private:
 	{}
 
 	inline bool isLoaded() const { return _loaded; }
-	inline void setLoaded() { _loaded = true; }
+	inline void setLoaded() const { _loaded = true; }
 
 private:
 	static const LuaLibrary NativeBase;
@@ -147,13 +153,13 @@ private:
 public:
 	LuaLibraryManager(const LuaLibraryManager&) = delete;
 	LuaLibraryManager(LuaLibraryManager&&) noexcept = delete;
-	~LuaLibraryManager() = default;
 
 	LuaLibraryManager& operator= (const LuaLibraryManager&) = delete;
 	LuaLibraryManager& operator= (LuaLibraryManager&&) noexcept = delete;
 
 private:
 	LuaLibraryManager();
+	~LuaLibraryManager();
 
 public:
 	void registerLibrary(std::string_view libraryName, const LuaLibraryConstructor& libraryConstructor);
@@ -163,8 +169,9 @@ private:
 
 private:
 	static void loadBuiltInData(lua_State* state);
-	static void openLuaLibrary(lua_State* state, const std::shared_ptr<LuaRef>& env, const LuaLibrary& lib);
-	static void openCustomLibrary(lua_State* state, const std::shared_ptr<LuaRef>& env, const LuaLibrary& lib);
+	static void openLuaLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib);
+	static void openCustomLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib);
+	static void openLuaBaseLibrary(lua_State* state, const LuaRef* env);
 
 private:
 	static LuaRef LUA_import(const std::string& spath, lua_State* state);
@@ -182,4 +189,5 @@ public:
 };
 
 
-#define defineLuaLibraryConstructor(_FunctionName, _StateParamName) bool _FunctionName(lua_State* _StateParamName)
+#define defineLuaLibraryConstructor(_FunctionName, _RootNamespaceName, _StateParamName) \
+bool _FunctionName(luabridge::Namespace& _RootNamespaceName, lua_State* _StateParamName)

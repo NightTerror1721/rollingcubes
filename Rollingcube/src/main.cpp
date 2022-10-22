@@ -15,6 +15,8 @@
 #include "engine/text.h"
 #include "engine/skybox.h"
 
+#include "engine/lua/lua.h"
+
 #include "utils/logger.h"
 #include "utils/bmp_decoder.h"
 #include "utils/image.h"
@@ -25,21 +27,31 @@
 #include <JPEG/jpeglib.h>
 
 #include <ft2build.h>
-#include "nativelua/lua.h"
 
 int test_window();
 void tutos();
+void lua_test();
 
 ObjModel createCubeModel();
 
 int main(int argc, char** argv)
 {
+    lua::initCustomLibs();
+
+    lua_test();
     tutos();
 
 
     //test_window();
     
 	return 0;
+}
+
+
+void lua_test()
+{
+    LuaScript script = LuaScriptManager::instance().getScript("test/test_lua.lua");
+    script();
 }
 
 

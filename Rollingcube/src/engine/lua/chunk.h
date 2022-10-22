@@ -50,5 +50,5 @@ private:
 	bool load();
 	void destroy();
 
-	static void prepareEnv(lua_State* state, const std::shared_ptr<LuaRef>& env);
+	static void prepareEnv(lua_State* state, const LuaRef& env);
 };

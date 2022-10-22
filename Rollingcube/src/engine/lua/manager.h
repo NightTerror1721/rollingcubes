@@ -4,7 +4,10 @@
 #include <stack>
 
 #include "script.h"
+#include "global_state.h"
 
+
+class LuaLibraryManager;
 
 class LuaScriptManager
 {
@@ -43,7 +46,14 @@ public:
 	inline lua_State* getLuaState() const { return _state; }
 
 private:
-	inline ~LuaScriptManager() {}
+	inline void clear()
+	{
+		while (!_callStack.empty())
+			_callStack.pop();
+		_chunks.clear();
+	}
+
+	inline ~LuaScriptManager() { clear(); }
 
 private:
 	static LuaScriptManager Instance;
@@ -53,6 +63,7 @@ public:
 
 public:
 	friend LuaScriptManagerLink;
+	friend LuaLibraryManager;
 };
 
 

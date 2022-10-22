@@ -7,6 +7,11 @@
 
 #include <vector>
 
+namespace glm::lua
+{
+	void registerGlmToLua();
+}
+
 namespace glm::utils
 {
 	template<typename T, qualifier Q>

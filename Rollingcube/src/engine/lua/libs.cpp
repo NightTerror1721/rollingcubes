@@ -3,6 +3,21 @@
 #include "constants.h"
 #include "manager.h"
 
+#include "math/glm.h"
+
+
+
+namespace lua
+{
+	void initCustomLibs()
+	{
+		glm::lua::registerGlmToLua();
+	}
+}
+
+
+
+
 
 const LuaLibrary LuaLibrary::NativeBase = { NativeId::Base, "base" };
 const LuaLibrary LuaLibrary::NativeCoroutine = { NativeId::Coroutine, LUA_COLIBNAME };
@@ -23,7 +38,7 @@ LuaLibraryManager LuaLibraryManager::Instance = {};
 
 static inline std::pair<std::string, LuaLibrary> insertlib(LuaLibrary::NativeId id)
 {
-	const LuaLibrary& lib = LuaLibrary::getNative(LuaLibrary::NativeId::Base);
+	const LuaLibrary& lib = LuaLibrary::getNative(id);
 	return { lib.getName(), lib };
 }
 
@@ -44,6 +59,11 @@ LuaLibraryManager::LuaLibraryManager() :
 	}
 {}
 
+LuaLibraryManager::~LuaLibraryManager()
+{
+	LuaScriptManager::instance().clear();
+}
+
 void LuaLibraryManager::registerLibrary(std::string_view libraryName, const LuaLibraryConstructor& libraryConstructor)
 {
 	std::string name = customLibname(libraryName);
@@ -60,13 +80,13 @@ void LuaLibraryManager::registerLibrary(std::string_view libraryName, const LuaL
 void LuaLibraryManager::loadBuiltInData(lua_State* state)
 {
 	luabridge::getGlobalNamespace(state)
-		.addFunction(lua::lib::constants::import.data(), &LUA_import)
-		.addFunction(lua::lib::constants::openlib.data(), &LUA_openlib);
+		.addFunction(lua::lib::constants::import, &LUA_import)
+		.addFunction(lua::lib::constants::openlib, &LUA_openlib);
 }
 
 void LuaLibraryManager::openLibrary(lua_State* state, const std::string& libname) const
 {
-	const auto env = LuaScriptManager::instance().getCurrentRunScriptEnv();
+	const LuaRef* env = LuaScriptManager::instance().getCurrentRunScriptEnv();
 	if (env == nullptr)
 	{
 		lua::utils::error(state, "Lua script environment not accesible.");
@@ -82,12 +102,12 @@ void LuaLibraryManager::openLibrary(lua_State* state, const std::string& libname
 
 	const LuaLibrary& lib = it->second;
 	if (lib.isNative())
-		openLuaLibrary(state, *env, lib);
+		openLuaLibrary(state, env, lib);
 	else
-		openCustomLibrary(state, *env, lib);
+		openCustomLibrary(state, env, lib);
 }
 
-void LuaLibraryManager::openLuaLibrary(lua_State* state, const std::shared_ptr<LuaRef>& env, const LuaLibrary& lib)
+void LuaLibraryManager::openLuaLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib)
 {
 	if (env == nullptr)
 	{
@@ -95,80 +115,72 @@ void LuaLibraryManager::openLuaLibrary(lua_State* state, const std::shared_ptr<L
 		return;
 	}
 
-	if (!lib.isLoaded())
+	if (lib.getNativeId() == LuaLibrary::NativeId::Base)
+		return openLuaBaseLibrary(state, env);
+
+	const char* libname = nullptr;
+	switch (lib.getNativeId())
 	{
-		lua_CFunction luaConstructor = nullptr;
-		switch (lib.getNativeId())
-		{
-			using enum LuaLibrary::NativeId;
+		using enum LuaLibrary::NativeId;
 
-			case Base: luaConstructor = &luaopen_base;
-			case Coroutine: luaConstructor = &luaopen_coroutine;
-			case Package: luaConstructor = &luaopen_package;
-			case String: luaConstructor = &luaopen_string;
-			case Utf8: luaConstructor = &luaopen_utf8;
-			case Table: luaConstructor = &luaopen_table;
-			case Math: luaConstructor = &luaopen_math;
-			case Io: luaConstructor = &luaopen_io;
-			case Os: luaConstructor = &luaopen_os;
-			case Debug: luaConstructor = &luaopen_debug;
-		}
-
-		if (luaConstructor == nullptr)
-		{
-			lua::utils::error(state, "Cannot open Lua Library {}: Unknown Lua Native Library ID {}.", lib.getName(), static_cast<int>(lib.getNativeId()));
-			return;
-		}
-
-		LuaRef libTable = luabridge::getGlobal(state, lib.getName().c_str());
-		if (!libTable.isTable())
-		{
-			luabridge::setGlobal(state, LuaRef::newTable(state), lib.getName().c_str());
-			libTable = luabridge::getGlobal(state, lib.getName().c_str());
-		}
-
-		std::string_view libname = lib.getNativeId() == LuaLibrary::NativeId::Base ? "" : lib.getName();
-
-		lua_pushcfunction(state, luaConstructor);
-		lua_pushstring(state, libname.data());
-		lua_call(state, 1, 1);
-
-		luabridge::push(state, luabridge::Nil());
-		while (lua_next(state, -2))
-		{
-			LuaRef key = LuaRef::fromStack(state, -2);
-			LuaRef val = LuaRef::fromStack(state, -1);
-
-			libTable[key] = val;
-			lua_pop(state, 1);
-		}
-
-		lua_pop(state, 1);
+		case Coroutine: libname = lua::lib::constants::coroutine; break;
+		case Package: libname = lua::lib::constants::package; break;
+		case String: libname = lua::lib::constants::string; break;
+		case Utf8: libname = lua::lib::constants::utf8; break;
+		case Table: libname = lua::lib::constants::table; break;
+		case Math: libname = lua::lib::constants::math; break;
+		case Io: libname = lua::lib::constants::io; break;
+		case Os: libname = lua::lib::constants::os; break;
+		case Debug: libname = lua::lib::constants::debug; break;
 	}
 
-	LuaRef libTable = luabridge::getGlobal(state, lib.getName().c_str());
-	if (!libTable.isTable())
+	if (libname == nullptr)
 	{
-		lua::utils::error(state, "Loaded Lua Native Library {} not found.", lib.getName());
+		lua::utils::error(state, "Cannot open Lua Library {}: Unknown Lua Native Library ID {}.", lib.getName(), static_cast<int>(lib.getNativeId()));
 		return;
 	}
 
-	libTable.push();
-	luabridge::push(state, luabridge::Nil());
-	while (lua_next(state, -2))
-	{
-		LuaRef key = LuaRef::fromStack(state, -2);
-		LuaRef val = LuaRef::fromStack(state, -1);
-
-		libTable[key] = val;
-		lua_pop(state, 1);
-	}
-
-	lua_pop(state, 1);
-	libTable.pop();
+	(*env)[libname] = luabridge::getGlobal(state, libname);
 }
 
-void LuaLibraryManager::openCustomLibrary(lua_State* state, const std::shared_ptr<LuaRef>& env, const LuaLibrary& lib)
+void LuaLibraryManager::openLuaBaseLibrary(lua_State* state, const LuaRef* env)
+{
+#define loadBaseElement(_Name) (*env)[lua::lib::constants::_Name] = luabridge::getGlobal(state, lua::lib::constants::_Name)
+
+	loadBaseElement(xpcall);
+	loadBaseElement(select);
+	loadBaseElement(next);
+	loadBaseElement(base);
+	loadBaseElement(load);
+	loadBaseElement(getmetatable);
+	loadBaseElement(tonumber);
+	loadBaseElement(require);
+	loadBaseElement(_VERSION);
+	loadBaseElement(rawget);
+	loadBaseElement(rawset);
+	loadBaseElement(rawequal);
+	loadBaseElement(_G);
+	loadBaseElement(rawlen);
+	loadBaseElement(error);
+	loadBaseElement(tostring);
+	loadBaseElement(table);
+	loadBaseElement(collectgarbage);
+	loadBaseElement(warn);
+	loadBaseElement(pcall);
+	loadBaseElement(loadfile);
+	loadBaseElement(ipairs);
+	loadBaseElement(setmetatable);
+	loadBaseElement(coroutine);
+	loadBaseElement(type);
+	/* loadBaseElement(assert); */ (*env)[lua::lib::constants::assert] = luabridge::getGlobal(state, lua::lib::constants::assert);
+	loadBaseElement(dofile);
+	loadBaseElement(print);
+	loadBaseElement(pairs);
+
+#undef loadBaseElement
+}
+
+void LuaLibraryManager::openCustomLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib)
 {
 	if (env == nullptr)
 	{
@@ -176,7 +188,7 @@ void LuaLibraryManager::openCustomLibrary(lua_State* state, const std::shared_pt
 		return;
 	}
 
-	const auto libname = customLibname(lib.getName());
+	const auto libname = lib.getName();
 
 	if (!lib.isLoaded())
 	{
@@ -191,9 +203,31 @@ void LuaLibraryManager::openCustomLibrary(lua_State* state, const std::shared_pt
 			lua::utils::error(state, "Error during Lua Custom library {}.", libname);
 			return;
 		}
+
+		lib.setLoaded();
 	}
 
-	(*env)[libname] = luabridge::getGlobal(state, libname.c_str());
+	LuaRef libref = luabridge::getGlobal(state, libname.c_str());
+	if (!libref.isTable())
+	{
+		lua::utils::error(state, "Malformed Lua Custom library {}.", libname);
+		return;
+	}
+
+	libref.push();
+	luabridge::push(state, luabridge::Nil());
+	while (lua_next(state, -2))
+	{
+		LuaRef key = LuaRef::fromStack(state, -2);
+		LuaRef val = LuaRef::fromStack(state, -1);
+
+		(*env)[key] = val;
+
+		lua_pop(state, 1);
+	}
+
+	lua_pop(state, 1);
+	libref.pop();
 }
 
 LuaRef LuaLibraryManager::LUA_import(const std::string& spath, lua_State* state)

@@ -66,9 +66,9 @@ namespace lua::utils
 		return std::string(cstr, len);
 	}
 
-	inline std::string extractErrorFromStack(lua_State* state)
+	inline std::string extractErrorFromStack(lua_State* state, int status)
 	{
-		if (lua_gettop(state) > 0)
+		if (lua_gettop(state) >= 0)
 		{
 			char const* s = lua_tostring(state, -1);
 			return std::string(s ? s : "");
@@ -80,7 +80,7 @@ namespace lua::utils
 	{
 		if (status != LUA_OK)
 		{
-			logger::error("LUA error: {}", extractErrorFromStack(state));
+			logger::error("LUA error: {}", extractErrorFromStack(state, status));
 			return false;
 		}
 		return true;

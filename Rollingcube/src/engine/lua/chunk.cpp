@@ -49,7 +49,7 @@ void LuaChunk::run(const LuaRef* customEnv) const
 		lua_setupvalue(state, -2, 1);
 
 		_manager.pushCall(_id, env);
-		lua::utils::catchError(state, lua_pcall(state, 0, LUA_MULTRET, 0));
+		lua::utils::catchError(state, lua_pcall(state, 0, 0, 0));
 		_manager.popCall();
 	}
 }
@@ -80,8 +80,8 @@ void LuaChunk::destroy()
 	_env.reset();
 }
 
-void LuaChunk::prepareEnv(lua_State* state, const std::shared_ptr<LuaRef>& env)
+void LuaChunk::prepareEnv(lua_State* state, const LuaRef& env)
 {
-	(*env)[lua::lib::constants::import] = luabridge::getGlobal(state, lua::lib::constants::import.data());
-	(*env)[lua::lib::constants::openlib] = luabridge::getGlobal(state, lua::lib::constants::openlib.data());
+	env[lua::lib::constants::import] = luabridge::getGlobal(state, lua::lib::constants::import);
+	env[lua::lib::constants::openlib] = luabridge::getGlobal(state, lua::lib::constants::openlib);
 }

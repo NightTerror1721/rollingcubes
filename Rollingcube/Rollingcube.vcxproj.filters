@@ -138,6 +138,9 @@
     <ClCompile Include="src\engine\lua\libs.cpp">
       <Filter>Source Files\engine\lua</Filter>
     </ClCompile>
+    <ClCompile Include="src\math\glm.cpp">
+      <Filter>Source Files\math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\math\MathUtils.h">

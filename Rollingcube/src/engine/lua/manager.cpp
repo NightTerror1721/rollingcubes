@@ -1,7 +1,18 @@
 #include "manager.h"
 
-#include "global_state.h"
 #include "libs.h"
+
+
+LuaGlobalState LuaGlobalState::Instance = {};
+
+LuaGlobalState::LuaGlobalState() :
+	_state(lua::utils::newState())
+{
+	lua::utils::openDefaultLibs(_state);
+	LuaLibraryManager::loadBuiltInData(_state);
+}
+
+
 
 
 LuaScriptManager LuaScriptManager::Instance = {};
@@ -58,13 +69,3 @@ const LuaRef* LuaScriptManager::getCurrentRunScriptEnv() const
 	}
 	return nullptr;
 }
-
-
-
-LuaGlobalState::LuaGlobalState() :
-	_state(lua::utils::newState())
-{
-	LuaLibraryManager::instance().loadBuiltInData(_state);
-}
-
-LuaGlobalState LuaGlobalState::Instance = {};
