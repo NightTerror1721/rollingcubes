@@ -5,6 +5,7 @@
 
 #include "engine/lua/lua.h"
 #include "engine/lua/constants.h"
+#include "utils/lualib_constants.h"
 
 
 namespace glm::lua
@@ -13,7 +14,7 @@ namespace glm::lua
 
 	void registerGlmToLua()
 	{
-		LuaLibraryManager::instance().registerLibrary("geometry", &LUA_glmLib);
+		LuaLibraryManager::instance().registerLibrary(::lua::lib::names::geometry, &LUA_glmLib);
 	}
 
 

@@ -34,7 +34,7 @@ void Skybox::render(const Camera& cam)
 	}
 }
 
-std::unique_ptr<ObjModel> Skybox::DefaultModel = nullptr;
+std::unique_ptr<Model> Skybox::DefaultModel = nullptr;
 
 namespace raw_geom
 {
@@ -86,7 +86,7 @@ namespace raw_geom
 
 void Skybox::loadDefaultModel()
 {
-    DefaultModel.reset(new ObjModel());
+    DefaultModel.reset(new Model());
 
 	auto omesh = DefaultModel->createMesh("default");
 	if (!omesh)

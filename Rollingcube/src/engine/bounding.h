@@ -7,7 +7,7 @@
 #include "math/glm.h"
 #include "frustum.h"
 #include "basics.h"
-#include "objmodel.h"
+#include "model.h"
 #include "shader.h"
 
 #include "utils/logger.h"
@@ -42,7 +42,7 @@ public:
 
 	virtual bool isOnOrForwardPlane(const Frustum::Plane& plane) const = 0;
 
-	virtual void extract(const ObjModel& model) = 0;
+	virtual void extract(const Model& model) = 0;
 
 	virtual inline void render(const Camera& cam, const Transformable& transf) const {}
 
@@ -127,7 +127,7 @@ public:
 
 	inline bool isOnFrustum(const Frustum& frustum) const { return BoundingVolume::isOnFrustum(frustum); }
 
-	void extract(const ObjModel& model) override;
+	void extract(const Model& model) override;
 };
 
 
@@ -170,7 +170,7 @@ public:
 
 	inline bool isOnFrustum(const Frustum& frustum) const { return BoundingVolume::isOnFrustum(frustum); }
 
-	void extract(const ObjModel& model) override;
+	void extract(const Model& model) override;
 };
 
 
@@ -245,21 +245,6 @@ public:
 			vertices[1], vertices[3],
 			vertices[4], vertices[6],
 			vertices[5], vertices[7]
-
-			/*vertices[0], vertices[1],
-			vertices[1], vertices[2],
-			vertices[2], vertices[3],
-			vertices[3], vertices[4],
-
-			vertices[4], vertices[5],
-			vertices[5], vertices[6],
-			vertices[6], vertices[7],
-			vertices[7], vertices[0],
-
-			vertices[0], vertices[4],
-			vertices[1], vertices[5],
-			vertices[2], vertices[6],
-			vertices[3], vertices[7]*/
 		};
 	}
 
@@ -276,7 +261,7 @@ public:
 
 	inline bool isOnFrustum(const Frustum& frustum) const { return BoundingVolume::isOnFrustum(frustum); }
 
-	void extract(const ObjModel& model) override;
+	void extract(const Model& model) override;
 
 	void render(const Camera& cam, const Transformable& transf) const override;
 };

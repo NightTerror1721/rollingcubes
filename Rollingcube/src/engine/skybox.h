@@ -30,11 +30,11 @@ public:
 	constexpr ShaderProgram::Ref getShader() const { return _shader; }
 
 private:
-	static std::unique_ptr<ObjModel> DefaultModel;
+	static std::unique_ptr<Model> DefaultModel;
 
 	static void loadDefaultModel();
 
-	static inline const ObjModel& getDefaultModel()
+	static inline const Model& getDefaultModel()
 	{
 		if (DefaultModel == nullptr)
 			loadDefaultModel();

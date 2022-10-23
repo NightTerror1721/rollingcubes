@@ -4,12 +4,12 @@
 
 
 
-ModeledEntity::~ModeledEntity()
+ModelableEntity::~ModelableEntity()
 {
 	_staticLightManager.reset();
 }
 
-void ModeledEntity::update(Time elapsedTime)
+void ModelableEntity::update(Time elapsedTime)
 {
 	if (isAlteredFlagEnabled())
 	{
@@ -23,10 +23,27 @@ void ModeledEntity::update(Time elapsedTime)
 	disableAlteredFlag();
 }
 
-void ModeledEntity::renderDefault(const Camera& cam)
+void ModelableEntity::renderWithLightningShader(const Camera& cam)
 {
-    auto shader = getLightningShader();
-	if (shader == nullptr || _objModel == nullptr)
+	auto model = internalGetModel();
+	if (model != nullptr)
+	{
+		bindLightnigShaderRenderData(cam);
+		model->render();
+		unbindLightnigShaderRenderData();
+	}
+}
+
+void ModelableEntity::linkStaticLightManager(const std::shared_ptr<StaticLightManager>& lightManager)
+{
+	_staticLightManager = lightManager;
+	_staticLightContainer.link(lightManager);
+}
+
+void ModelableEntity::bindLightnigShaderRenderData(const Camera& cam) const
+{
+	auto shader = getLightningShader();
+	if (shader == nullptr)
 		return;
 
 	shader->use();
@@ -41,15 +58,14 @@ void ModeledEntity::renderDefault(const Camera& cam)
 	if (_staticLightManager != nullptr)
 		shader->setUniformStaticLights(_staticLightContainer);
 	shader->setUniformMaterial(_material);
-
-	_objModel->render();
-
-	_material.unbindTextures();
-	shader->notUse();
 }
 
-void ModeledEntity::linkStaticLightManager(const std::shared_ptr<StaticLightManager>& lightManager)
+void ModelableEntity::unbindLightnigShaderRenderData() const
 {
-	_staticLightManager = lightManager;
-	_staticLightContainer.link(lightManager);
+	auto shader = getLightningShader();
+	if (shader != nullptr)
+	{
+		_material.unbindTextures();
+		shader->notUse();
+	}
 }

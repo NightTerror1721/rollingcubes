@@ -64,7 +64,7 @@ LuaLibraryManager::~LuaLibraryManager()
 	LuaScriptManager::instance().clear();
 }
 
-void LuaLibraryManager::registerLibrary(std::string_view libraryName, const LuaLibraryConstructor& libraryConstructor)
+void LuaLibraryManager::registerLibrary(std::string_view libraryName, const LuaLibraryConstructor& libraryConstructor, std::initializer_list<std::string> dependences)
 {
 	std::string name = customLibname(libraryName);
 	if (_libs.contains(name))
@@ -73,7 +73,7 @@ void LuaLibraryManager::registerLibrary(std::string_view libraryName, const LuaL
 		return;
 	}
 
-	_libs.insert({ name, LuaLibrary(name, libraryConstructor) });
+	_libs.insert({ name, LuaLibrary(name, libraryConstructor, dependences) });
 	logger::info("Lua Rollingcube library {} registered correctly!", name);
 }
 
@@ -180,7 +180,7 @@ void LuaLibraryManager::openLuaBaseLibrary(lua_State* state, const LuaRef* env)
 #undef loadBaseElement
 }
 
-void LuaLibraryManager::openCustomLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib)
+void LuaLibraryManager::openCustomLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib) const
 {
 	if (env == nullptr)
 	{
@@ -190,7 +190,20 @@ void LuaLibraryManager::openCustomLibrary(lua_State* state, const LuaRef* env, c
 
 	const auto libname = lib.getName();
 
-	if (!lib.isLoaded())
+	LuaRef openedLibs = getOpenedLibsTable(state, env);
+	if (!openedLibs[libname].isNil()) // is opened? //
+		return;
+
+	openedLibs[libname] = true;
+
+	if (lib.hasDependences())
+	{
+		for (const auto& dep : lib.getDependences())
+			openLibrary(state, dep);
+	}
+
+
+	if (!lib.isBuilt())
 	{
 		auto globalNamespace = luabridge::getGlobalNamespace(state);
 		auto libNamespace = globalNamespace.beginNamespace(libname.data());
@@ -200,16 +213,18 @@ void LuaLibraryManager::openCustomLibrary(lua_State* state, const LuaRef* env, c
 
 		if (!result)
 		{
+			openedLibs[libname] = luabridge::Nil();
 			lua::utils::error(state, "Error during Lua Custom library {}.", libname);
 			return;
 		}
 
-		lib.setLoaded();
+		lib.setBuilt();
 	}
 
 	LuaRef libref = luabridge::getGlobal(state, libname.c_str());
 	if (!libref.isTable())
 	{
+		openedLibs[libname] = luabridge::Nil();
 		lua::utils::error(state, "Malformed Lua Custom library {}.", libname);
 		return;
 	}
@@ -228,6 +243,17 @@ void LuaLibraryManager::openCustomLibrary(lua_State* state, const LuaRef* env, c
 
 	lua_pop(state, 1);
 	libref.pop();
+}
+
+LuaRef LuaLibraryManager::getOpenedLibsTable(lua_State* state, const LuaRef* env)
+{
+	LuaRef openedLibs = (*env)[CustomLibsOpened];
+	if (!openedLibs.isTable())
+	{
+		(*env)[CustomLibsOpened] = LuaRef::newTable(state);
+		openedLibs = (*env)[CustomLibsOpened];
+	}
+	return std::move(openedLibs);
 }
 
 LuaRef LuaLibraryManager::LUA_import(const std::string& spath, lua_State* state)

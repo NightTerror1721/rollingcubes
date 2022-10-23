@@ -60,7 +60,7 @@
     <ClCompile Include="src\engine\camera.cpp">
       <Filter>Source Files\engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\objmodel.cpp">
+    <ClCompile Include="src\engine\model.cpp">
       <Filter>Source Files\engine</Filter>
     </ClCompile>
     <ClCompile Include="src\core\gl.cpp">
@@ -152,7 +152,7 @@
     <ClInclude Include="src\engine\frustum.h">
       <Filter>Header Files\engine</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\objmodel.h">
+    <ClInclude Include="src\engine\model.h">
       <Filter>Header Files\engine</Filter>
     </ClInclude>
     <ClInclude Include="src\core\gl.h">
@@ -254,9 +254,6 @@
     <ClInclude Include="src\utils\raw_buffer.h">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\new_camera.h">
-      <Filter>Header Files\engine</Filter>
-    </ClInclude>
     <ClInclude Include="src\math\bases.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
@@ -295,6 +292,9 @@
     </ClInclude>
     <ClInclude Include="src\engine\lua\libs.h">
       <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\lualib_constants.h">
+      <Filter>Header Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

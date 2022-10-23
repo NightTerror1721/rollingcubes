@@ -164,7 +164,7 @@
     <ClCompile Include="src\engine\lua\libs.cpp" />
     <ClCompile Include="src\engine\lua\manager.cpp" />
     <ClCompile Include="src\engine\shader.cpp" />
-    <ClCompile Include="src\engine\objmodel.cpp" />
+    <ClCompile Include="src\engine\model.cpp" />
     <ClCompile Include="src\engine\sampler.cpp" />
     <ClCompile Include="src\engine\old_shader.cpp" />
     <ClCompile Include="src\engine\skybox.cpp" />
@@ -205,9 +205,8 @@
     <ClInclude Include="src\engine\lua\natives.h" />
     <ClInclude Include="src\engine\lua\script.h" />
     <ClInclude Include="src\engine\material.h" />
-    <ClInclude Include="src\engine\new_camera.h" />
     <ClInclude Include="src\engine\shader.h" />
-    <ClInclude Include="src\engine\objmodel.h" />
+    <ClInclude Include="src\engine\model.h" />
     <ClInclude Include="src\engine\sampler.h" />
     <ClInclude Include="src\engine\old_shader.h" />
     <ClInclude Include="src\engine\skybox.h" />
@@ -225,6 +224,7 @@
     <ClInclude Include="src\utils\jpeg_decoder.h" />
     <ClInclude Include="src\utils\json.h" />
     <ClInclude Include="src\utils\logger.h" />
+    <ClInclude Include="src\utils\lualib_constants.h" />
     <ClInclude Include="src\utils\manager.h" />
     <ClInclude Include="src\utils\optref.h" />
     <ClInclude Include="src\utils\png_decoder.h" />

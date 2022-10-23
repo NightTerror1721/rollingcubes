@@ -6,14 +6,12 @@
 
 namespace cubes::model
 {
-	static std::shared_ptr<ObjModel> CubeModel = nullptr;
-
 	namespace raw
 	{
-		static constexpr std::size_t vertices_per_triangle = 3;
-		static constexpr std::size_t vertices_per_side = 4;
-		static constexpr std::size_t triangles_per_side = 2;
-		static constexpr std::size_t vertices_count = 8;
+		static constexpr std::size_t verticesPerTriangle = 3;
+		static constexpr std::size_t verticesPerSide = 6;
+		static constexpr std::size_t trianglesPerSide = 2;
+		static constexpr std::size_t verticesCount = 8;
 
 		struct CubeVertex
 		{
@@ -26,32 +24,32 @@ namespace cubes::model
 			{}
 		};
 
-		using CubeTriangle = unsigned int[vertices_per_triangle];
+		using CubeTriangle = unsigned int[verticesPerTriangle];
 
 
-		static constexpr glm::vec3 cubeVertices[36] =
+		static constexpr glm::vec3 cubeVertices[side::count][verticesPerSide] =
 		{
 			// Front face
-			{ 0.5f, -0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f }, { -0.5f, 0.5f, 0.5f }, { -0.5f, 0.5f, 0.5f }, { -0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, 0.5f },
+			{ { 0.5f, -0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f }, { -0.5f, 0.5f, 0.5f }, { -0.5f, 0.5f, 0.5f }, { -0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, 0.5f } },
 			// Back face
-			{ -0.5f, -0.5f, -0.5f } , { -0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f }, { -0.5f, -0.5f, -0.5f },
+			{ { -0.5f, -0.5f, -0.5f } , { -0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f }, { -0.5f, -0.5f, -0.5f } },
 			// Left face
-			{ -0.5f, -0.5f, 0.5f }, { -0.5f, 0.5f, 0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, -0.5f, -0.5f }, { -0.5f, -0.5f, 0.5f },
+			{ { -0.5f, -0.5f, 0.5f }, { -0.5f, 0.5f, 0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, -0.5f, -0.5f }, { -0.5f, -0.5f, 0.5f } },
 			// Right face
-			{ 0.5f, -0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f }, { 0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, -0.5f },
+			{ { 0.5f, -0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f }, { 0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, -0.5f } },
 			// Top face
-			{ 0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f },
+			{ { 0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f } },
 			// Bottom face
-			{ 0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, 0.5f }, { -0.5f, -0.5f, 0.5f }, { -0.5f, -0.5f, 0.5f }, { -0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f },
+			{ { 0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, 0.5f }, { -0.5f, -0.5f, 0.5f }, { -0.5f, -0.5f, 0.5f }, { -0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f } },
 		};
 
-		static constexpr glm::vec2 cubeTexCoords[6] =
+		static constexpr glm::vec2 cubeTexCoords[verticesPerSide] =
 		{
 			{ 0.0f, 1.0f }, { 1.0f, 1.0f }, { 1.0f, 0.0f },
 			{ 1.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 1.0f }
 		};
 
-		static constexpr glm::vec3 cubeNormals[6] =
+		static constexpr glm::vec3 cubeNormals[side::count] =
 		{
 			{ 0, 0, 1 },  // Front face //
 			{ 0, 0, -1 }, // Back face //
@@ -61,7 +59,7 @@ namespace cubes::model
 			{ 0, -1, 0 }, // Bottom face //
 		};
 
-		static constexpr glm::vec3 cubeFaceColors[6] =
+		static constexpr glm::vec3 cubeFaceColors[side::count] =
 		{
 			{ 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f },
 			{ 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }
@@ -78,9 +76,9 @@ namespace cubes::model
 	}
 
 
-	static bool create_mesh(ObjModel& model, unsigned int side_id)
+	static bool create_mesh(Model::Ref model, side::Id sideId)
 	{
-		auto omesh = model.createMesh(cube_side_name[side_id]);
+		auto omesh = model->createMesh(side::name(sideId));
 		if (!omesh)
 			return false;
 
@@ -91,18 +89,15 @@ namespace cubes::model
 		std::vector<glm::vec3> gl_vertices;
 		std::vector<glm::vec2> gl_uvs;
 		std::vector<glm::vec3> gl_normals;
-		gl_vertices.resize(cube_side_count * cube_side_count);
-		gl_uvs.resize(cube_side_count * cube_side_count);
-		gl_normals.resize(cube_side_count * cube_side_count);
+		gl_vertices.resize(raw::verticesPerSide);
+		gl_uvs.resize(raw::verticesPerSide);
+		gl_normals.resize(raw::verticesPerSide);
 
-		for (side_id = 0; side_id < cube_side_count; ++side_id)
+		for (std::size_t i = 0; i < raw::verticesPerSide; ++i)
 		{
-			for (std::size_t i = 0; i < cube_side_count; ++i)
-			{
-				gl_vertices[side_id * cube_side_count + i] = raw::cubeVertices[side_id * cube_side_count + i];
-				gl_uvs[side_id * cube_side_count + i] = raw::cubeTexCoords[i];
-				gl_normals[side_id * cube_side_count + i] = raw::cubeNormals[side_id];
-			}
+			gl_vertices[i] = raw::cubeVertices[side::idToInt(sideId)][i];
+			gl_uvs[i] = raw::cubeTexCoords[i];
+			gl_normals[i] = raw::cubeNormals[side::idToInt(sideId)];
 		}
 
 		mesh.setVertices(gl_vertices);
@@ -118,31 +113,24 @@ namespace cubes::model
 		mesh.setTangents(gl_tangents);
 		mesh.setBitangents(gl_bitangents);
 
-
-		// INDEX PART //
-		/*std::vector<GLuint> gl_indices;
-		static constexpr std::size_t indices_count = raw::vertices_per_triangle * raw::triangles_per_side;
-		gl_indices.resize(indices_count);
-
-		for (std::size_t i = 0; i < indices_count; ++i)
-			gl_indices[i] = raw::indices[(side_id * raw::triangles_per_side) + (i / raw::vertices_per_triangle)][i % raw::vertices_per_triangle];
-
-		mesh.setElements(gl_indices);*/
-
 		return true;
 	}
 	
-	const std::shared_ptr<ObjModel>& getModel()
+	Model::Ref getModel()
 	{
+		static constinit Model::Ref CubeModel = nullptr;
+
 		if (CubeModel == nullptr)
 		{
-			CubeModel = std::make_shared<ObjModel>();
+			CubeModel = ModelManager::root().createNew(model::name.data());
 
-			for (unsigned int i = 0; i < 1; ++i)
+			for (int i = 0; i < side::count; ++i)
 			{
-				if (!create_mesh(*CubeModel.get(), cube_side_id[i]))
-					logger::fatal("CANNOT LOAD '{}' CUBE SIDE!!", cube_side_name[i]);
+				if (!create_mesh(CubeModel, side::ids[i]))
+					logger::fatal("CANNOT LOAD '{}' CUBE SIDE!!", side::names[i]);
 			}
+
+			CubeModel->lock();
 		}
 
 		return CubeModel;

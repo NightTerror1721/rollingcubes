@@ -6,7 +6,7 @@
 #include "math/color.h"
 #include "math/bases.h"
 
-#include "engine/objmodel.h"
+#include "engine/model.h"
 #include "engine/shader.h"
 #include "engine/camera.h"
 #include "engine/texture.h"
@@ -24,15 +24,12 @@
 
 #include "game/cube_model.h"
 
-#include <JPEG/jpeglib.h>
-
-#include <ft2build.h>
 
 int test_window();
 void tutos();
 void lua_test();
 
-ObjModel createCubeModel();
+Model createCubeModel();
 
 int main(int argc, char** argv)
 {
@@ -111,18 +108,18 @@ void resetMousePosition()
 }
 
 
-ObjModel createSimpleModel(const std::vector<glm::vec3>& vertices)
+Model createSimpleModel(const std::vector<glm::vec3>& vertices)
 {
-    ObjModel model;
+    Model model;
     auto& mesh = model.createMesh("default").get();
     mesh.setVertices(vertices);
 
     return model;
 }
 
-ObjModel createTexturedModel(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec2>& uvs)
+Model createTexturedModel(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec2>& uvs)
 {
-    ObjModel model;
+    Model model;
     auto& mesh = model.createMesh("default").get();
     mesh.setVertices(vertices);
     mesh.setUVs(uvs);
@@ -132,7 +129,7 @@ ObjModel createTexturedModel(const std::vector<glm::vec3>& vertices, const std::
 
 
 
-static void renderIfNotTransparency(EntityCameraDistanceCollection<ModeledEntity>& transps, std::shared_ptr<ModeledEntity>& entity, const Camera& cam)
+static void renderIfNotTransparency(EntityCameraDistanceCollection<ModelEntity>& transps, std::shared_ptr<ModelEntity>& entity, const Camera& cam)
 {
     if (entity->hasTransparency())
         entity->render(cam);
@@ -225,14 +222,14 @@ void tutos()
     //const ObjModel& objmodel = *cubes::model::getModel().get();
     //std::shared_ptr<ObjModel> objmodel = std::make_shared<ObjModel>();
     //objmodel->load("test/suzanne.obj");
-    std::shared_ptr<ObjModel> objmodel = cubes::model::getModel();
+    Model::Ref objmodel = cubes::model::getModel();
 
-    std::shared_ptr<ModeledEntity> entityCube1 = std::make_shared<ModeledEntity>(),
-        entityCube2 = std::make_shared<ModeledEntity>(),
-        entityCube3 = std::make_shared<ModeledEntity>();
-    entityCube1->setObjectModel(objmodel);
-    entityCube2->setObjectModel(objmodel);
-    entityCube3->setObjectModel(objmodel);
+    std::shared_ptr<ModelEntity> entityCube1 = std::make_shared<ModelEntity>(),
+        entityCube2 = std::make_shared<ModelEntity>(),
+        entityCube3 = std::make_shared<ModelEntity>();
+    entityCube1->setModel(objmodel);
+    entityCube2->setModel(objmodel);
+    entityCube3->setModel(objmodel);
 
     entityCube1->setBoundingType(BoundingVolumeType::AABB);
     entityCube2->setBoundingType(BoundingVolumeType::AABB);
@@ -279,15 +276,15 @@ void tutos()
 
     //auto slights = lightManager->createShaderLights();
 
-    Light light;
+    Light mainLight;
     //light.setColor(glm::vec3(1, 1, 1));
-    light.setAmbientColor({ 0, 0, 0 });
-    light.setDiffuseColor({ 0., 0., 0. });
-    light.setSpecularColor({ 1, 1, 1 });
-    light.setIntensity(50.f);
-    light.setPosition({ 5, 2, 0 });
+    mainLight.setAmbientColor({ 0, 0, 0 });
+    mainLight.setDiffuseColor({ 0., 0., 0. });
+    mainLight.setSpecularColor({ 1, 1, 1 });
+    mainLight.setIntensity(50.f);
+    mainLight.setPosition({ 5, 2, 0 });
     //light.setQuadraticAttenuation(0.25);
-    auto lightId = lightManager->createNewLight(light);
+    //auto lightId = lightManager->createNewLight(light);
 
     Light light2;
     light2.setColor({ 1, 0, 0 });
@@ -304,7 +301,7 @@ void tutos()
 
     resetMousePosition();
 
-    EntityCameraDistanceCollection<ModeledEntity> transparentEntities;
+    EntityCameraDistanceCollection<ModelEntity> transparentEntities;
     transparentEntities.setRenderBoundings(true);
 
     Time timeAccum;
@@ -366,8 +363,8 @@ void tutos()
             cam.lookAt(cam.getEye(), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
 
-        light.setPosition(cam.getEye() + glm::vec3(0, 0, 0));
-        lightManager->updateLight(lightId, light);
+        mainLight.setPosition(cam.getEye() + glm::vec3(0, 0, 0));
+        //lightManager->updateLight(lightId, light);
         //slights->build();
 
         dirLight.setDirection(glm::normalize(cam.getFront()));
@@ -402,6 +399,7 @@ void tutos()
 
         lightningShader->use();
         lightningShader->setUniformDirectionalLight(dirLight);
+        lightningShader->setUniformMainStaticLight(mainLight);
 
         //entity.getMaterial().bindTextures();
 
@@ -418,7 +416,7 @@ void tutos()
         //entityCube1->render(cam);
         //entityCube2->render(cam);
 
-        using WP = EntityCameraDistanceWrapper<ModeledEntity>;
+        using WP = EntityCameraDistanceWrapper<ModelEntity>;
 
         WP wCube1;
         wCube1.setEntity(entityCube1);
@@ -495,7 +493,7 @@ void tutos()
 }
 
 
-ObjModel createCubeModel()
+Model createCubeModel()
 {
     return createTexturedModel({
         { -1.0f,-1.0f,-1.0f }, // triangle 1 : begin

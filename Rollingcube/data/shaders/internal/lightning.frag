@@ -36,19 +36,6 @@ struct DirectionalLight
 	float intensity;
 };
 
-struct SpotLight
-{
-    vec3 position;
-    vec3 direction;
-    float cutOff;
-    float outerCutOff;
-    ColorChannels color;
-    float constant;
-	float linear;
-	float quadratic;
-    float intensity;
-};
-
 in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
@@ -59,14 +46,14 @@ out vec4 FragColor;
 uniform vec3 viewPos;
 uniform int pointLightsCount;
 uniform bool useNormalMapping;
+uniform bool useMainPointLight;
 uniform DirectionalLight dirLight;
+uniform PointLight mainPointLight;
 uniform PointLight pointLights[MAX_LIGHTS];
-uniform SpotLight spotLight;
 uniform Material material;
 
 vec3 computeColorFromDirectionalLight(vec3 normal, vec3 viewDir);
 vec3 computeColorFromLight(PointLight light, vec3 normal, vec3 viewDir);
-vec3 computeColorFromSpotlLight(vec3 normal, vec3 viewDir);
 
 
 void main()
@@ -86,7 +73,7 @@ void main()
 	vec3 viewDir = normalize(viewPos - FragPos);
 
 	// == =====================================================
-    // Our lighting is set up in 3 phases: directional and point lights and optional spot light
+    // Our lighting is set up in 2 phases: directional and point lights
     // For each phase, a calculate function is defined that calculates the corresponding color
     // per lamp. In the main() function we take all the calculated colors and sum them up for
     // this fragment's final color.
@@ -96,15 +83,13 @@ void main()
 	vec3 result = computeColorFromDirectionalLight(normal, viewDir);
 
 	// phase 2: point lights
+    if(useMainPointLight)
+        result += computeColorFromLight(mainPointLight, normal, viewDir);
 	int len = clamp(pointLightsCount, 0, MAX_LIGHTS);
 	for(int i = 0; i < len; ++i)
 		result += computeColorFromLight(pointLights[i], normal, viewDir);
 
-    // phase 3: spot light
-    //result += computeColorFromSpotlLight(normal, viewDir);
-
 	FragColor = vec4(result, clamp(material.opacity, 0, 1));
-    //FragColor = vec4(result, 1);
 }
 
 vec3 computeColorFromDirectionalLight(vec3 normal, vec3 viewDir)
@@ -149,38 +134,6 @@ vec3 computeColorFromLight(PointLight light, vec3 normal, vec3 viewDir)
     ambient *= attenuation;
     diffuse *= attenuation;
     specular *= attenuation;
-
-    return ambient + diffuse + specular;
-}
-
-vec3 computeColorFromSpotlLight(vec3 normal, vec3 viewDir)
-{
-    vec3 lightDir = normalize(spotLight.position - FragPos);
-
-    // Diffuse Shading //
-    float diff = max(dot(normal, lightDir), 0.0);
-
-    // Specular Shading //
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-
-    // Attenuation //
-    float dist = length(spotLight.position - FragPos);
-    float attenuation = 1.0 / (spotLight.constant + spotLight.linear * dist + spotLight.quadratic * (dist * dist));
-
-    // Spotlight Intensity //
-    float theta = dot(lightDir, normalize(-spotLight.direction)); 
-    float epsilon = spotLight.cutOff - spotLight.outerCutOff;
-    float intensity = clamp((theta - spotLight.outerCutOff) / epsilon, 0.0, 1.0);
-
-    // Combine results //
-    vec3 ambient = spotLight.color.ambient * vec3(texture(material.diffuse, TexCoords)) * material.color.ambient;
-    vec3 diffuse = spotLight.color.diffuse * spotLight.intensity * diff * vec3(texture(material.diffuse, TexCoords)) * material.color.diffuse;
-    vec3 specular = spotLight.color.specular * spotLight.intensity * spec * vec3(texture(material.specular, TexCoords)) * material.color.specular;
-
-    ambient *= attenuation * intensity;
-    diffuse *= attenuation * intensity;
-    specular *= attenuation * intensity;
 
     return ambient + diffuse + specular;
 }

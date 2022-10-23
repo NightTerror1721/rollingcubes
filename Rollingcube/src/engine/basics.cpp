@@ -9,21 +9,21 @@ const glm::mat4& Transformable::getModelMatrix() const
 		glm::mat4 rotate = glm::toMat4(glm::quat(glm::radians(_rotation)));
 		glm::mat4 scale = glm::scale(_scale);
 
-		_model = translate * rotate * scale;
+		_modelMatrix = translate * rotate * scale;
 
 		_modelNeedUpdate = false;
 	}
 
-	return _model;
+	return _modelMatrix;
 }
 
 const glm::mat4& Transformable::getInvertedModelMatrix() const
 {
 	if (_invertedModelNeedUpdate)
 	{
-		_invertedModel = glm::inverse(getModelMatrix());
+		_invertedModelMatrix = glm::inverse(getModelMatrix());
 		_invertedModelNeedUpdate = false;
 	}
 
-	return _invertedModel;
+	return _invertedModelMatrix;
 }

@@ -17,7 +17,7 @@ bool BoundingSphere::isOnFrustum(const Frustum& frustum, const Transformable& tr
 	return globalSphere.isOnFrustum(frustum);
 }
 
-void BoundingSphere::extract(const ObjModel& model)
+void BoundingSphere::extract(const Model& model)
 {
 	glm::vec3 minAABB = glm::vec3(std::numeric_limits<float>::max());
 	glm::vec3 maxAABB = glm::vec3(std::numeric_limits<float>::min());
@@ -67,7 +67,7 @@ bool SquareAABB::isOnFrustum(const Frustum& frustum, const Transformable& transf
 	return globalAABB.isOnFrustum(frustum);
 }
 
-void SquareAABB::extract(const ObjModel& model)
+void SquareAABB::extract(const Model& model)
 {
 	glm::vec3 minAABB = glm::vec3(std::numeric_limits<float>::max());
 	glm::vec3 maxAABB = glm::vec3(std::numeric_limits<float>::min());
@@ -117,7 +117,7 @@ bool AABB::isOnFrustum(const Frustum& frustum, const Transformable& transf) cons
 	return globalAABB.isOnFrustum(frustum);
 }
 
-void AABB::extract(const ObjModel& model)
+void AABB::extract(const Model& model)
 {
 	glm::vec3 minAABB = glm::vec3(std::numeric_limits<float>::max());
 	glm::vec3 maxAABB = glm::vec3(std::numeric_limits<float>::min());

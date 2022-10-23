@@ -73,6 +73,19 @@ namespace constants
 			DEFINE_SHADER_UNIFORM_CONSTANT_ARRAY8(intensity, pointLights, .intensity)
 		}
 
+		namespace main_static_light
+		{
+			DEFINE_SHADER_UNIFORM_CONSTANT(useMainPointLight, "useMainPointLight")
+			DEFINE_SHADER_UNIFORM_CONSTANT(position, "mainPointLight.position")
+			DEFINE_SHADER_UNIFORM_CONSTANT(ambientColor, "mainPointLight.color.ambient")
+			DEFINE_SHADER_UNIFORM_CONSTANT(diffuseColor, "mainPointLight.color.diffuse")
+			DEFINE_SHADER_UNIFORM_CONSTANT(specularColor, "mainPointLight.color.specular")
+			DEFINE_SHADER_UNIFORM_CONSTANT(constant, "mainPointLight.constant")
+			DEFINE_SHADER_UNIFORM_CONSTANT(linear, "mainPointLight.linear")
+			DEFINE_SHADER_UNIFORM_CONSTANT(quadratic, "mainPointLight.quadratic")
+			DEFINE_SHADER_UNIFORM_CONSTANT(intensity, "mainPointLight.intensity")
+		}
+
 		namespace directional_light
 		{
 			DEFINE_SHADER_UNIFORM_CONSTANT(direction, "dirLight.direction")

@@ -263,6 +263,28 @@ void ShaderProgram::setUniformStaticLight(const Light& light, GLint index)
 	getUniform(intensity(index)) = light.getIntensity();
 }
 
+void ShaderProgram::setUniformMainStaticLight(const Light& light)
+{
+	using namespace constants::uniform::main_static_light;
+
+	getUniform(useMainPointLight()) = true;
+	getUniform(position()) = light.getPosition();
+	getUniform(ambientColor()) = light.getAmbientColor();
+	getUniform(diffuseColor()) = light.getDiffuseColor();
+	getUniform(specularColor()) = light.getSpecularColor();
+	getUniform(constant()) = light.getConstantAttenuation();
+	getUniform(linear()) = light.getLinearAttenuation();
+	getUniform(quadratic()) = light.getQuadraticAttenuation();
+	getUniform(intensity()) = light.getIntensity();
+}
+
+void ShaderProgram::setUniformDisabledMainStaticLight()
+{
+	using namespace constants::uniform::main_static_light;
+
+	getUniform(useMainPointLight()) = false;
+}
+
 void ShaderProgram::setUniformDirectionalLight(const DirectionalLight& light)
 {
 	using namespace constants::uniform::directional_light;

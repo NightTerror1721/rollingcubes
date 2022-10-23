@@ -1,8 +1,11 @@
-#include "objmodel.h"
+#include "model.h"
 
 #include <cassert>
 
+#pragma warning(push)
+#pragma warning(disable: 26451)
 #include <Bly7/OBJ_loader.hpp>
+#pragma warning(pop)
 
 #include "utils/io_utils.h"
 #include "utils/tangent_space.h"
@@ -26,7 +29,7 @@ Mesh& Mesh::operator= (Mesh&& other) noexcept
 	return *std::construct_at<Mesh, Mesh&&>(this, std::move(other));
 }
 
-void Mesh::clear()
+void Mesh::internalClear()
 {
 	_verticesCache.clear();
 
@@ -36,7 +39,6 @@ void Mesh::clear()
 
 void Mesh::render(GLenum mode) const
 {
-	//_vao.render(Shader::vertices_array_attrib_index, mode);
 	if (_ebo.isCreated())
 		gl::render(_vao, _ebo, mode);
 	else
@@ -64,14 +66,17 @@ void Mesh::setColors(const std::vector<Color>& colors)
 
 
 
-void ObjModel::clear()
+void Model::internalClear()
 {
 	_meshes.clear();
 	_meshesMap.clear();
 }
 
-optref<Mesh> ObjModel::createMesh(const std::string_view& sv_name)
+optref<Mesh> Model::createMesh(const std::string_view& sv_name)
 {
+	if (!checkLocked())
+		return optref<Mesh>::empty();
+
 	auto name = std::string(sv_name);
 	if (_meshesMap.contains(name))
 		return optref<Mesh>::empty();
@@ -82,21 +87,21 @@ optref<Mesh> ObjModel::createMesh(const std::string_view& sv_name)
 	return optref<Mesh>::of(ptr.get());
 }
 
-optref<Mesh> ObjModel::safeGetMesh(std::size_t index)
+optref<Mesh> Model::safeGetMesh(std::size_t index)
 {
 	if(index >= _meshes.size())
 		return optref<Mesh>::empty();
 	return optref<Mesh>::of(_meshes[index].get());
 }
 
-const_optref<Mesh> ObjModel::safeGetMesh(std::size_t index) const
+const_optref<Mesh> Model::safeGetMesh(std::size_t index) const
 {
 	if (index >= _meshes.size())
 		return const_optref<Mesh>::empty();
 	return const_optref<Mesh>::of(_meshes[index].get());
 }
 
-optref<Mesh> ObjModel::safeGetMesh(const std::string_view& name)
+optref<Mesh> Model::safeGetMesh(const std::string_view& name)
 {
 	decltype(auto) it = _meshesMap.find(std::string(name));
 	if(it == _meshesMap.end())
@@ -104,7 +109,7 @@ optref<Mesh> ObjModel::safeGetMesh(const std::string_view& name)
 	return optref<Mesh>::of(it->second.get());
 }
 
-const_optref<Mesh> ObjModel::safeGetMesh(const std::string_view& name) const
+const_optref<Mesh> Model::safeGetMesh(const std::string_view& name) const
 {
 	decltype(auto) it = _meshesMap.find(std::string(name));
 	if (it == _meshesMap.end())
@@ -113,7 +118,7 @@ const_optref<Mesh> ObjModel::safeGetMesh(const std::string_view& name) const
 }
 
 
-void ObjModel::render(GLenum mode) const
+void Model::render(GLenum mode) const
 {
 	std::size_t const len = _meshes.size();
 	const auto* ptr = _meshes.data();
@@ -121,7 +126,7 @@ void ObjModel::render(GLenum mode) const
 		ptr[i]->render(mode);
 }
 
-void ObjModel::render(const std::function<void(const Mesh&)>& preMeshRenderCallback, GLenum mode) const
+void Model::render(const std::function<void(const Mesh&)>& preMeshRenderCallback, GLenum mode) const
 {
 	std::size_t const len = _meshes.size();
 	const auto* ptr = _meshes.data();
@@ -133,7 +138,7 @@ void ObjModel::render(const std::function<void(const Mesh&)>& preMeshRenderCallb
 
 using loader_vertex_index_t = decltype(std::declval<objl::Mesh>().Indices)::value_type;
 static bool loader_newMesh(
-	ObjModel& model,
+	Model& model,
 	const std::string& name,
 	const std::vector<objl::Vertex>& vertices,
 	const std::vector<loader_vertex_index_t>& indices,
@@ -200,9 +205,12 @@ static bool loader_newMesh(
 	return true;
 }
 
-bool ObjModel::load(const std::string_view& filename, bool computeTangentBasis)
+bool Model::load(const std::string_view& filename, bool computeTangentBasis)
 {
-	clear();
+	if (!checkLocked())
+		return false;
+
+	internalClear();
 
 	objl::Loader loader;
 	if (!loader.LoadFile(std::string(filename)))
@@ -226,4 +234,43 @@ bool ObjModel::load(const std::string_view& filename, bool computeTangentBasis)
 	}
 
 	return true;
+}
+
+
+
+
+
+
+ModelManager ModelManager::Root = ModelManager(nullptr);
+
+ModelManager::Reference ModelManager::loadFromFile(std::string_view filename, bool computeTangentBasis)
+{
+	Reference ref = get(filename.data());
+	if (ref != nullptr)
+		return ref;
+
+	ref = emplace(filename.data());
+	if (!ref)
+		return nullptr;
+
+	if (!ref->load(filename, computeTangentBasis))
+	{
+		destroy(filename.data());
+		return nullptr;
+	}
+
+	ref->lock();
+
+	return ref;
+}
+
+ModelManager::Reference ModelManager::createNew(const IdType& id)
+{
+	if (contains(id))
+	{
+		logger::error("Attempt to create new Model with already exists ID {}.", id);
+		return nullptr;
+	}
+
+	return emplace(id);
 }

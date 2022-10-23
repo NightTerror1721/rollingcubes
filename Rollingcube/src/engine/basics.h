@@ -74,10 +74,10 @@ private:
 
 	bool _alteredFlag = true;
 
-	mutable glm::mat4 _model = {};
+	mutable glm::mat4 _modelMatrix = {};
 	mutable bool _modelNeedUpdate = true;
 
-	mutable glm::mat4 _invertedModel = {};
+	mutable glm::mat4 _invertedModelMatrix = {};
 	mutable bool _invertedModelNeedUpdate = true;
 
 public:

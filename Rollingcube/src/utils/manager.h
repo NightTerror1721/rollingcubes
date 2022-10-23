@@ -40,7 +40,7 @@ public:
 
 	constexpr ManagerReference(decltype(nullptr)) : ManagerReference() {}
 
-	constexpr ManagerReference(const ManagerReference<const ValueType>& ref) requires !std::is_const_v<ValueType>
+	constexpr ManagerReference(const ManagerReference<std::remove_const_t<ValueType>>& ref) requires std::is_const_v<ValueType>
 		: _ptr(ref._ptr)
 	{}
 

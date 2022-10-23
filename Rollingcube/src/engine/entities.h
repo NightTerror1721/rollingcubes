@@ -8,7 +8,7 @@
 #include <math/glm.h>
 
 #include "basics.h"
-#include "objmodel.h"
+#include "model.h"
 #include "material.h"
 #include "light.h"
 #include "camera.h"
@@ -126,14 +126,15 @@ public:
 
 
 
-class ModeledEntity : public TransformableEntity
+class ModelableEntity : public TransformableEntity
 {
-private:
-	std::shared_ptr<ObjModel> _objModel = nullptr;
+protected:
 	Material _material;
+	bool _transparency = false;
+
+private:
 	StaticLightContainer _staticLightContainer;
 	std::shared_ptr<StaticLightManager> _staticLightManager = nullptr;
-	bool _transparency = false;
 
 	BoundingVolumeType _boundingType = BoundingVolumeType::Sphere;
 	mutable std::unique_ptr<BoundingVolume> _boundingVolume = nullptr;
@@ -142,23 +143,23 @@ private:
 	mutable ShaderProgram::Ref _lightningShader = nullptr;
 
 public:
-	ModeledEntity() = default;
-	ModeledEntity(const ModeledEntity&) = delete;
-	ModeledEntity(ModeledEntity&&) noexcept = default;
-	virtual ~ModeledEntity();
+	ModelableEntity() = default;
+	ModelableEntity(const ModelableEntity&) = delete;
+	ModelableEntity(ModelableEntity&&) noexcept = default;
+	virtual ~ModelableEntity();
 
-	ModeledEntity& operator= (const ModeledEntity&) = delete;
-	ModeledEntity& operator= (ModeledEntity&&) noexcept = delete;
+	ModelableEntity& operator= (const ModelableEntity&) = delete;
+	ModelableEntity& operator= (ModelableEntity&&) noexcept = delete;
 
 public:
 	virtual void update(Time elapsedTime);
 
-	void renderDefault(const Camera& cam);
+	void renderWithLightningShader(const Camera& cam);
 
 	void linkStaticLightManager(const std::shared_ptr<StaticLightManager>& lightManager);
 
 public:
-	virtual inline void render(const Camera& cam) { renderDefault(cam); }
+	virtual inline void render(const Camera& cam) { renderWithLightningShader(cam); }
 
 	constexpr void setForceTransparency(bool flag) { _transparency = flag; }
 	constexpr bool isForceTransparencyEnabled() const { return _transparency; }
@@ -182,8 +183,7 @@ public:
 
 	inline bool isVisibleInCamera(const Camera& cam) const { return cam.isVisible(getBoundingVolume(), *this); }
 
-	inline void setObjectModel(const std::shared_ptr<ObjModel>& objModel) { _objModel = objModel; }
-	inline const std::shared_ptr<ObjModel>& getObjectModel() const { return _objModel; }
+	inline Model::Ref getModel() const { return internalGetModel(); }
 
 	inline void setMaterial(const Material& material) { _material = material; }
 	inline const Material& getMaterial() const { return _material; }
@@ -197,6 +197,12 @@ public:
 	}
 
 protected:
+	virtual Model::Ref internalGetModel() const = 0;
+
+protected:
+	void bindLightnigShaderRenderData(const Camera& cam) const;
+	void unbindLightnigShaderRenderData() const;
+
 	inline ShaderProgram::Ref getLightningShader() const
 	{
 		if (!_lightningShader)
@@ -207,17 +213,48 @@ protected:
 private:
 	inline void updateBoundingVolume() const
 	{
-		if(_boundingVolume == nullptr)
-			_boundingVolume = BoundingVolume::createUniqueFromType(_boundingType);
-		if (_boundingVolume != nullptr)
-			_boundingVolume->extract(*_objModel);
-		_updateBoundingVolume = false;
+		Model::Ref model = internalGetModel();
+		if (model != nullptr)
+		{
+			if (_boundingVolume == nullptr)
+				_boundingVolume = BoundingVolume::createUniqueFromType(_boundingType);
+			if (_boundingVolume != nullptr)
+				_boundingVolume->extract(*model);
+			_updateBoundingVolume = false;
+		}
 	}
 };
 
 
 
-template <std::derived_from<ModeledEntity> _EntityTy>
+
+
+class ModelEntity : public ModelableEntity
+{
+protected:
+	Model::Ref _model = nullptr;
+
+public:
+	ModelEntity() = default;
+	ModelEntity(const ModelEntity&) = delete;
+	ModelEntity(ModelEntity&&) noexcept = default;
+	virtual ~ModelEntity() = default;
+
+	ModelEntity& operator= (const ModelEntity&) = delete;
+	ModelEntity& operator= (ModelEntity&&) noexcept = delete;
+
+public:
+	inline void setModel(Model::Ref objModel) { _model = objModel; }
+
+protected:
+	Model::Ref internalGetModel() const override { return _model; }
+};
+
+
+
+
+
+template <std::derived_from<ModelableEntity> _EntityTy>
 class EntityCameraDistanceWrapper : public Renderable
 {
 public:
@@ -264,7 +301,7 @@ public:
 
 
 
-template <std::derived_from<ModeledEntity> _EntityTy>
+template <std::derived_from<ModelableEntity> _EntityTy>
 class EntityCameraDistanceCollection : public Renderable
 {
 public:

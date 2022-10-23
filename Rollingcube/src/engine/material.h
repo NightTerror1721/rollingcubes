@@ -51,7 +51,7 @@ public:
 	inline bool hasTransparency() const { return _opacity < 1; }
 
 
-	inline void bindTextures()
+	inline void bindTextures() const
 	{
 		if (_diffuseTexture != nullptr)
 			_diffuseTexture->activate(0);
@@ -69,7 +69,7 @@ public:
 			Texture::deactivate(2);
 	}
 
-	inline void unbindTextures()
+	inline void unbindTextures() const
 	{
 		if (_diffuseTexture != nullptr)
 			_diffuseTexture->unbind();

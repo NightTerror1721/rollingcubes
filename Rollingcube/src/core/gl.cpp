@@ -3,7 +3,9 @@
 #include <iostream>
 
 #include "engine/texture.h"
+#include "engine/model.h"
 #include "engine/shader.h"
+
 
 namespace gl
 {
@@ -44,6 +46,7 @@ namespace gl
 	{
 		TextureManager::root().clear();
 		CubeMapTextureManager::root().clear();
+		ModelManager::root().clear();
 		ShaderManager::vertex().clear();
 		ShaderManager::fragment().clear();
 		ShaderManager::geometry().clear();

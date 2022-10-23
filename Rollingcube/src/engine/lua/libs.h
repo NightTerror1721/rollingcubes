@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <unordered_set>
 #include <string>
 
 #include <functional>
@@ -43,7 +44,9 @@ private:
 	NativeId _nativeId = NativeId::NonNative;
 	std::string _name = std::string("", 0);
 	LuaLibraryConstructor _constructor = {};
-	mutable bool _loaded = false;
+	std::unordered_set<std::string> _dependences = {};
+
+	mutable bool _built = false;
 
 public:
 	LuaLibrary() = default;
@@ -77,11 +80,12 @@ public:
 	}
 
 public:
-	inline LuaLibrary(std::string_view name, const LuaLibraryConstructor& constructor) :
+	inline LuaLibrary(std::string_view name, const LuaLibraryConstructor& constructor, std::initializer_list<std::string> dependences = {}) :
 		_nativeId(NativeId::NonNative),
 		_name(name.data()),
 		_constructor(constructor),
-		_loaded(false)
+		_dependences(dependences),
+		_built(false)
 	{}
 
 	constexpr bool isNative() const { return _nativeId != NativeId::NonNative; }
@@ -91,16 +95,20 @@ public:
 
 	constexpr const LuaLibraryConstructor& getConstructor() const { return _constructor; }
 
+	inline bool hasDependences() const { return !_dependences.empty(); }
+	constexpr const std::unordered_set<std::string>& getDependences() const { return _dependences; }
+
 private:
 	inline LuaLibrary(NativeId nativeId, std::string_view name) :
 		_nativeId(nativeId),
 		_name(name),
 		_constructor(),
-		_loaded(false)
+		_dependences(),
+		_built(false)
 	{}
 
-	inline bool isLoaded() const { return _loaded; }
-	inline void setLoaded() const { _loaded = true; }
+	inline bool isBuilt() const { return _built; }
+	inline void setBuilt() const { _built = true; }
 
 private:
 	static const LuaLibrary NativeBase;
@@ -146,6 +154,7 @@ class LuaLibraryManager
 {
 private:
 	static constexpr std::string_view GamelibPrefix = "Rollingcube.";
+	static constexpr const char CustomLibsOpened[] = "__customlibs__";
 
 private:
 	std::unordered_map<std::string, LuaLibrary> _libs;
@@ -162,16 +171,17 @@ private:
 	~LuaLibraryManager();
 
 public:
-	void registerLibrary(std::string_view libraryName, const LuaLibraryConstructor& libraryConstructor);
+	void registerLibrary(std::string_view libraryName, const LuaLibraryConstructor& libraryConstructor, std::initializer_list<std::string> dependences = {});
 
 private:
 	void openLibrary(lua_State* state, const std::string& libname) const;
+	void openCustomLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib) const;
 
 private:
 	static void loadBuiltInData(lua_State* state);
 	static void openLuaLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib);
-	static void openCustomLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib);
 	static void openLuaBaseLibrary(lua_State* state, const LuaRef* env);
+	static LuaRef getOpenedLibsTable(lua_State* state, const LuaRef* env);
 
 private:
 	static LuaRef LUA_import(const std::string& spath, lua_State* state);

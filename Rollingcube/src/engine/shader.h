@@ -161,6 +161,8 @@ public:
 
 	void setUniformStaticLightsCount(GLint count);
 	void setUniformStaticLight(const Light& light, GLint index);
+	void setUniformMainStaticLight(const Light& light);
+	void setUniformDisabledMainStaticLight();
 
 	void setUniformDirectionalLight(const DirectionalLight& light);
 	
