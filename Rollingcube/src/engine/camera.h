@@ -20,6 +20,8 @@ class Camera;
 glm::mat4 operator* (const Camera& cam, const glm::mat4& model);
 glm::mat4 operator* (const glm::mat4& model, const Camera& cam);
 
+namespace lua::lib { void registerCameraLibToLua(); }
+
 
 class Camera
 {
@@ -97,10 +99,10 @@ public:
 	void setNearPlane(float near_plane, bool update = false);
 	void setFarPlane(float far_plane, bool update = false);
 
-	void setLeft(float left, bool update = false);
-	void setRight(float right, bool update = false);
-	void setTop(float top, bool update = false);
-	void setBottom(float bottom, bool update = false);
+	void setOrthoLeft(float left, bool update = false);
+	void setOrthoRight(float right, bool update = false);
+	void setOrthoTop(float top, bool update = false);
+	void setOrthoBottom(float bottom, bool update = false);
 
 	void bindToShader(ShaderProgram::Ref shader) const;
 
@@ -146,10 +148,10 @@ public:
 	inline float getNearPlane() const { return _nearPlane; }
 	inline float getFarPlane() const { return _farPlane; }
 
-	inline float getLeft() const { return _left; }
-	inline float getRight() const { return _right; }
-	inline float getTop() const { return _top; }
-	inline float getBottom() const { return _bottom; }
+	inline float getOrthoLeft() const { return _left; }
+	inline float getOrthoRight() const { return _right; }
+	inline float getOrthoTop() const { return _top; }
+	inline float getOrthoBottom() const { return _bottom; }
 
 	inline const glm::mat4& getViewMatrix() const { return _viewMatrix; }
 	inline const glm::mat4& getProjectionMatrix() const { return _projectionMatrix; }
@@ -161,6 +163,7 @@ public:
 	inline const glm::vec3& getPosition() const { return getEye(); }
 
 	inline glm::vec3 getFront() const { return _center - _eye; }
+	inline glm::vec3 getRight() const { return glm::cross(_up, getFront()); }
 
 	inline void rotateLocal(float angle, const glm::vec3& axis, bool enableUpRotation = false) { rotate(angle, getLocalVector(axis), enableUpRotation); }
 

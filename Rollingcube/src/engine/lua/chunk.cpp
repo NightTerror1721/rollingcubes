@@ -49,7 +49,7 @@ void LuaChunk::run(const LuaRef* customEnv) const
 		lua_setupvalue(state, -2, 1);
 
 		_manager.pushCall(_id, env);
-		lua::utils::catchError(state, lua_pcall(state, 0, 0, 0));
+		lua::utils::pcall(state);
 		_manager.popCall();
 	}
 }
@@ -62,11 +62,22 @@ bool LuaChunk::load()
 	{
 		*_chunk = LuaRef::fromStack(state);
 		*_env = LuaRef::newTable(state);
-		lua_pop(state, 1);
+//		lua_pop(state, 1);
 		return true;
 	}
 
 	destroy();
+	return false;
+}
+
+bool LuaChunk::reload()
+{
+	if (isValid())
+	{
+		lua_State* state = _manager.getLuaState();
+		*_env = LuaRef::newTable(state);
+		return true;
+	}
 	return false;
 }
 

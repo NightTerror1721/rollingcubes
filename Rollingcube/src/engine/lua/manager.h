@@ -45,7 +45,6 @@ public:
 public:
 	inline lua_State* getLuaState() const { return _state; }
 
-private:
 	inline void clear()
 	{
 		while (!_callStack.empty())
@@ -53,6 +52,7 @@ private:
 		_chunks.clear();
 	}
 
+private:
 	inline ~LuaScriptManager() { clear(); }
 
 private:

@@ -22,6 +22,8 @@ enum class ShaderType : GLenum
 	Geometry = GL_GEOMETRY_SHADER
 };
 
+namespace lua::lib { void registerShaderLibToLua(); }
+
 class Shader
 {
 public:
@@ -193,7 +195,7 @@ public:
 	static inline ShaderProgramManager& instance() { return Instance; }
 
 public:
-	inline bool contains(std::string_view id) const { return contains(IdType(id)); }
+	//inline bool contains(std::string_view id) const { return contains(IdType(id)); }
 
 	inline Reference get(std::string_view id) { return Manager<ShaderProgram>::get(IdType(id)); }
 	inline ConstReference get(std::string_view id) const { return Manager<ShaderProgram>::get(IdType(id)); }

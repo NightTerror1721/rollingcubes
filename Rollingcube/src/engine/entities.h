@@ -17,18 +17,23 @@
 #include "utils/logger.h"
 
 
+namespace lua::lib { void registerEntitiesLibToLua(); }
+
+
 class EntityIdFactory;
 
 class EntityId
 {
 public:
+	using IntegerType = std::uint64_t;
+
 	friend EntityIdFactory;
 
 private:
-	static constexpr std::uint64_t invalid_id = 0;
+	static constexpr IntegerType invalid_id = 0;
 
 private:
-	std::uint64_t _id = invalid_id;
+	IntegerType _id = invalid_id;
 
 public:
 	constexpr EntityId() noexcept = default;
@@ -43,13 +48,13 @@ public:
 	constexpr auto operator<=> (const EntityId&) const noexcept = default;
 
 private:
-	constexpr explicit EntityId(std::uint64_t id) noexcept : _id(id) {}
+	constexpr explicit EntityId(IntegerType id) noexcept : _id(id) {}
 
 public:
 	constexpr operator bool() const noexcept { return _id != invalid_id; }
 	constexpr bool operator! () const noexcept { return _id == invalid_id; }
 
-	constexpr explicit operator std::uint64_t() const noexcept { return _id; }
+	constexpr explicit operator IntegerType() const noexcept { return _id; }
 
 	friend std::ostream& operator<< (std::ostream& left, EntityId right) { return left << right._id; }
 	friend std::istream& operator>> (std::istream& left, EntityId& right) { return left >> right._id; }
@@ -72,6 +77,38 @@ public:
 
 
 	constexpr EntityId operator() () noexcept { return EntityId(_nextId++); }
+};
+
+
+
+class StaticLightSensor
+{
+private:
+	StaticLightContainer _staticLightContainer;
+	std::shared_ptr<StaticLightManager> _staticLightManager = nullptr;
+
+public:
+	StaticLightSensor() = default;
+	StaticLightSensor(const StaticLightSensor&) = default;
+	StaticLightSensor(StaticLightSensor&&) noexcept = default;
+	virtual ~StaticLightSensor() = default;
+
+	StaticLightSensor& operator= (const StaticLightSensor&) = default;
+	StaticLightSensor& operator= (StaticLightSensor&&) noexcept = default;
+
+public:
+	inline StaticLightContainer& getStaticLightContainer() { return _staticLightContainer; }
+	inline const StaticLightContainer& getStaticLightContainer() const { return _staticLightContainer; }
+
+	inline const std::shared_ptr<StaticLightManager>& getStaticLightManager() const { return _staticLightManager; }
+
+	inline bool hasStaticLightManagerLinked() const { return _staticLightManager != nullptr; }
+
+	inline void linkStaticLightManager(const std::shared_ptr<StaticLightManager>& lightManager)
+	{
+		_staticLightManager = lightManager;
+		_staticLightContainer.link(lightManager);
+	}
 };
 
 
@@ -110,7 +147,7 @@ protected:
 
 
 
-class TransformableEntity : public virtual Entity, public Transformable
+class TransformableEntity : public Entity, public Transformable
 {
 public:
 	TransformableEntity() = default;
@@ -120,22 +157,21 @@ public:
 
 	TransformableEntity& operator= (const TransformableEntity&) = delete;
 	TransformableEntity& operator= (TransformableEntity&&) noexcept = delete;
+
+public:
+	virtual constexpr void update(Time elapsedTime) { Transformable::update(elapsedTime); }
 };
 
 
 
 
 
-class ModelableEntity : public TransformableEntity
+class ModelableEntity : public TransformableEntity, public StaticLightSensor
 {
 protected:
-	Material _material;
 	bool _transparency = false;
 
 private:
-	StaticLightContainer _staticLightContainer;
-	std::shared_ptr<StaticLightManager> _staticLightManager = nullptr;
-
 	BoundingVolumeType _boundingType = BoundingVolumeType::Sphere;
 	mutable std::unique_ptr<BoundingVolume> _boundingVolume = nullptr;
 	mutable bool _updateBoundingVolume = true;
@@ -146,17 +182,15 @@ public:
 	ModelableEntity() = default;
 	ModelableEntity(const ModelableEntity&) = delete;
 	ModelableEntity(ModelableEntity&&) noexcept = default;
-	virtual ~ModelableEntity();
+	virtual ~ModelableEntity() = default;
 
 	ModelableEntity& operator= (const ModelableEntity&) = delete;
 	ModelableEntity& operator= (ModelableEntity&&) noexcept = delete;
 
 public:
-	virtual void update(Time elapsedTime);
+	virtual void update(Time elapsedTime) override;
 
 	void renderWithLightningShader(const Camera& cam);
-
-	void linkStaticLightManager(const std::shared_ptr<StaticLightManager>& lightManager);
 
 public:
 	virtual inline void render(const Camera& cam) { renderWithLightningShader(cam); }
@@ -164,7 +198,14 @@ public:
 	constexpr void setForceTransparency(bool flag) { _transparency = flag; }
 	constexpr bool isForceTransparencyEnabled() const { return _transparency; }
 
-	constexpr bool hasTransparency() const { return _transparency || _material.hasTransparency(); }
+	inline bool hasTransparency() const
+	{
+		if (_transparency)
+			return true;
+
+		Material::ConstRef mat = internalGetMaterial();
+		return mat != nullptr && mat->hasTransparency();
+	}
 
 	inline void setBoundingType(BoundingVolumeType type)
 	{
@@ -185,11 +226,7 @@ public:
 
 	inline Model::Ref getModel() const { return internalGetModel(); }
 
-	inline void setMaterial(const Material& material) { _material = material; }
-	inline const Material& getMaterial() const { return _material; }
-	inline Material& getMaterial() { return _material; }
-
-	inline const StaticLightContainer& getStaticLightContainer() { return _staticLightContainer; }
+	inline Material::ConstRef getMaterial() const { return internalGetMaterial(); }
 
 	inline void renderBoundingVolume(const Camera& cam) const
 	{
@@ -197,7 +234,8 @@ public:
 	}
 
 protected:
-	virtual Model::Ref internalGetModel() const = 0;
+	virtual Model::Ref internalGetModel() const { return nullptr; };
+	virtual Material::ConstRef internalGetMaterial() const { return nullptr; };
 
 protected:
 	void bindLightnigShaderRenderData(const Camera& cam) const;
@@ -223,6 +261,15 @@ private:
 			_updateBoundingVolume = false;
 		}
 	}
+
+public:
+	static void bindLightnigShaderRenderData(
+		const Camera& cam,
+		const Transformable& transform,
+		Material::ConstRef material,
+		ConstReference<StaticLightContainer> staticLightContainer
+	);
+	static void unbindLightnigShaderRenderData(Material::ConstRef material);
 };
 
 
@@ -233,6 +280,7 @@ class ModelEntity : public ModelableEntity
 {
 protected:
 	Model::Ref _model = nullptr;
+	Material _material = {};
 
 public:
 	ModelEntity() = default;
@@ -246,8 +294,12 @@ public:
 public:
 	inline void setModel(Model::Ref objModel) { _model = objModel; }
 
+	inline void setMaterial(const Material& material) { _material = material; }
+	inline Material& getMaterial() { return _material; }
+
 protected:
 	Model::Ref internalGetModel() const override { return _model; }
+	Material::ConstRef internalGetMaterial() const override { return std::addressof(_material); }
 };
 
 

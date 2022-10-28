@@ -5,6 +5,10 @@
 #include "engine/texture.h"
 #include "engine/model.h"
 #include "engine/shader.h"
+#include "engine/lua/lua.h"
+#include "game/block.h"
+#include "game/tile.h"
+#include "game/theme.h"
 
 
 namespace gl
@@ -44,6 +48,11 @@ namespace gl
 
 	void terminate()
 	{
+		BlockModelManager::instance().clear();
+		TileModelManager::instance().clear();
+		Theme::releaseCurrentTheme();
+		LuaScriptManager::instance().clear();
+
 		TextureManager::root().clear();
 		CubeMapTextureManager::root().clear();
 		ModelManager::root().clear();

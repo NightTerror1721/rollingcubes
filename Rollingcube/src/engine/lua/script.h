@@ -33,21 +33,21 @@ public:
 	inline Path getDirectory() const { return isValid() ? _chunk->getDirectory() : Path(); }
 
 	inline const std::shared_ptr<LuaRef>& getEnv() { return _chunk->getEnv(); }
-	inline const std::shared_ptr<const LuaRef>& getEnv() const { return _chunk->getEnv(); }
+	inline std::shared_ptr<const LuaRef> getEnv() const { return _chunk->getEnv(); }
 
 	template <typename _Ty = LuaRef>
 	inline _Ty getEnvValue(std::string_view name) const
 	{
 		if constexpr (std::same_as<LuaRef, _Ty>)
-			return (*getEnv())[name];
+			return (*getEnv())[name.data()];
 		else
-			return (*getEnv())[name].cast<_Ty>();
+			return (*getEnv())[name.data()].cast<_Ty>();
 	}
 
 	template <typename _Ty>
 	inline void setEnvValue(std::string_view name, const _Ty& value)
 	{
-		(*getEnv())[name] = value;
+		(*getEnv())[name.data()] = value;
 	}
 
 	inline void setEnvValueFromGlobal(std::string_view globalName)
@@ -55,6 +55,8 @@ public:
 		if (isValid())
 			setEnvValue(globalName, luabridge::getGlobal(_chunk->getLuaState(), globalName.data()));
 	}
+
+	inline void reload() { if (isValid()) _chunk->reload(); }
 
 private:
 	template <typename _Ty> requires

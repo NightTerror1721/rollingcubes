@@ -11,6 +11,10 @@
 
 class Material : public ColorChannels
 {
+public:
+	using Ref = Reference<Material>;
+	using ConstRef = ConstReference<Material>;
+
 private:
 	Texture::Ref _diffuseTexture = nullptr;
 	Texture::Ref _specularTexture = nullptr;

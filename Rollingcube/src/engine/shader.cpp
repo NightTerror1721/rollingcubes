@@ -3,6 +3,10 @@
 #include "utils/logger.h"
 #include "utils/shader_constants.h"
 
+#include "lua/lua.h"
+#include "lua/constants.h"
+#include "utils/lualib_constants.h"
+
 
 bool Shader::loadFromFile(std::string_view filename, Type type)
 {
@@ -294,4 +298,143 @@ void ShaderProgram::setUniformDirectionalLight(const DirectionalLight& light)
 	getUniform(diffuseColor()) = light.getDiffuseColor();
 	getUniform(specularColor()) = light.getSpecularColor();
 	getUniform(intensity()) = light.getIntensity();
+}
+
+
+
+
+
+
+
+
+
+namespace lua::lib
+{
+	namespace LUA_shader { static defineLuaLibraryConstructor(registerToLua, root, state); }
+
+	void registerShaderLibToLua()
+	{
+		LuaLibraryManager::instance().registerLibrary(
+			::lua::lib::names::shader,
+			&LUA_shader::registerToLua,
+			{ ::lua::lib::names::geometry });
+	}
+}
+
+namespace lua::lib::LUA_shader
+{
+
+	static Shader::Id getId(const ShaderProgram* self) { return self->getId(); }
+
+	
+	template <typename _Ty> requires requires(const ShaderProgram::Uniform& u, _Ty value) { { u = value }; }
+	static void setUniformValue(const ShaderProgram* shader, const char* name, _Ty value)
+	{
+		shader->getUniform(name) = value;
+	}
+
+	template <typename _Ty> requires requires(const ShaderProgram::Uniform& u, const _Ty& value) { { u = value }; }
+	static void setUniformRef(const ShaderProgram* shader, const char* name, const _Ty& value)
+	{
+		shader->getUniform(name) = value;
+	}
+
+	template <typename _Ty> requires requires(const ShaderProgram::Uniform& u, const std::vector<_Ty>& value) { { u = value }; }
+	static void setUniformArray(const ShaderProgram* shader, const char* name, LuaRef value, lua_State* state)
+	{
+		if (!value.isTable())
+		{
+			lua::utils::error(state, "Expected valid table, but found {}.", value.tostring());
+			return;
+		}
+
+		std::vector<_Ty> v;
+		int len = value.length();
+		if (len > 0)
+		{
+			v.reserve(len);
+			for (int i = 0; i < len; ++i)
+				v.push_back(value.rawget(i).cast<_Ty>());
+
+			shader->getUniform(name) = v;
+		}
+	}
+
+	static bool loadShaderProgram(
+		const std::string& name,
+		const char* vertexShaderPath,
+		const char* fragmentShaderPath,
+		LuaRef geometryShaderPathLUA,
+		lua_State* state)
+	{
+		ShaderProgramManager& man = ShaderProgramManager::instance();
+
+		if (man.contains(name))
+		{
+			lua::utils::error(state, "ShaderProgram '{}' already exists.", name);
+			return false;
+		}
+
+		std::string geometryShaderPath = "";
+		if (geometryShaderPathLUA.isString())
+			geometryShaderPath = geometryShaderPathLUA.cast<std::string>();
+
+		ShaderProgram::Ref ref = man.load(name, vertexShaderPath, fragmentShaderPath, geometryShaderPath);
+		return ref != nullptr;
+	}
+
+	static ShaderProgram* get(const std::string& name, lua_State* state)
+	{
+		ShaderProgram::Ref ref = ShaderProgramManager::instance().get(name);
+		if (ref == nullptr)
+		{
+			lua::utils::error(state, "ShaderProgram '{}' not found.", name);
+			return nullptr;
+		}
+		return &ref;
+	}
+
+	static bool exists(const std::string& name)
+	{
+		return ShaderProgramManager::instance().contains(name);
+	}
+
+
+
+
+	static defineLuaLibraryConstructor(registerToLua, root, state)
+	{
+		namespace meta = ::lua::metamethod;
+
+		auto clss = root.beginClass<ShaderProgram>("ShaderProgram");
+		clss
+			// Properties //
+			.addProperty("id", &getId)
+			// Functions//
+			.addFunction("isCreated", &ShaderProgram::isCreated)
+			.addFunction("isValid", &ShaderProgram::isCreated)
+			.addFunction("use", &ShaderProgram::use)
+			.addFunction("setFloat", &setUniformValue<GLfloat>)
+			.addFunction("setFloatArray", &setUniformArray<GLfloat>)
+			.addFunction("setInt", &setUniformValue<GLint>)
+			.addFunction("setIntArray", &setUniformArray<GLint>)
+			.addFunction("setUnsignedInt", &setUniformValue<GLuint>)
+			.addFunction("setUnsignedIntArray", &setUniformArray<GLuint>)
+			.addFunction("setBoolean", &setUniformValue<bool>)
+			.addFunction("setVec2", &setUniformRef<glm::vec2>)
+			.addFunction("setVec2Array", &setUniformArray<glm::vec2>)
+			.addFunction("setVec3", &setUniformRef<glm::vec3>)
+			.addFunction("setVec3Array", &setUniformArray<glm::vec3>)
+			.addFunction("setVec4", &setUniformRef<glm::vec4>)
+			.addFunction("setVec4Array", &setUniformArray<glm::vec4>)
+			.addFunction("setMat4", &setUniformRef<glm::mat4>)
+			.addFunction("setMat4Array", &setUniformArray<glm::mat4>)
+			// Static Functions //
+			.addStaticFunction("load", &loadShaderProgram)
+			.addStaticFunction("get", &get)
+			.addStaticFunction("exists", &exists);
+
+		root = clss.endClass();
+		return true;
+	}
 }

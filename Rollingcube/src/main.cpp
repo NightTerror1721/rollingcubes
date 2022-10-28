@@ -23,6 +23,8 @@
 #include "utils/shader_constants.h"
 
 #include "game/cube_model.h"
+#include "game/block.h"
+#include "game/theme.h"
 
 
 int test_window();
@@ -35,7 +37,7 @@ int main(int argc, char** argv)
 {
     lua::initCustomLibs();
 
-    lua_test();
+    //lua_test();
     tutos();
 
 
@@ -141,9 +143,15 @@ void tutos()
 {
     window::createMainWindow();
 
-    CoordSystem cs0 = CoordSystem::fromYAxis(0, 1, 0);
-    CoordSystem cs1 = CoordSystem::fromYAxis(1, 0, 0);
-    CoordSystem cs2 = cs0.rotate(45, 45, 0);
+    Theme::changeCurrentTheme("test_theme");
+
+    auto blockModel = BlockModelManager::instance().load("test");
+    auto block1 = Block();
+    block1.setBoundingType(BoundingVolumeType::AABB);
+    block1.setBlockModel(blockModel);
+    block1.init();
+
+    block1.setPosition(0, 1, -3);
 
     /*static constexpr GLfloat g_vertex_buffer_data[] = {
         -1.0f, -1.0f, 0.0f,
@@ -380,6 +388,7 @@ void tutos()
         entityCube1->update(elapsedTime);
         entityCube2->update(elapsedTime);
         entityCube3->update(elapsedTime);
+        block1.update(elapsedTime);
 
         //cam.bindToDefaultShader();
         //shader->bind();
@@ -432,6 +441,8 @@ void tutos()
         wCube3.setEntity(entityCube3);
         wCube3.setDistance(-cam.getDistanceTo(entityCube3->getPosition()));
         transparentEntities.addWrappedEntity(wCube3);
+
+        block1.render(cam);
 
         skybox.render(cam);
 

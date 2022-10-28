@@ -8,7 +8,7 @@
 #include "utils/lualib_constants.h"
 
 
-namespace glm::lua
+namespace lua::lib
 {
 	defineLuaLibraryConstructor(LUA_glmLib, root, state);
 
@@ -372,10 +372,10 @@ namespace glm::lua
 			std::stringstream ss;
 
 			ss << "{";
-			ss << glm::lua::LUA_vec4::toString(std::addressof((*left)[0])) << ", ";
-			ss << glm::lua::LUA_vec4::toString(std::addressof((*left)[1])) << ", ";
-			ss << glm::lua::LUA_vec4::toString(std::addressof((*left)[2])) << ", ";
-			ss << glm::lua::LUA_vec4::toString(std::addressof((*left)[3])) << "}";
+			ss << lua::lib::LUA_vec4::toString(std::addressof((*left)[0])) << ", ";
+			ss << lua::lib::LUA_vec4::toString(std::addressof((*left)[1])) << ", ";
+			ss << lua::lib::LUA_vec4::toString(std::addressof((*left)[2])) << ", ";
+			ss << lua::lib::LUA_vec4::toString(std::addressof((*left)[3])) << "}";
 
 			return ss.str();
 		}
@@ -393,6 +393,7 @@ namespace glm::lua
 		}
 
 		static glm::mat4 transpose(const glm::mat4* self) { return glm::transpose(*self); }
+		static glm::mat4 inverse(const glm::mat4* self) { return glm::inverse(*self); }
 
 		static glm::mat4 translate(const glm::mat4* self, const glm::vec3& position) { return glm::translate(*self, position); }
 		static glm::mat4 scale(const glm::mat4* self, const glm::vec3& position) { return glm::scale(*self, position); }
@@ -433,6 +434,7 @@ namespace glm::lua
 			.addFunction(meta::index, &index)
 			.addFunction(meta::newindex, &newindex)
 			.addFunction("transpose", &transpose)
+			.addFunction("inverse", &inverse)
 			.addFunction("translate", &translate)
 			.addFunction("scale", &scale)
 			.addFunction("rotate", &rotate)

@@ -7,7 +7,7 @@
 
 #include <vector>
 
-namespace glm::lua
+namespace lua::lib
 {
 	void registerGlmToLua();
 }

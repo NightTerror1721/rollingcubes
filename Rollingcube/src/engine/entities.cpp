@@ -4,23 +4,19 @@
 
 
 
-ModelableEntity::~ModelableEntity()
-{
-	_staticLightManager.reset();
-}
-
 void ModelableEntity::update(Time elapsedTime)
 {
-	if (isAlteredFlagEnabled())
+	if (isCurrentChangeVersionUpdated())
 	{
 		_updateBoundingVolume = true;
 
-		if (_staticLightManager != nullptr)
-			_staticLightContainer.setPosition(getPosition());
+		if (hasStaticLightManagerLinked())
+			getStaticLightContainer().setPosition(getPosition());
 	}
 
-	_staticLightContainer.update();
-	disableAlteredFlag();
+	getStaticLightContainer().update();
+
+	TransformableEntity::update(elapsedTime);
 }
 
 void ModelableEntity::renderWithLightningShader(const Camera& cam)
@@ -34,16 +30,16 @@ void ModelableEntity::renderWithLightningShader(const Camera& cam)
 	}
 }
 
-void ModelableEntity::linkStaticLightManager(const std::shared_ptr<StaticLightManager>& lightManager)
-{
-	_staticLightManager = lightManager;
-	_staticLightContainer.link(lightManager);
-}
-
 void ModelableEntity::bindLightnigShaderRenderData(const Camera& cam) const
 {
-	auto shader = getLightningShader();
+	bindLightnigShaderRenderData(cam, *this, internalGetMaterial(), hasStaticLightManagerLinked() ? std::addressof(getStaticLightContainer()) : nullptr);
+
+	/*auto shader = getLightningShader();
 	if (shader == nullptr)
+		return;
+
+	Material::ConstRef material = internalGetMaterial();
+	if (material == nullptr)
 		return;
 
 	shader->use();
@@ -51,21 +47,60 @@ void ModelableEntity::bindLightnigShaderRenderData(const Camera& cam) const
 	shader[constants::uniform::camera::viewProjection()] = cam.getViewprojectionMatrix();
 	shader[constants::uniform::camera::viewPos()] = cam.getPosition();
 
-	_material.bindTextures();
+	material->bindTextures();
 
 	shader[constants::uniform::model_data::model()] = getModelMatrix();
 	shader[constants::uniform::model_data::modelNormal()] = getNormalMatrix();
 	if (_staticLightManager != nullptr)
 		shader->setUniformStaticLights(_staticLightContainer);
-	shader->setUniformMaterial(_material);
+	shader->setUniformMaterial(*&material);*/
 }
 
 void ModelableEntity::unbindLightnigShaderRenderData() const
 {
-	auto shader = getLightningShader();
-	if (shader != nullptr)
+	unbindLightnigShaderRenderData(internalGetMaterial());
+	/*auto shader = getLightningShader();
+	auto material = internalGetMaterial();
+	if (shader != nullptr && material != nullptr)
 	{
-		_material.unbindTextures();
+		material->unbindTextures();
+		shader->notUse();
+	}*/
+}
+
+void ModelableEntity::bindLightnigShaderRenderData(
+	const Camera& cam,
+	const Transformable& transform,
+	Material::ConstRef material,
+	ConstReference<StaticLightContainer> staticLightContainer
+) {
+	ShaderProgram::Ref shader = ShaderProgramManager::instance().getLightningShaderProgram();
+	if (shader == nullptr)
+		return;
+
+	if (material == nullptr)
+		return;
+
+	shader->use();
+
+	shader[constants::uniform::camera::viewProjection()] = cam.getViewprojectionMatrix();
+	shader[constants::uniform::camera::viewPos()] = cam.getPosition();
+
+	material->bindTextures();
+
+	shader[constants::uniform::model_data::model()] = transform.getModelMatrix();
+	shader[constants::uniform::model_data::modelNormal()] = transform.getNormalMatrix();
+	if (staticLightContainer != nullptr)
+		shader->setUniformStaticLights(*staticLightContainer);
+	shader->setUniformMaterial(*&material);
+}
+
+void ModelableEntity::unbindLightnigShaderRenderData(Material::ConstRef material)
+{
+	auto shader = ShaderProgramManager::instance().getLightningShaderProgram();
+	if (shader != nullptr && material != nullptr)
+	{
+		material->unbindTextures();
 		shader->notUse();
 	}
 }

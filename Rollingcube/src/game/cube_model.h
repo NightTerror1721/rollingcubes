@@ -33,13 +33,19 @@ namespace cubes::side
 	constexpr Id intToId(int intId) { return static_cast<Id>(intId); }
 
 	constexpr std::string_view name(Id id) { return names[idToInt(id)]; }
+
+
+	constexpr float size = 1;
+	constexpr float midsize = size / 2;
+
+	const glm::vec3& getDefaultMiddlePosition(side::Id sideId);
+	const glm::vec3& getNormal(side::Id sideId);
+	const glm::vec3& getRotationAngles(side::Id sideId);
 }
 
 
 namespace cubes::model
 {
-	constexpr std::size_t size = 20;
-
 	constexpr std::string_view name = "__internal__CUBE";
 
 	constexpr int meshId(side::Id sideId) { return side::idToInt(sideId); }

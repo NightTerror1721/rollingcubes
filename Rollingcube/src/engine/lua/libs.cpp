@@ -4,6 +4,8 @@
 #include "manager.h"
 
 #include "math/glm.h"
+#include "engine/entities.h"
+#include "game/theme.h"
 
 
 
@@ -11,7 +13,20 @@ namespace lua
 {
 	void initCustomLibs()
 	{
-		glm::lua::registerGlmToLua();
+		static constinit bool initiatedFlag = false;
+
+		if (!initiatedFlag)
+		{
+			lua::lib::registerGlmToLua();
+			lua::lib::registerCameraLibToLua();
+			lua::lib::registerShaderLibToLua();
+			lua::lib::registerEntitiesLibToLua();
+			lua::lib::registerThemesLibToLua();
+			lua::lib::registerTilesLibToLua();
+			lua::lib::registerBlocksLibToLua();
+
+			initiatedFlag = true;
+		}
 	}
 }
 
@@ -188,6 +203,9 @@ void LuaLibraryManager::openCustomLibrary(lua_State* state, const LuaRef* env, c
 		return;
 	}
 
+	// initiate custom libs //
+	lua::initCustomLibs();
+
 	const auto libname = lib.getName();
 
 	LuaRef openedLibs = getOpenedLibsTable(state, env);
@@ -199,9 +217,8 @@ void LuaLibraryManager::openCustomLibrary(lua_State* state, const LuaRef* env, c
 	if (lib.hasDependences())
 	{
 		for (const auto& dep : lib.getDependences())
-			openLibrary(state, dep);
+			openLibrary(state, customLibname(dep));
 	}
-
 
 	if (!lib.isBuilt())
 	{
@@ -241,7 +258,6 @@ void LuaLibraryManager::openCustomLibrary(lua_State* state, const LuaRef* env, c
 		lua_pop(state, 1);
 	}
 
-	lua_pop(state, 1);
 	libref.pop();
 }
 

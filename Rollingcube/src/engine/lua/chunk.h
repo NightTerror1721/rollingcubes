@@ -46,6 +46,9 @@ public:
 
 	inline bool isValid() const { return _manager.isValid() && !_id.empty(); }
 
+public:
+	bool reload();
+
 private:
 	bool load();
 	void destroy();

@@ -30,17 +30,23 @@ namespace cubes::model
 		static constexpr glm::vec3 cubeVertices[side::count][verticesPerSide] =
 		{
 			// Front face
-			{ { 0.5f, -0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f }, { -0.5f, 0.5f, 0.5f }, { -0.5f, 0.5f, 0.5f }, { -0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, 0.5f } },
+			{ { side::midsize, -side::midsize, side::midsize }, { side::midsize, side::midsize, side::midsize }, { -side::midsize, side::midsize, side::midsize },
+			{ -side::midsize, side::midsize, side::midsize }, { -side::midsize, -side::midsize, side::midsize }, { side::midsize, -side::midsize, side::midsize } },
 			// Back face
-			{ { -0.5f, -0.5f, -0.5f } , { -0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f }, { -0.5f, -0.5f, -0.5f } },
+			{ { -side::midsize, -side::midsize, -side::midsize } , { -side::midsize, side::midsize, -side::midsize }, { side::midsize, side::midsize, -side::midsize },
+			{ side::midsize, side::midsize, -side::midsize }, { side::midsize, -side::midsize, -side::midsize }, { -side::midsize, -side::midsize, -side::midsize } },
 			// Left face
-			{ { -0.5f, -0.5f, 0.5f }, { -0.5f, 0.5f, 0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, -0.5f, -0.5f }, { -0.5f, -0.5f, 0.5f } },
+			{ { -side::midsize, -side::midsize, side::midsize }, { -side::midsize, side::midsize, side::midsize }, { -side::midsize, side::midsize, -side::midsize },
+			{ -side::midsize, side::midsize, -side::midsize }, { -side::midsize, -side::midsize, -side::midsize }, { -side::midsize, -side::midsize, side::midsize } },
 			// Right face
-			{ { 0.5f, -0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f }, { 0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, -0.5f } },
+			{ { side::midsize, -side::midsize, -side::midsize }, { side::midsize, side::midsize, -side::midsize }, { side::midsize, side::midsize, side::midsize },
+			{ side::midsize, side::midsize, side::midsize }, { side::midsize, -side::midsize, side::midsize }, { side::midsize, -side::midsize, -side::midsize } },
 			// Top face
-			{ { 0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f } },
+			{ { side::midsize, side::midsize, side::midsize }, { side::midsize, side::midsize, -side::midsize }, { -side::midsize, side::midsize, -side::midsize },
+			{ -side::midsize, side::midsize, -side::midsize }, { -side::midsize, side::midsize, side::midsize }, { side::midsize, side::midsize, side::midsize } },
 			// Bottom face
-			{ { 0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, 0.5f }, { -0.5f, -0.5f, 0.5f }, { -0.5f, -0.5f, 0.5f }, { -0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f } },
+			{ { side::midsize, -side::midsize, -side::midsize }, { side::midsize, -side::midsize, side::midsize }, { -side::midsize, -side::midsize, side::midsize },
+			{ -side::midsize, -side::midsize, side::midsize }, { -side::midsize, -side::midsize, -side::midsize }, { side::midsize, -side::midsize, -side::midsize } },
 		};
 
 		static constexpr glm::vec2 cubeTexCoords[verticesPerSide] =
@@ -134,5 +140,42 @@ namespace cubes::model
 		}
 
 		return CubeModel;
+	}
+}
+
+
+namespace cubes::side
+{
+	const glm::vec3& getDefaultMiddlePosition(side::Id sideId)
+	{
+		static constexpr glm::vec3 points[count] = {
+			{ 0, 0, midsize },
+			{ 0, 0, -midsize },
+			{ -midsize, 0, 0 },
+			{ midsize, 0, 0 },
+			{ 0, midsize, 0 },
+			{ 0, -midsize, 0 }
+		};
+
+		return points[idToInt(sideId)];
+	}
+
+	const glm::vec3& getNormal(side::Id sideId)
+	{
+		return model::raw::cubeNormals[idToInt(sideId)];
+	}
+
+	const glm::vec3& getRotationAngles(side::Id sideId)
+	{
+		static constexpr glm::vec3 points[count] = {
+			{ 90, 0, 0 },
+			{ -90, 0, 0 },
+			{ 0, 0, -90 },
+			{ 0, 0, 90 },
+			{ 0, 0, 0 },
+			{ 180, 0, 0 }
+		};
+
+		return points[idToInt(sideId)];
 	}
 }

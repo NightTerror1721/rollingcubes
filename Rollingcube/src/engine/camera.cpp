@@ -5,6 +5,10 @@
 #include "utils/shader_constants.h"
 #include "basics.h"
 
+#include "lua/lua.h"
+#include "lua/constants.h"
+#include "utils/lualib_constants.h"
+
 
 Camera::Camera() :
 	_type(),
@@ -193,28 +197,28 @@ void Camera::setFarPlane(float far_plane, bool update)
 		updateViewMatrix();
 }
 
-void Camera::setLeft(float left, bool update)
+void Camera::setOrthoLeft(float left, bool update)
 {
 	_left = left;
 	if (update)
 		updateViewMatrix();
 }
 
-void Camera::setRight(float right, bool update)
+void Camera::setOrthoRight(float right, bool update)
 {
 	_right = right;
 	if (update)
 		updateViewMatrix();
 }
 
-void Camera::setTop(float top, bool update)
+void Camera::setOrthoTop(float top, bool update)
 {
 	_top = top;
 	if (update)
 		updateViewMatrix();
 }
 
-void Camera::setBottom(float bottom, bool update)
+void Camera::setOrthoBottom(float bottom, bool update)
 {
 	_bottom = bottom;
 	if (update)
@@ -245,4 +249,101 @@ float Camera::getZDistanceTo(const glm::vec3& position) const
 	glm::vec3 front = -getFront();
 
 	return glm::dot(d, front);
+}
+
+
+
+
+
+
+
+
+
+namespace lua::lib
+{
+	namespace LUA_camera { static defineLuaLibraryConstructor(registerToLua, root, state); }
+
+	void registerCameraLibToLua()
+	{
+		LuaLibraryManager::instance().registerLibrary(
+			::lua::lib::names::camera,
+			&LUA_camera::registerToLua,
+			{ ::lua::lib::names::geometry });
+	}
+}
+
+namespace lua::lib::LUA_camera
+{
+	static const glm::vec3& getEye(const Camera* self) { return self->getEye(); } // position //
+	static void setEye(Camera* self, const glm::vec3& eye) { self->setEye(eye); } // position //
+
+	static const glm::vec3& getCenter(const Camera* self) { return self->getCenter(); }
+	static void setCenter(Camera* self, const glm::vec3& center) { self->setCenter(center); }
+
+	static const glm::vec3& getUp(const Camera* self) { return self->getUp(); }
+	static void setUp(Camera* self, const glm::vec3& up) { self->setUp(up); }
+
+	static float getFov(const Camera* self) { return self->getFov(); }
+
+	static float getAspect(const Camera* self) { return self->getAspect(); }
+
+	static float getNearPlane(const Camera* self) { return self->getNearPlane(); }
+
+	static float getFarPlane(const Camera* self) { return self->getFarPlane(); }
+
+	static const glm::mat4& getViewMatrix(const Camera* self) { return self->getViewMatrix(); }
+
+	static const glm::mat4& getProjectionMatrix(const Camera* self) { return self->getProjectionMatrix(); }
+
+	static const glm::mat4& getViewprojectionMatrix(const Camera* self) { return self->getViewprojectionMatrix(); }
+
+	static glm::vec3 getFront(const Camera* self) { return self->getFront(); }
+
+	static glm::vec3 getRight(const Camera* self) { return self->getRight(); }
+
+	static const glm::vec3& getEulerAngles(const Camera* self) { return self->getEulerAngles(); }
+
+
+	static void rotate(Camera* self, float angle, const glm::vec3& axis) { self->rotate(angle, axis, false); }
+	static void rotateFree(Camera* self, float angle, const glm::vec3& axis) { self->rotate(angle, axis, true); }
+
+
+	static defineLuaLibraryConstructor(registerToLua, root, state)
+	{
+		namespace meta = ::lua::metamethod;
+
+		auto clss = root.beginClass<Camera>("Camera");
+		clss.addConstructor<void(*)()>()
+			// Properties //
+			.addProperty("eye", &getEye, &setEye)
+			.addProperty("center", &getCenter, &setCenter)
+			.addProperty("up", &getUp, &setUp)
+			.addProperty("fov", &getFov)
+			.addProperty("aspect", &getAspect)
+			.addProperty("nearPlane", &getNearPlane)
+			.addProperty("farPlane", &getFarPlane)
+			.addProperty("viewMatrix", &getViewMatrix)
+			.addProperty("projectionMatrix", &getProjectionMatrix)
+			.addProperty("viewProjectionMatrix", &getViewprojectionMatrix)
+			.addProperty("position", &getEye, &setEye)
+			.addProperty("front", &getFront)
+			.addProperty("right", &getRight)
+			.addProperty("eulerAngles", &getEulerAngles)
+			// Functions//
+			.addFunction("move", &Camera::move)
+			.addFunction("rotate", &rotate)
+			.addFunction("rotateFree", &rotateFree)
+			.addFunction("setLockedUp", &Camera::setLockedUp)
+			.addFunction("isLockedUp", &Camera::isLockedUp)
+			.addFunction("getLocalVector", &Camera::getLocalVector)
+			.addFunction("lookAt", &Camera::lookAt)
+			.addFunction("updateViewMatrix", &Camera::updateViewMatrix)
+			.addFunction("updateProjectionMatrix", &Camera::updateProjectionMatrix)
+			.addFunction("getDistanceTo", &Camera::getDistanceTo)
+			.addFunction("getZDistanceTo", &Camera::getZDistanceTo)
+			.addFunction("mvp", &Camera::mvp);
+
+		root = clss.endClass();
+		return true;
+	}
 }

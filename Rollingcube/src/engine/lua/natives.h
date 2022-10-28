@@ -2,8 +2,12 @@
 
 #include <string>
 
+#pragma warning(push)
+#pragma warning(disable: 26495)
+#define LUABRIDGE_CXX17
 #include <nativelua/lua.hpp>
 #include <LuaBridge/LuaBridge.h>
+#pragma warning(pop)
 
 #include "utils/logger.h"
 #include "utils/string_utils.h"
@@ -84,5 +88,19 @@ namespace lua::utils
 			return false;
 		}
 		return true;
+	}
+
+	inline bool pcall(lua_State* state, int nargs = 0, int nresults = 0, int msgh = 0)
+	{
+		try
+		{
+			LuaException::pcall(state, nargs, nresults, msgh);
+			return true;
+		}
+		catch (const LuaException& ex)
+		{
+			logger::error("LUA error: {}", ex.what());
+			return false;
+		}
 	}
 }

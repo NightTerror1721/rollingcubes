@@ -13,6 +13,13 @@ namespace window
 {
 	GLFWwindow* getMainWindow() { return mainw; }
 
+	Dimension getMainWindowSize()
+	{
+		Dimension dim;
+		glfwGetWindowSize(mainw, &dim.width, &dim.height);
+		return dim;
+	}
+
 	bool createMainWindow()
 	{
 		if (mainw == nullptr)

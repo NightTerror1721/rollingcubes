@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <memory>
 
+#include "reference.h"
 #include "optref.h"
 
 
@@ -15,57 +16,10 @@ class Manager;
 
 
 template <typename _Ty>
-class ManagerReference
-{
-public:
-	using ValueType = _Ty;
-	using Reference = _Ty&;
-	using Pointer = _Ty*;
-
-	friend Manager;
-
-private:
-	Pointer _ptr = nullptr;
-
-public:
-	constexpr ManagerReference() = default;
-	constexpr ManagerReference(const ManagerReference&) = default;
-	constexpr ManagerReference(ManagerReference&&) noexcept = default;
-	constexpr ~ManagerReference() = default;
-
-	constexpr ManagerReference& operator= (const ManagerReference&) = default;
-	constexpr ManagerReference& operator= (ManagerReference&&) noexcept = default;
-
-	constexpr bool operator== (const ManagerReference&) const noexcept = default;
-
-	constexpr ManagerReference(decltype(nullptr)) : ManagerReference() {}
-
-	constexpr ManagerReference(const ManagerReference<std::remove_const_t<ValueType>>& ref) requires std::is_const_v<ValueType>
-		: _ptr(ref._ptr)
-	{}
-
-	constexpr bool operator== (decltype(nullptr)) const noexcept { return _ptr == nullptr; }
-	constexpr bool operator!= (decltype(nullptr)) const noexcept { return _ptr != nullptr; }
-
-	constexpr operator bool() const { return _ptr != nullptr; }
-	constexpr bool operator! () const { return _ptr == nullptr; }
-
-	constexpr Reference operator* () const { return *_ptr; }
-
-	constexpr Pointer operator-> () const { return _ptr; }
-
-	template <typename _ArgTy> requires requires(ValueType& value, const _ArgTy& arg) { { value[arg] }; }
-	constexpr decltype(auto) operator[] (const _ArgTy& arg) { return (*_ptr)[arg]; }
-
-	template <typename _ArgTy> requires requires(const ValueType& value, const _ArgTy& arg) { { value[arg] }; }
-	constexpr decltype(auto) operator[] (const _ArgTy& arg) const { return (*_ptr)[arg]; }
-
-private:
-	constexpr ManagerReference(Pointer ptr) : _ptr(ptr) {}
-};
+using ManagerReference = Reference<_Ty>;
 
 template <typename _Ty>
-using ConstManagerReference = ManagerReference<const _Ty>;
+using ConstManagerReference = ConstReference<_Ty>;
 
 
 template <typename _Ty, typename _IdTy> requires
