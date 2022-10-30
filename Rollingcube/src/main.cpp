@@ -145,7 +145,7 @@ void tutos()
 
     Theme::changeCurrentTheme("test_theme");
 
-    auto blockModel = BlockModelManager::instance().load("test");
+    auto blockModel = Theme::getCurrentTheme().getBlockModel("test");
     auto block1 = Block();
     block1.setBoundingType(BoundingVolumeType::AABB);
     block1.setBlockModel(blockModel);

@@ -1,5 +1,7 @@
 #include "theme.h"
 
+#include <unordered_set>
+
 #include "utils/resources.h"
 
 #include "engine/lua/lua.h"
@@ -16,7 +18,7 @@ const std::unordered_set<std::string>& Theme::getAvailableThemeFiles()
 	static constinit bool initiated = false;
 	if (!initiated)
 	{
-		Path dir = resources::absolute(resources::models / LuaModel::getModelTypeName(LuaModel::Type::Theme));
+		Path dir = resources::absolute(resources::defs / LuaModel::getModelTypeName(LuaModel::Type::Theme));
 		for (const auto& entry : std::filesystem::directory_iterator(dir))
 		{
 			if (entry.is_regular_file())
@@ -62,7 +64,15 @@ bool Theme::load(const std::string& name)
 
 	_model->onLoad();
 
+	loadModels();
+
 	return true;
+}
+
+void Theme::loadModels()
+{
+	loadLuaModelData(LuaModel::Type::Tile, TileModelManager::instance());
+	loadLuaModelData(LuaModel::Type::Block, BlockModelManager::instance());
 }
 
 void Theme::unload()
@@ -73,9 +83,56 @@ void Theme::unload()
 	_name = {};
 	_baseDir = {};
 	_model.release();
+	
+	for (std::size_t i = 0; i < LuaModel::TypeCount; ++i)
+		_models[i].clear();
 
-	_texturesCache.clear();
-	_tilesCache.clear();
+	_textureManager.clear();
+}
+
+void Theme::scanDirectoryForScripts(const Path& directory, const std::function<void(const ScriptsDirectoryFileInfo&)>& action)
+{
+	namespace fs = std::filesystem;
+	if (!fs::is_directory(directory))
+		return;
+
+	std::unordered_set<std::string> loaded;
+
+	Path relative = Path(getBaseDirectory());
+	int count = int(std::distance(relative.begin(), relative.end()));
+
+	Path path = directory / relative;
+	for (; count >= 0; --count)
+	{
+		resources::scanDirectoryFiles(path, ".lua", [&loaded, &relative, &action](const Path& file) {
+			const std::string keyname = file.filename().replace_extension("").string();
+			if (!loaded.contains(keyname))
+			{
+				action({ keyname, (relative / keyname).string(), fs::absolute(file)});
+				loaded.insert(keyname);
+			}
+		});
+
+		if (path.has_parent_path())
+		{
+			path = path.parent_path();
+			relative = relative.parent_path();
+		}
+		else
+			count = -1;
+	}
+}
+
+void Theme::loadLuaModelData(LuaModel::Type type, const std::function<Reference<LuaModel>(const ScriptsDirectoryFileInfo&)>& loaderFunction)
+{
+	auto& modelsCache = getModelCache(type);
+	modelsCache.clear();
+
+	scanDirectoryForScripts(resources::defs / LuaModel::getModelTypeName(type), [&modelsCache, &loaderFunction](const ScriptsDirectoryFileInfo& fileinfo) {
+		auto ref = loaderFunction(fileinfo);
+		if (ref != nullptr)
+			modelsCache.insert({ fileinfo.keyname, ref });
+	});
 }
 
 bool Theme::changeCurrentTheme(const std::string& theme)
@@ -93,47 +150,24 @@ void Theme::releaseCurrentTheme()
 
 Texture::Ref Theme::getTexture(const std::string& name) const
 {
-	auto optionalRef = _texturesCache.opt(name);
-	if (optionalRef)
-		return *optionalRef;
-
+	auto ref = _textureManager.get(name);
+	if (ref != nullptr)
+		return ref;
+	
 	std::string relativeFilePath = prepareElementName(name);
-	std::string key = "Theme::" + _name + relativeFilePath;
 
-	Texture::Ref ref = TextureManager::root().get(key);
-	if (ref == nullptr)
+	static const std::initializer_list<std::string_view> textureExtensions = { ".jpg", ".png", ".bmp" };
+
+	auto opath = resources::findFirstValidPath(resources::textures.path(), relativeFilePath, textureExtensions);
+	if (!opath.has_value())
 	{
-		static const std::initializer_list<std::string_view> textureExtensions = { ".jpg", ".png", ".bmp" };
-
-		auto opath = resources::findFirstValidPath(resources::textures.path(), relativeFilePath, textureExtensions);
-		if (!opath.has_value())
-		{
-			logger::error("Texture on path {} not found.", (resources::textures.path() / relativeFilePath).string());
-			return nullptr;
-		}
-
-		ref = TextureManager::root().loadFromImage(key, opath.value().string());
-		if (ref == nullptr)
-			return nullptr;
+		logger::error("Texture on path {} not found.", (resources::textures.path() / relativeFilePath).string());
+		return nullptr;
 	}
 
-	_texturesCache.insert(name, ref);
-	return ref;
+	return _textureManager.loadFromImage(name, opath.value().string());
 }
 
-Tile Theme::getTile(const std::string& name) const
-{
-	auto optionalRef = _tilesCache.opt(name);
-	if (optionalRef)
-		return *optionalRef;
-
-	TileModel::Ref ref = TileModelManager::instance().load(prepareElementName(name));
-	if (ref == nullptr)
-		return Tile();
-
-	_tilesCache.insert(name, ref);
-	return ref;
-}
 
 
 

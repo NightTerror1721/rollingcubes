@@ -65,6 +65,15 @@ namespace resources
 	{
 		return findFirstValidPath(root, name, { extension });
 	}
+
+	void scanDirectory(const Path& directory, const std::function<void(const Path&)>& action);
+
+	void scanDirectoryFiles(const Path& directory, std::initializer_list<std::string_view> extensions, const std::function<void(const Path&)>& action);
+
+	inline void scanDirectoryFiles(const Path& directory, std::string_view extension, const std::function<void(const Path&)>& action)
+	{
+		scanDirectoryFiles(directory, { extension }, action);
+	}
 }
 
 namespace resources
@@ -72,6 +81,6 @@ namespace resources
 	inline const Directory data = { "data" };
 	inline const Directory shaders = { data, "shaders" };
 	inline const Directory fonts = { data, "fonts" };
-	inline const Directory models = { data, "models" };
+	inline const Directory defs = { data, "defs" };
 	inline const Directory textures = { data, "textures" };
 }

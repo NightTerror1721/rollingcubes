@@ -1,5 +1,7 @@
 #include "resources.h"
 
+#include <unordered_set>
+
 
 namespace resources
 {
@@ -31,5 +33,27 @@ namespace resources
 		}
 
 		return {};
+	}
+
+	void scanDirectory(const Path& directory, const std::function<void(const Path&)>& action)
+	{
+		namespace fs = std::filesystem;
+		if (fs::is_directory(directory))
+			for (const auto& entry : fs::directory_iterator(directory))
+				action(entry.path());
+	}
+
+	void scanDirectoryFiles(const Path& directory, std::initializer_list<std::string_view> initExtensions, const std::function<void(const Path&)>& action)
+	{
+		namespace fs = std::filesystem;
+		std::unordered_set<std::string_view> ext{ initExtensions.begin(), initExtensions.end() };
+		scanDirectory(directory, [&ext, &action](const Path& entryPath) {
+			if (fs::is_regular_file(entryPath))
+			{
+				const std::string extension = entryPath.extension().string();
+				if (ext.contains(extension))
+					action(entryPath);
+			}
+			});
 	}
 }

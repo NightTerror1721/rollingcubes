@@ -97,7 +97,7 @@ std::optional<Path> LuaModel::findModelFile() const
 
 	std::string typeName = getModelTypeName(type).data();
 
-	return resources::findFirstValidPath(resources::models.path(), (Path(typeName) / _name).string(), ".lua");
+	return resources::findFirstValidPath(resources::defs.path(), (Path(typeName) / _name).string(), ".lua");
 
 	/*if (_name.empty())
 		return {};

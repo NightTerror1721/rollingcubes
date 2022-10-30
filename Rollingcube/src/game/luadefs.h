@@ -62,6 +62,8 @@ public:
 		}
 	}
 
+	static constexpr std::size_t TypeCount = static_cast<std::size_t>(static_cast<int>(Type::Menu) + 1);
+
 public:
 	using Id = unsigned int;
 
