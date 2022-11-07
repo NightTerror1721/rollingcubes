@@ -21,6 +21,7 @@
 #include "utils/bmp_decoder.h"
 #include "utils/image.h"
 #include "utils/shader_constants.h"
+#include "utils/unicode.h"
 
 #include "game/cube_model.h"
 #include "game/block.h"
@@ -152,6 +153,8 @@ void tutos()
     block1.init();
 
     block1.setPosition(0, 1, -3);
+
+    UnicodeString ustr = "ola k ase tú!";
 
     /*static constexpr GLfloat g_vertex_buffer_data[] = {
         -1.0f, -1.0f, 0.0f,

@@ -161,6 +161,7 @@
     <ClCompile Include="src\engine\entities_lualib.cpp" />
     <ClCompile Include="src\engine\framebuffer.cpp" />
     <ClCompile Include="src\engine\frustum.cpp" />
+    <ClCompile Include="src\engine\input\input.cpp" />
     <ClCompile Include="src\engine\light.cpp" />
     <ClCompile Include="src\engine\lua\chunk.cpp" />
     <ClCompile Include="src\engine\lua\libs.cpp" />
@@ -175,6 +176,7 @@
     <ClCompile Include="src\engine\texture.cpp" />
     <ClCompile Include="src\game\block.cpp" />
     <ClCompile Include="src\game\cube_model.cpp" />
+    <ClCompile Include="src\game\game_controller.cpp" />
     <ClCompile Include="src\game\luadefs.cpp" />
     <ClCompile Include="src\game\theme.cpp" />
     <ClCompile Include="src\game\tile.cpp" />
@@ -203,6 +205,15 @@
     <ClInclude Include="src\engine\entities.h" />
     <ClInclude Include="src\engine\framebuffer.h" />
     <ClInclude Include="src\engine\frustum.h" />
+    <ClInclude Include="src\engine\input\common.h" />
+    <ClInclude Include="src\engine\input\controller.h" />
+    <ClInclude Include="src\engine\input\event.h" />
+    <ClInclude Include="src\engine\input\gamepad.h" />
+    <ClInclude Include="src\engine\input\input.h" />
+    <ClInclude Include="src\engine\input\keyboard.h" />
+    <ClInclude Include="src\engine\input\listener.h" />
+    <ClInclude Include="src\engine\input\mouse.h" />
+    <ClInclude Include="src\engine\input\binds.h" />
     <ClInclude Include="src\engine\light.h" />
     <ClInclude Include="src\engine\lua\chunk.h" />
     <ClInclude Include="src\engine\lua\env.h" />
@@ -226,6 +237,7 @@
     <ClInclude Include="src\engine\texture.h" />
     <ClInclude Include="src\game\block.h" />
     <ClInclude Include="src\game\cube_model.h" />
+    <ClInclude Include="src\game\game_controller.h" />
     <ClInclude Include="src\game\luadefs.h" />
     <ClInclude Include="src\game\theme.h" />
     <ClInclude Include="src\game\tile.h" />
@@ -250,6 +262,8 @@
     <ClInclude Include="src\utils\shader_constants.h" />
     <ClInclude Include="src\utils\string_utils.h" />
     <ClInclude Include="src\utils\tangent_space.h" />
+    <ClInclude Include="src\utils\unicode.h" />
+    <ClInclude Include="src\utils\utf.h" />
     <ClInclude Include="src\utils\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

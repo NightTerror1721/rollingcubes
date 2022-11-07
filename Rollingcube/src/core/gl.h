@@ -63,4 +63,46 @@ namespace gl
 		BilinearMipmap = GL_LINEAR_MIPMAP_LINEAR,
 		Trilinear = GL_LINEAR_MIPMAP_LINEAR
 	};
+
+	enum class DepthFunction : GLenum
+	{
+		Never = GL_NEVER,
+		Less = GL_LESS,
+		Equal = GL_EQUAL,
+		Greater = GL_GREATER,
+		NotEqual = GL_NOTEQUAL,
+		GreaterOrEqual = GL_GEQUAL,
+		Always = GL_ALWAYS,
+
+		Default = Less
+	};
+
+	enum class CullFace : GLenum
+	{
+		Front = GL_FRONT,
+		Back = GL_BACK,
+		FrontAndBack = GL_FRONT_AND_BACK,
+
+		Default = Back
+	};
+
+	enum class FrontFace : GLenum
+	{
+		Clockwise = GL_CW,
+		CounterClockwise = GL_CCW,
+
+		Default = CounterClockwise
+	};
+}
+
+namespace gl
+{
+	inline void setDepthFunction(DepthFunction fn) { glDepthFunc(GLenum(fn)); }
+	inline void enableDepthTest() { glEnable(GL_DEPTH_TEST); }
+	inline void disableDepthTest() { glDisable(GL_DEPTH_TEST); }
+
+	inline void setCullFace(CullFace face) { glCullFace(GLenum(face)); }
+	inline void setFrontFace(FrontFace face) { glFrontFace(GLenum(face)); }
+	inline void enableCullFace() { glEnable(GL_CULL_FACE); }
+	inline void disableCullFace() { glDisable(GL_CULL_FACE); }
 }

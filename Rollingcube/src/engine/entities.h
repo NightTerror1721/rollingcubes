@@ -58,7 +58,22 @@ public:
 
 	friend std::ostream& operator<< (std::ostream& left, EntityId right) { return left << right._id; }
 	friend std::istream& operator>> (std::istream& left, EntityId& right) { return left >> right._id; }
+
+public:
+	friend std::hash<EntityId>;
 };
+
+namespace std
+{
+	template <>
+	struct hash<EntityId> : public hash<EntityId::IntegerType>
+	{
+		inline std::size_t operator() (const EntityId& id) const
+		{
+			return hash<EntityId::IntegerType>::_Do_hash(id._id);
+		}
+	};
+}
 
 
 class EntityIdFactory
@@ -119,7 +134,10 @@ public:
 	using Id = EntityId;
 
 private:
-	Id _id;
+	static inline EntityIdFactory IdFactory = {};
+
+private:
+	Id _id = IdFactory();
 
 public:
 	constexpr Entity() = default;
@@ -137,11 +155,7 @@ public:
 
 	virtual constexpr void render(const Camera& cam) override {}
 	virtual constexpr void update(Time elapsedTime) override {}
-
-protected:
-	constexpr explicit Entity(Id id) : _id(id) {}
-
-	constexpr void setEntityId(Id id) { _id = id; }
+	virtual constexpr void dispatchEvent(const InputEvent& event) override {}
 };
 
 

@@ -46,7 +46,7 @@ namespace window
 
 			glfwSwapInterval(1);
 
-			glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		}
 
 		return true;

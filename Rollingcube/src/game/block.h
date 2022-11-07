@@ -15,6 +15,8 @@ namespace lua::lib { void registerBlocksLibToLua(); }
 
 class Block;
 class BlockSide;
+class BlocksNet;
+class BlockContainer;
 
 class BlockModel : public LuaModel
 {
@@ -154,19 +156,98 @@ public:
 
 
 
+union BlockSlot
+{
+public:
+	using ValueType = int;
+
+public:
+	struct { ValueType x, y, z; };
+	struct { ValueType column, row, depth; };
+
+public:
+	constexpr BlockSlot() noexcept : x(0), y(0), z(0) {}
+	constexpr BlockSlot(const BlockSlot& r) noexcept = default;
+	constexpr BlockSlot(BlockSlot&& r) noexcept = default;
+	constexpr ~BlockSlot() = default;
+
+	constexpr BlockSlot& operator= (const BlockSlot&) noexcept = default;
+	constexpr BlockSlot& operator= (BlockSlot&&) noexcept = default;
+
+	constexpr bool operator== (const BlockSlot& r) const noexcept { return x == r.x && y == r.y && z == r.z; };
+	constexpr auto operator<=> (const BlockSlot& r) const noexcept
+	{
+		auto cmp = x <=> r.x;
+		if (cmp == 0)
+		{
+			cmp = y <=> r.y;
+			if (cmp == 0)
+				return z <=> r.z;
+		}
+		return cmp;
+	}
+
+	constexpr BlockSlot(ValueType x, ValueType y, ValueType z) : x(x), y(y), z(z) {}
+
+public:
+	constexpr glm::vec3 toPosition() const
+	{
+		return {
+			x * cubes::side::size,
+			y * cubes::side::size,
+			z * cubes::side::size
+		};
+	}
+
+	static BlockSlot fromPosition(const glm::vec3& pos)
+	{
+		return {
+			static_cast<ValueType>(pos.x / cubes::side::size),
+			static_cast<ValueType>(pos.y / cubes::side::size),
+			static_cast<ValueType>(pos.z / cubes::side::size)
+		};
+	}
+};
+
+
+
+
+namespace std
+{
+	template<>
+	struct hash<BlockSlot>
+	{
+		constexpr std::size_t operator()(const BlockSlot& slot) const
+		{
+			if constexpr (sizeof(std::size_t) < 8)
+				return (std::size_t(slot.x & 0x3ff) << 20) | (std::size_t(slot.y & 0x3ff) << 10) | std::size_t(slot.z & 0x3ff);
+			else
+				return (std::size_t(slot.x & 0x1fffff) << 42) | (std::size_t(slot.y & 0x1fffff) << 21) | std::size_t(slot.z & 0x1fffff);
+		}
+	};
+}
+
+
+
+
 class Block : public ModelableEntity, public LuaLocalVariablesContainer
 {
 public:
 	friend BlockSide;
+	friend BlocksNet;
+	friend BlockContainer;
 
 public:
 	using Id = unsigned int;
 	using Side = BlockSide;
+	using Slot = BlockSlot;
 
 private:
 	Id _blockId;
 	std::array<Side, cubes::side::count> _sides;
 	BlockModel::Ref _blockModel;
+
+	Slot _slot;
 
 public:
 	Block(const Block&) = delete;
@@ -196,6 +277,8 @@ public:
 	constexpr void setBlockModel(BlockModel::Ref model) { _blockModel = model; }
 	constexpr BlockModel::Ref getBlockModel() const { return _blockModel; }
 
+	constexpr const Slot& getBlockSlot() const { return _slot; }
+
 	inline void render(const Camera& cam) override { luaRender(cam); }
 
 protected:
@@ -204,21 +287,15 @@ protected:
 public:
 	constexpr Side& operator[] (Side::SideId sideId) { return getSide(sideId); }
 	constexpr const Side& operator[] (Side::SideId sideId) const { return getSide(sideId); }
+
+private:
+	constexpr void setBlockSlot(const Slot& coords) { _slot = coords; }
 };
 
 
 inline BlockSide::Id BlockSide::getId() const { return cubes::side::idToInt(_sideId) * _parent->getBlockId(); }
 
-
-
-
-
-
-
-
-
 inline BlockModel::Ref BlockSide::getBlockModel() const { return _blockModel ? _blockModel : _parent->_blockModel; }
-
 
 inline void BlockModel::onRender(Block& block, const Camera& cam) { vcall(FunctionOnRender, std::addressof(block), std::addressof(cam)); }
 inline void BlockModel::onRenderSide(BlockSide& side, const Camera& cam) { vcall(FunctionOnRenderSide, std::addressof(side), std::addressof(cam)); }
@@ -227,3 +304,82 @@ inline void BlockModel::onUpdateSide(BlockSide& side, Time elapsedTime) { vcall(
 
 inline void BlockModel::onBlockConstruct(Block& block) { vcall(FunctionOnBlockConstruct, std::addressof(block)); }
 inline void BlockModel::onBlockSideConstruct(BlockSide& side) { vcall(FunctionOnBlockSideConstruct, std::addressof(side)); }
+
+
+
+
+
+
+
+class BlocksNet
+{
+private:
+	std::unordered_map<Block::Slot, std::shared_ptr<Block>> _net;
+
+public:
+	BlocksNet() = default;
+	BlocksNet(const BlocksNet&) = default;
+	BlocksNet(BlocksNet&&) noexcept = default;
+	~BlocksNet() = default;
+
+	BlocksNet& operator= (const BlocksNet&) = default;
+	BlocksNet& operator= (BlocksNet&&) noexcept = default;
+
+private:
+
+public:
+
+public:
+	inline std::shared_ptr<Block> getBlock(const Block::Slot& slot) const
+	{
+		const auto& it = _net.find(slot);
+		if (it == _net.end())
+			return nullptr;
+		return it->second;
+	}
+
+	inline bool setBlock(const Block::Slot& slot, const std::shared_ptr<Block>& block, bool adjustBlockPosition = true)
+	{
+		if (_net.contains(slot))
+		{
+			logger::error("Cannot place block on [{}, {}, {}]. This slot is already ocuped.", slot.x, slot.y, slot.z);
+			return false;
+		}
+
+		_net.insert({ slot, block });
+
+		if (adjustBlockPosition)
+		{
+			block->setBlockSlot(slot);
+			block->setPosition(slot.toPosition());
+		}
+
+		return true;
+	}
+
+	inline std::shared_ptr<Block> eraseBlock(const Block::Slot& slot)
+	{
+		const auto& it = _net.find(slot);
+		if (it == _net.end())
+			return nullptr;
+
+		auto ptr = it->second;
+		_net.erase(it);
+		return ptr;
+	}
+};
+
+
+
+
+class BlockContainer
+{
+public:
+	using ZBlocksMap = std::unordered_map<BlockSlot::ValueType, std::shared_ptr<Block>>;
+	using YZBlocksMap = std::unordered_map<BlockSlot::ValueType, ZBlocksMap>;
+	using XYZBlocksMap = std::unordered_map<BlockSlot::ValueType, YZBlocksMap>;
+
+private:
+	std::vector<std::shared_ptr<Block>> _blocks;
+	XYZBlocksMap _blocksNet;
+};

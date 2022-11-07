@@ -3,6 +3,7 @@
 #include "core/gl.h"
 #include "core/time.h"
 #include "math/glm.h"
+#include "input/input.h"
 
 class Camera;
 
@@ -20,7 +21,7 @@ struct Updatable
 
 struct EventDispatcher
 {
-	//virtual void dispatchEvent(const Event& event) = 0;
+	virtual void dispatchEvent(const InputEvent& event) = 0;
 };
 
 
