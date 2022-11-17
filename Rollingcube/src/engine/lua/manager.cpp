@@ -1,6 +1,7 @@
 #include "manager.h"
 
 #include "libs.h"
+#include "calls.h"
 
 
 LuaGlobalState LuaGlobalState::Instance = {};
@@ -19,22 +20,22 @@ LuaScriptManager LuaScriptManager::Instance = {};
 
 LuaScriptManager::LuaScriptManager() :
 	_state(LuaGlobalState::state()),
-	_chunks(),
-	_callStack()
+	_chunks()
 {}
 
-std::shared_ptr<LuaChunk> LuaScriptManager::findChunk(const Path& path)
+Reference<LuaChunk> LuaScriptManager::findChunk(const Path& path)
 {
 	Path absPath = resources::absolute(path);
 	auto it = _chunks.find(absPath.string());
 	if (it != _chunks.end())
-		return it->second;
+		return it->second.get();
 
-	std::shared_ptr<LuaChunk> chunk = std::make_shared<LuaChunk>(LuaScriptManagerLink(*this), absPath);
+	auto chunk = std::make_unique<LuaChunk>(_state, absPath);
 	if (chunk->isValid())
 	{
-		_chunks.insert({ chunk->getId(), chunk });
-		return chunk;
+		Reference<LuaChunk> ref = chunk.get();
+		_chunks.insert({ chunk->getId(), std::move(chunk) });
+		return ref;
 	}
 
 	return nullptr;
@@ -50,22 +51,14 @@ LuaScript LuaScriptManager::getScript(std::string_view path)
 
 LuaScript LuaScriptManager::getCurrentRunScript() const
 {
-	if (!_callStack.empty())
-	{
-		const auto& info = _callStack.top();
-		auto it = _chunks.find(info.scriptId);
-		if (it != _chunks.end())
-			return LuaScript(it->second);
-	}
-	return LuaScript();
+	return LuaCallManager::instance().getCurrentScript();
 }
 
-const LuaRef* LuaScriptManager::getCurrentRunScriptEnv() const
+const LuaEnv* LuaScriptManager::getCurrentRunScriptEnv() const
 {
-	if (!_callStack.empty())
-	{
-		const auto& info = _callStack.top();
-		return info.currentEnv;
-	}
-	return nullptr;
+	LuaScript script = LuaCallManager::instance().getCurrentScript();
+	if (!script)
+		return nullptr;
+
+	return std::addressof(script.getEnv());
 }

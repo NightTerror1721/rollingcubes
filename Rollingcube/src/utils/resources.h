@@ -81,6 +81,7 @@ namespace resources
 	inline const Directory data = { "data" };
 	inline const Directory shaders = { data, "shaders" };
 	inline const Directory fonts = { data, "fonts" };
-	inline const Directory defs = { data, "defs" };
+	inline const Directory templates = { data, "templates" };
 	inline const Directory textures = { data, "textures" };
+	inline const Directory models = { data, "models" };
 }

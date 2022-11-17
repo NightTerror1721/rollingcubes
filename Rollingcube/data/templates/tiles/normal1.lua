@@ -8,7 +8,7 @@ material = nil
 function OnInit()
     material = Material()
     material.diffuseColor = vec3(1, 1, 1)
-    material.ambientColor = vec3(0.1, 0.1, 0.1)
+    material.ambientColor = vec3(0.45, 0.45, 0.45)
     material.specularColor = vec3(0.3, 0.3, 0.3)
     material.shininess = 50
 

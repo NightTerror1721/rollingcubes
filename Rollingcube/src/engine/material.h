@@ -64,6 +64,8 @@ public:
 
 		if (_specularTexture != nullptr)
 			_specularTexture->activate(1);
+		else if (_diffuseTexture != nullptr)
+			_diffuseTexture->activate(1);
 		else
 			Texture::deactivate(1);
 

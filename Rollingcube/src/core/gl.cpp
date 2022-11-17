@@ -6,8 +6,6 @@
 #include "engine/model.h"
 #include "engine/shader.h"
 #include "engine/lua/lua.h"
-#include "game/block.h"
-#include "game/tile.h"
 #include "game/theme.h"
 
 
@@ -48,8 +46,10 @@ namespace gl
 
 	void terminate()
 	{
-		BlockModelManager::instance().clear();
-		TileModelManager::instance().clear();
+		BlockTemplateManager::instance().clear();
+		TileTemplateManager::instance().clear();
+		ModelObjectTemplateManager::instance().clear();
+		BallTemplateManager::instance().clear();
 		Theme::releaseCurrentTheme();
 		LuaScriptManager::instance().clear();
 

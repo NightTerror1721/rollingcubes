@@ -5,7 +5,7 @@
 #include "utils/lualib_constants.h"
 
 
-BlockModelManager BlockModelManager::Instance = {};
+BlockTemplateManager BlockTemplateManager::Instance = {};
 
 
 
@@ -28,7 +28,7 @@ const Transformable& BlockSide::getTransform() const
 
 void BlockSide::luaRender(const Camera& cam)
 {
-	auto model = getBlockModel();
+	auto model = getTemplate();
 	if (model)
 		model->onRenderSide(*this, cam);
 }
@@ -78,8 +78,8 @@ Block::~Block()
 
 void Block::init()
 {
-	if (_blockModel)
-		_blockModel->onBlockConstruct(*this);
+	if (_template)
+		_template->onBlockConstruct(*this);
 
 	for (int i = 0; i < _sides.size(); ++i)
 		_sides[i].init();
@@ -87,8 +87,8 @@ void Block::init()
 
 void Block::luaRender(const Camera& cam)
 {
-	if (_blockModel)
-		_blockModel->onRender(*this, cam);
+	if (_template)
+		_template->onRender(*this, cam);
 
 	for (int i = 0; i < _sides.size(); ++i)
 		_sides[i].render(cam);
@@ -101,8 +101,8 @@ void Block::defaultRender(const Camera& cam)
 
 void Block::update(Time elapsedTime)
 {
-	if (_blockModel)
-		_blockModel->onUpdate(*this, elapsedTime);
+	if (_template)
+		_template->onUpdate(*this, elapsedTime);
 
 	for (int i = 0; i < _sides.size(); ++i)
 		_sides[i].update(elapsedTime);

@@ -24,6 +24,8 @@ namespace lua
 			lua::lib::registerThemesLibToLua();
 			lua::lib::registerTilesLibToLua();
 			lua::lib::registerBlocksLibToLua();
+			lua::lib::registerModelsLibToLua();
+			lua::lib::registerBallsLibToLua();
 
 			initiatedFlag = true;
 		}
@@ -96,12 +98,13 @@ void LuaLibraryManager::loadBuiltInData(lua_State* state)
 {
 	luabridge::getGlobalNamespace(state)
 		.addFunction(lua::lib::constants::import, &LUA_import)
+		.addFunction(lua::lib::constants::include, &LUA_include)
 		.addFunction(lua::lib::constants::openlib, &LUA_openlib);
 }
 
 void LuaLibraryManager::openLibrary(lua_State* state, const std::string& libname) const
 {
-	const LuaRef* env = LuaScriptManager::instance().getCurrentRunScriptEnv();
+	const LuaEnv* env = LuaScriptManager::instance().getCurrentRunScriptEnv();
 	if (env == nullptr)
 	{
 		lua::utils::error(state, "Lua script environment not accesible.");
@@ -122,7 +125,7 @@ void LuaLibraryManager::openLibrary(lua_State* state, const std::string& libname
 		openCustomLibrary(state, env, lib);
 }
 
-void LuaLibraryManager::openLuaLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib)
+void LuaLibraryManager::openLuaLibrary(lua_State* state, const LuaEnv* env, const LuaLibrary& lib)
 {
 	if (env == nullptr)
 	{
@@ -158,7 +161,7 @@ void LuaLibraryManager::openLuaLibrary(lua_State* state, const LuaRef* env, cons
 	(*env)[libname] = luabridge::getGlobal(state, libname);
 }
 
-void LuaLibraryManager::openLuaBaseLibrary(lua_State* state, const LuaRef* env)
+void LuaLibraryManager::openLuaBaseLibrary(lua_State* state, const LuaEnv* env)
 {
 #define loadBaseElement(_Name) (*env)[lua::lib::constants::_Name] = luabridge::getGlobal(state, lua::lib::constants::_Name)
 
@@ -174,7 +177,7 @@ void LuaLibraryManager::openLuaBaseLibrary(lua_State* state, const LuaRef* env)
 	loadBaseElement(rawget);
 	loadBaseElement(rawset);
 	loadBaseElement(rawequal);
-	loadBaseElement(_G);
+//	loadBaseElement(_G);
 	loadBaseElement(rawlen);
 	loadBaseElement(error);
 	loadBaseElement(tostring);
@@ -195,7 +198,7 @@ void LuaLibraryManager::openLuaBaseLibrary(lua_State* state, const LuaRef* env)
 #undef loadBaseElement
 }
 
-void LuaLibraryManager::openCustomLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib) const
+void LuaLibraryManager::openCustomLibrary(lua_State* state, const LuaEnv* env, const LuaLibrary& lib) const
 {
 	if (env == nullptr)
 	{
@@ -258,10 +261,59 @@ void LuaLibraryManager::openCustomLibrary(lua_State* state, const LuaRef* env, c
 		lua_pop(state, 1);
 	}
 
-	libref.pop();
+	lua_pop(state, 1);
 }
 
-LuaRef LuaLibraryManager::getOpenedLibsTable(lua_State* state, const LuaRef* env)
+bool LuaLibraryManager::importScript(lua_State* state, const std::string& spath)
+{
+	Path path = findRelativePath(spath);
+	if (path.empty())
+	{
+		lua::utils::error(state, "Script file {} not found.", spath);
+		return false;
+	}
+
+	LuaScript script;
+	auto it = _importedScripts.find(path);
+	if (it != _importedScripts.end())
+		script = it->second;
+	else
+	{
+		script = LuaScriptManager::instance().getScript(path.string());
+		if (!script)
+		{
+			lua::utils::error(state, "Error on load {} script file.", spath);
+			return false;
+		}
+
+		script();
+	}
+
+	const LuaEnv* env = LuaScriptManager::instance().getCurrentRunScriptEnv();
+	if (env == nullptr)
+	{
+		lua::utils::error(state, "NULL Environment on Lua open library routine.");
+		return false;
+	}
+
+	script.getEnv().push();
+	luabridge::push(state, luabridge::Nil());
+	while (lua_next(state, -2))
+	{
+		LuaRef key = LuaRef::fromStack(state, -2);
+		LuaRef val = LuaRef::fromStack(state, -1);
+
+		(*env)[key] = val;
+
+		lua_pop(state, 1);
+	}
+
+	lua_pop(state, 1);
+
+	return true;
+}
+
+LuaRef LuaLibraryManager::getOpenedLibsTable(lua_State* state, const LuaEnv* env)
 {
 	LuaRef openedLibs = (*env)[CustomLibsOpened];
 	if (!openedLibs.isTable())
@@ -272,14 +324,14 @@ LuaRef LuaLibraryManager::getOpenedLibsTable(lua_State* state, const LuaRef* env
 	return std::move(openedLibs);
 }
 
-LuaRef LuaLibraryManager::LUA_import(const std::string& spath, lua_State* state)
+Path LuaLibraryManager::findRelativePath(const std::string& spath)
 {
 	Path path(spath);
 	if (!path.is_absolute())
 	{
 		LuaScript currentScript = LuaScriptManager::instance().getCurrentRunScript();
 		if (!currentScript)
-			return LuaRef(state);
+			return Path();
 
 		path = resources::absolute(currentScript.getDirectory() / path);
 	}
@@ -287,17 +339,29 @@ LuaRef LuaLibraryManager::LUA_import(const std::string& spath, lua_State* state)
 	if (!path.has_extension())
 		path += ".lua";
 
-	LuaScript script = LuaScriptManager::instance().getScript(path.string());
-	if (!script)
+	return std::filesystem::weakly_canonical(path);
+}
+
+LuaScript LuaLibraryManager::findRelativeScript(const std::string& spath)
+{
+	return LuaScriptManager::instance().getScript(findRelativePath(spath).string());
+}
+
+bool LuaLibraryManager::LUA_import(const std::string& spath, lua_State* state)
+{
+	return instance().importScript(state, spath);
+}
+
+bool LuaLibraryManager::LUA_include(const std::string& spath, lua_State* state)
+{
+	Path path = findRelativePath(spath);
+	if(path.empty())
 	{
-		lua::utils::error(state, "Script file {} not found.", path.string());
-		return LuaRef(state);
+		lua::utils::error(state, "Script file {} not found.", spath);
+		return false;
 	}
 
-	LuaRef env = LuaRef::newTable(state);
-	script(env);
-
-	return env;
+	return LuaScriptManager::instance().getCurrentRunScript().includeSubScript(path);
 }
 
 void LuaLibraryManager::LUA_openlib(const std::string& name, lua_State* state)

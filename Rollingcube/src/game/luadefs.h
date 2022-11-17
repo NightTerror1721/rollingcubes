@@ -12,7 +12,7 @@
 #include "utils/manager.h"
 
 
-enum class LuaModelType
+enum class LuaTemplateType
 {
 	Unknown = 0,
 
@@ -29,9 +29,9 @@ enum class LuaModelType
 namespace std
 {
 	template <>
-	struct hash<LuaModelType> : public hash<int>
+	struct hash<LuaTemplateType> : public hash<int>
 	{
-		inline std::size_t operator() (const LuaModelType& keyVal) const noexcept
+		inline std::size_t operator() (const LuaTemplateType& keyVal) const noexcept
 		{
 			return hash<int>::operator() (static_cast<int>(keyVal));
 		}
@@ -41,11 +41,11 @@ namespace std
 
 
 
-class LuaModel
+class LuaTemplate
 {
 public:
-	using Type = LuaModelType;
-	static constexpr std::string_view getModelTypeName(Type type)
+	using Type = LuaTemplateType;
+	static constexpr std::string_view getTemplateTypeName(Type type)
 	{
 		switch (type)
 		{
@@ -81,15 +81,15 @@ private:
 	mutable std::unordered_map<std::string, std::unique_ptr<LuaRef>> _luaCache;
 
 public:
-	LuaModel() = default;
-	LuaModel(const LuaModel&) = delete;
-	LuaModel(LuaModel&&) noexcept = default;
+	LuaTemplate() = default;
+	LuaTemplate(const LuaTemplate&) = delete;
+	LuaTemplate(LuaTemplate&&) noexcept = default;
 
-	LuaModel& operator= (const LuaModel&) = delete;
-	LuaModel& operator= (LuaModel&&) noexcept = default;
+	LuaTemplate& operator= (const LuaTemplate&) = delete;
+	LuaTemplate& operator= (LuaTemplate&&) noexcept = default;
 
-	constexpr bool operator== (const LuaModel& right) const noexcept { return _id == right._id; }
-	constexpr auto operator<=> (const LuaModel& right) const noexcept { return _id <=> right._id; }
+	constexpr bool operator== (const LuaTemplate& right) const noexcept { return _id == right._id; }
+	constexpr auto operator<=> (const LuaTemplate& right) const noexcept { return _id <=> right._id; }
 
 public:
 	constexpr Id getId() const { return _id; }
@@ -102,7 +102,7 @@ public:
 	virtual Type getType() const = 0;
 
 public:
-	virtual ~LuaModel();
+	virtual ~LuaTemplate();
 
 	virtual bool load();
 
@@ -167,14 +167,14 @@ protected:
 
 
 
-template <std::derived_from<LuaModel> _LuaModelTy>
-class LuaModelManager : public Manager<_LuaModelTy, std::string>
+template <std::derived_from<LuaTemplate> _LuaModelTy>
+class LuaTemplateManager : public Manager<_LuaModelTy, std::string>
 {
 private:
 	using ManagerType = Manager<_LuaModelTy>;
 
 protected:
-	inline LuaModelManager() : ManagerType(nullptr) {}
+	inline LuaTemplateManager() : ManagerType(nullptr) {}
 
 public:
 	virtual ManagerReference<_LuaModelTy> load(const std::string& name)

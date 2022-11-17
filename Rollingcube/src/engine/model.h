@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 #include <functional>
+#include <limits>
 
 #include "core/gl.h"
 #include "core/render.h"
@@ -41,6 +42,11 @@ private:
 
 	bool _locked = false;
 
+	mutable bool _vertexHintsReload = true;
+	mutable glm::vec3 _vertexMins = {};
+	mutable glm::vec3 _vertexMaxs = {};
+	mutable glm::vec3 _size = {};
+
 public:
 	Mesh() = default;
 	Mesh(const Mesh&) = delete;
@@ -69,6 +75,7 @@ public:
 		{
 			createVertexBuffer(constants::attributes::vertices_array_attrib_index, vertices);
 			_verticesCache = vertices;
+			_vertexHintsReload = true;
 		}
 	}
 
@@ -119,6 +126,10 @@ public:
 	constexpr void lock() { _locked = true; }
 	constexpr bool isLocked() const { return _locked; }
 
+	inline const glm::vec3& getMinimums() const { return reloadVertexHints(), _vertexMins; }
+	inline const glm::vec3& getMaximums() const { return reloadVertexHints(), _vertexMaxs; }
+	inline const glm::vec3& getSize() const { return reloadVertexHints(), _size; }
+
 private:
 	void internalClear();
 
@@ -153,6 +164,39 @@ private:
 		return true;
 	}
 
+	inline void reloadVertexHints() const
+	{
+		if (_vertexHintsReload)
+		{
+			if (_verticesCache.empty())
+			{
+				_vertexMins = { 0, 0, 0 };
+				_vertexMaxs = { 0, 0, 0 };
+				_size = { 0, 0, 0 };
+			}
+			else
+			{
+				_vertexMins = { std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max() };
+				_vertexMaxs = { std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min() };
+
+				for (const glm::vec3& v : _verticesCache)
+				{
+					_vertexMins.x = glm::min(_vertexMins.x, v.x);
+					_vertexMins.y = glm::min(_vertexMins.y, v.y);
+					_vertexMins.z = glm::min(_vertexMins.z, v.z);
+
+					_vertexMaxs.x = glm::max(_vertexMaxs.x, v.x);
+					_vertexMaxs.y = glm::max(_vertexMaxs.y, v.y);
+					_vertexMaxs.z = glm::max(_vertexMaxs.z, v.z);
+				}
+
+				_size = glm::abs(_vertexMaxs - _vertexMins);
+			}
+
+			_vertexHintsReload = false;
+		}
+	}
+
 public:
 	friend Model;
 };
@@ -172,6 +216,11 @@ private:
 	std::vector<std::shared_ptr<Mesh>> _meshes;
 	std::unordered_map<std::string, std::shared_ptr<Mesh>> _meshesMap;
 	bool _locked = false;
+
+	mutable bool _vertexHintsReload = true;
+	mutable glm::vec3 _vertexMins = {};
+	mutable glm::vec3 _vertexMaxs = {};
+	mutable glm::vec3 _size = {};
 
 public:
 	Model() = default;
@@ -211,6 +260,10 @@ public:
 	constexpr void lock() { _locked = true; }
 	constexpr bool isLocked() const { return _locked; }
 
+	inline const glm::vec3& getMinimums() const { return reloadVertexHints(), _vertexMins; }
+	inline const glm::vec3& getMaximums() const { return reloadVertexHints(), _vertexMaxs; }
+	inline const glm::vec3& getSize() const { return reloadVertexHints(), _size; }
+
 public:
 	inline iterator begin() noexcept { return _meshes.begin(); }
 	inline const_iterator begin() const noexcept { return _meshes.begin(); }
@@ -232,6 +285,40 @@ private:
 
 		return true;
 	}
+
+	inline void reloadVertexHints() const
+	{
+		if (_vertexHintsReload)
+		{
+			if (_meshes.empty())
+			{
+				_vertexMins = { 0, 0, 0 };
+				_vertexMaxs = { 0, 0, 0 };
+				_size = { 0, 0, 0 };
+			}
+			else
+			{
+				_vertexMins = { std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max() };
+				_vertexMaxs = { std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min() };
+
+				for (const auto& mesh : _meshes)
+				{
+					mesh->reloadVertexHints();
+					_vertexMins.x = glm::min(_vertexMins.x, mesh->_vertexMins.x);
+					_vertexMins.y = glm::min(_vertexMins.y, mesh->_vertexMins.y);
+					_vertexMins.z = glm::min(_vertexMins.z, mesh->_vertexMins.z);
+
+					_vertexMaxs.x = glm::max(_vertexMaxs.x, mesh->_vertexMaxs.x);
+					_vertexMaxs.y = glm::max(_vertexMaxs.y, mesh->_vertexMaxs.y);
+					_vertexMaxs.z = glm::max(_vertexMaxs.z, mesh->_vertexMaxs.z);
+				}
+
+				_size = glm::abs(_vertexMaxs - _vertexMins);
+			}
+
+			_vertexHintsReload = false;
+		}
+	}
 };
 
 
@@ -244,7 +331,7 @@ private:
 	static ModelManager Root;
 
 public:
-	Reference loadFromFile(std::string_view filename, bool computeTangentBasis);
+	Reference loadFromFile(const IdType& key, std::string_view filename, bool computeTangentBasis);
 
 	Reference createNew(const IdType& id);
 
@@ -252,6 +339,11 @@ public:
 	static inline ModelManager& root() { return Root; }
 
 	inline ModelManager createChildManager() { return ModelManager(this); }
+
+	inline Reference loadFromFile(std::string_view filename, bool computeTangentBasis)
+	{
+		return loadFromFile(filename.data(), filename, computeTangentBasis);
+	}
 
 private:
 	inline explicit ModelManager(Manager<Model>* parent) :

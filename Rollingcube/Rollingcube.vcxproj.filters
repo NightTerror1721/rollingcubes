@@ -177,6 +177,18 @@
     <ClCompile Include="src\game\game_controller.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="src\game\modelobj.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\game\ball.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\game\ball_constants.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\lua\natives.cpp">
+      <Filter>Source Files\engine\lua</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\math\MathUtils.h">
@@ -314,9 +326,6 @@
     <ClInclude Include="src\engine\lua\natives.h">
       <Filter>Header Files\engine\lua</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\lua\link.h">
-      <Filter>Header Files\engine\lua</Filter>
-    </ClInclude>
     <ClInclude Include="src\engine\lua\script.h">
       <Filter>Header Files\engine\lua</Filter>
     </ClInclude>
@@ -394,6 +403,18 @@
     </ClInclude>
     <ClInclude Include="src\game\game_controller.h">
       <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game\modelobj.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game\ball.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game\ball_constants.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\calls.h">
+      <Filter>Header Files\engine\lua</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

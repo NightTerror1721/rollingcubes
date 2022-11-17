@@ -7,6 +7,7 @@
 #include <functional>
 
 #include "natives.h"
+#include "script.h"
 
 
 namespace lua
@@ -158,6 +159,7 @@ private:
 
 private:
 	std::unordered_map<std::string, LuaLibrary> _libs;
+	std::unordered_map<Path, LuaScript> _importedScripts;
 
 public:
 	LuaLibraryManager(const LuaLibraryManager&) = delete;
@@ -175,16 +177,21 @@ public:
 
 private:
 	void openLibrary(lua_State* state, const std::string& libname) const;
-	void openCustomLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib) const;
+	void openCustomLibrary(lua_State* state, const LuaEnv* env, const LuaLibrary& lib) const;
+	bool importScript(lua_State* state, const std::string& spath);
 
 private:
 	static void loadBuiltInData(lua_State* state);
-	static void openLuaLibrary(lua_State* state, const LuaRef* env, const LuaLibrary& lib);
-	static void openLuaBaseLibrary(lua_State* state, const LuaRef* env);
-	static LuaRef getOpenedLibsTable(lua_State* state, const LuaRef* env);
+	static void openLuaLibrary(lua_State* state, const LuaEnv* env, const LuaLibrary& lib);
+	static void openLuaBaseLibrary(lua_State* state, const LuaEnv* env);
+	static LuaRef getOpenedLibsTable(lua_State* state, const LuaEnv* env);
+
+	static Path findRelativePath(const std::string& spath);
+	static LuaScript findRelativeScript(const std::string& spath);
 
 private:
-	static LuaRef LUA_import(const std::string& spath, lua_State* state);
+	static bool LUA_import(const std::string& spath, lua_State* state);
+	static bool LUA_include(const std::string& spath, lua_State* state);
 	static void LUA_openlib(const std::string& name, lua_State* state);
 
 private:

@@ -18,23 +18,23 @@ struct TileRenderData
 	ConstReference<StaticLightContainer> staticLights;
 };
 
-class TileModel : public LuaModel
+class TileTemplate : public LuaTemplate
 {
 public:
-	using Ref = Reference<TileModel>;
-	using ConstRef = ConstReference<TileModel>;
+	using Ref = Reference<TileTemplate>;
+	using ConstRef = ConstReference<TileTemplate>;
 
 public:
 	static constexpr std::string_view FunctionOnRender = "OnRender";
 
 public:
-	TileModel() = default;
-	TileModel(const TileModel&) = delete;
-	TileModel(TileModel&&) noexcept = default;
-	~TileModel() = default;
+	TileTemplate() = default;
+	TileTemplate(const TileTemplate&) = delete;
+	TileTemplate(TileTemplate&&) noexcept = default;
+	~TileTemplate() = default;
 
-	TileModel& operator= (const TileModel&) = delete;
-	TileModel& operator= (TileModel&&) noexcept = default;
+	TileTemplate& operator= (const TileTemplate&) = delete;
+	TileTemplate& operator= (TileTemplate&&) noexcept = default;
 
 	inline Type getType() const override { return Type::Tile; }
 
@@ -45,16 +45,16 @@ public:
 
 
 
-class TileModelManager : public LuaModelManager<TileModel>
+class TileTemplateManager : public LuaTemplateManager<TileTemplate>
 {
 private:
-	static TileModelManager Instance;
+	static TileTemplateManager Instance;
 
 public:
-	static inline TileModelManager& instance() { return Instance; }
+	static inline TileTemplateManager& instance() { return Instance; }
 
 private:
-	inline TileModelManager() : LuaModelManager() {}
+	inline TileTemplateManager() : LuaTemplateManager() {}
 };
 
 
@@ -66,7 +66,7 @@ public:
 	using RenderData = TileRenderData;
 
 private:
-	TileModel::Ref _model = nullptr;
+	TileTemplate::Ref _template = nullptr;
 
 public:
 	Tile() = default;
@@ -78,17 +78,19 @@ public:
 	Tile& operator= (Tile&&) noexcept = default;
 
 public:
-	constexpr Tile(TileModel::Ref model) : _model(model) {}
+	constexpr Tile(TileTemplate::Ref templ) : _template(templ) {}
+
+	constexpr TileTemplate::Ref getTemplate() const { return _template; }
 
 	inline void render(cubes::side::Id sideId, RenderData& renderData) const
 	{
-		if (_model != nullptr)
-			_model->onRender(const_cast<Tile&>(*this), sideId, renderData);
+		if (_template != nullptr)
+			_template->onRender(const_cast<Tile&>(*this), sideId, renderData);
 	}
 
 	inline void renderQuad(cubes::side::Id sideId, const RenderData& renderData) const
 	{
-		if (_model != nullptr)
+		if (_template != nullptr)
 		{
 			ModelableEntity::bindLightnigShaderRenderData(*renderData.camera, *renderData.transform, renderData.material, renderData.staticLights);
 			cubes::model::render(sideId);
@@ -107,7 +109,7 @@ public:
 
 
 
-inline void TileModel::onRender(Tile& tile, cubes::side::Id sideId, TileRenderData& renderData)
+inline void TileTemplate::onRender(Tile& tile, cubes::side::Id sideId, TileRenderData& renderData)
 {
 	vcall(FunctionOnRender, std::addressof(tile), cubes::side::idToInt(sideId), std::addressof(renderData));
 }

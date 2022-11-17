@@ -114,7 +114,7 @@ private:
 
 	inline void updateFrustum() const
 	{
-		AxisBase abase = _viewMatrix;
+		Basis abase = _viewMatrix;
 		_frustum.extract(
 			getPosition(),
 			abase.front,

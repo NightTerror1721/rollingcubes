@@ -48,13 +48,6 @@ int main(int argc, char** argv)
 }
 
 
-void lua_test()
-{
-    LuaScript script = LuaScriptManager::instance().getScript("test/test_lua.lua");
-    script();
-}
-
-
 struct TutoMove
 {
     glm::vec3 position{ 0, 0, 5 };
@@ -146,13 +139,40 @@ void tutos()
 
     Theme::changeCurrentTheme("test_theme");
 
-    auto blockModel = Theme::getCurrentTheme().getBlockModel("test");
+
+    auto ballModel = Theme::getCurrentTheme().getBallModel();
+    auto ballTex = Theme::getCurrentTheme().getTexture("hills.jpg");
+    Material ballMaterial;
+    ballMaterial.setAmbientColor({ 0.45, 0.45, 0.45 });
+    ballMaterial.setDiffuseColor({ 1, 1, 1 });
+    ballMaterial.setSpecularColor({ 0.7, 0.7, 0.7 });
+    ballMaterial.setShininess(5);
+    ballMaterial.setDiffuseTexture(ballTex);
+
+    std::shared_ptr<ModelEntity> testBall = std::make_shared<ModelEntity>();
+    testBall->setModel(ballModel);
+    testBall->setMaterial(ballMaterial);
+
+    testBall->setPosition({ 0, 1 + cubes::side::midsize + balls::radius, -3 });
+    testBall->setScale(balls::getScale());
+
+
+
+    std::shared_ptr<Ball> ball1 = std::make_shared<Ball>();
+    ball1->init(Theme::getCurrentTheme().getBallTemplate("hills"));
+    
+
+
+    auto blockModel = Theme::getCurrentTheme().getBlockTemplate("test");
     auto block1 = Block();
     block1.setBoundingType(BoundingVolumeType::AABB);
-    block1.setBlockModel(blockModel);
+    block1.setTemplate(blockModel);
     block1.init();
 
     block1.setPosition(0, 1, -3);
+
+    Block::setTransformOnSide(*testBall, block1, BlockSide::SideId::Bottom, {0, balls::radius, 0} );
+    Block::setTransformOnSide(*ball1, block1, BlockSide::SideId::Top, { 0, balls::radius, 0 });
 
     UnicodeString ustr = "ola k ase tú!";
 
@@ -277,13 +297,15 @@ void tutos()
 
     DirectionalLight dirLight;
     dirLight.setColor(glm::vec3(1, 1, 1));
-    dirLight.setDirection(glm::vec3(-0.2f, -1.0f, -0.3f));
     dirLight.setIntensity(0.5);
+    dirLight.setDirectionFromAngles(-50, 130);
 
     std::shared_ptr<StaticLightManager> lightManager = std::make_shared<StaticLightManager>();
     entityCube1->linkStaticLightManager(lightManager);
     entityCube2->linkStaticLightManager(lightManager);
     entityCube3->linkStaticLightManager(lightManager);
+    testBall->linkStaticLightManager(lightManager);
+    ball1->linkStaticLightManager(lightManager);
 
     //auto slights = lightManager->createShaderLights();
 
@@ -292,8 +314,9 @@ void tutos()
     mainLight.setAmbientColor({ 0, 0, 0 });
     mainLight.setDiffuseColor({ 0., 0., 0. });
     mainLight.setSpecularColor({ 1, 1, 1 });
-    mainLight.setIntensity(50.f);
+    mainLight.setIntensity(0.f);
     mainLight.setPosition({ 5, 2, 0 });
+    mainLight.setQuadraticAttenuation(1);
     //light.setQuadraticAttenuation(0.25);
     //auto lightId = lightManager->createNewLight(light);
 
@@ -301,7 +324,7 @@ void tutos()
     light2.setColor({ 1, 0, 0 });
     light2.setIntensity(30.f);
     light2.setPosition({ -5, 2, 0 });
-    auto lightId2 = lightManager->createNewLight(light2);
+//    auto lightId2 = lightManager->createNewLight(light2);
 
     Camera cam;
     cam.setToPerspective(glm::radians(45.f), float(window::default_width) / float(window::default_height), 0.1f, 100.f);
@@ -378,7 +401,7 @@ void tutos()
         //lightManager->updateLight(lightId, light);
         //slights->build();
 
-        dirLight.setDirection(glm::normalize(cam.getFront()));
+        //dirLight.setDirection(glm::normalize(cam.getFront()));
 
         static float sangle = 0;
         sangle += float(deltaTime) * 90;
@@ -392,6 +415,8 @@ void tutos()
         entityCube2->update(elapsedTime);
         entityCube3->update(elapsedTime);
         block1.update(elapsedTime);
+        testBall->update(elapsedTime);
+        ball1->update(elapsedTime);
 
         //cam.bindToDefaultShader();
         //shader->bind();
@@ -446,6 +471,9 @@ void tutos()
         transparentEntities.addWrappedEntity(wCube3);
 
         block1.render(cam);
+
+        testBall->render(cam);
+        ball1->render(cam);
 
         skybox.render(cam);
 

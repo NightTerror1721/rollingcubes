@@ -2,24 +2,26 @@
 
 #include <string>
 #include <memory>
+#include <unordered_map>
 
 #include "utils/resources.h"
 
 #include "natives.h"
-#include "link.h"
+#include "env.h"
 
 
 class LuaChunk
 {
 private:
-	static constexpr std::string_view ScriptIdUp = "__scriptid__";
-
 	std::string _id;
 	Path _path;
 	Path _dirPath;
-	std::shared_ptr<LuaRef> _chunk;
-	std::shared_ptr<LuaRef> _env;
-	LuaScriptManagerLink _manager;
+	LuaRef _chunk;
+	std::shared_ptr<LuaEnv> _env;
+	lua_State* _state;
+
+	LuaChunk* _parent;
+	std::unordered_map<Path, std::unique_ptr<LuaChunk>> _includes;
 
 public:
 	LuaChunk() = default;
@@ -30,28 +32,35 @@ public:
 	LuaChunk& operator= (const LuaChunk&) = delete;
 	LuaChunk& operator= (LuaChunk&&) noexcept = delete;
 
+private:
+	LuaChunk(lua_State* state, const Path& path, LuaChunk* parent);
+
 public:
-	LuaChunk(const LuaScriptManagerLink& managerLink, const Path& path);
+	inline LuaChunk(lua_State* state, const Path& path) :
+		LuaChunk(state, path, nullptr)
+	{}
 
-	const std::shared_ptr<LuaRef>& getEnv();
-	std::shared_ptr<const LuaRef> getEnv() const;
+public:
+	void run() const;
 
-	void run(const LuaRef* customEnv = nullptr) const;
+	bool reload();
+
+	bool includeSubChunk(const Path& path);
 
 public:
 	inline const std::string& getId() const { return _id; }
 	inline const Path& getPath() const { return _path; }
 	inline const Path& getDirectory() const { return _dirPath; }
-	inline lua_State* getLuaState() const { return _manager.getLuaState(); }
+	inline lua_State* getLuaState() const { return _state; }
+	inline const LuaEnv& getEnv() const { return *_env; }
 
-	inline bool isValid() const { return _manager.isValid() && !_id.empty(); }
-
-public:
-	bool reload();
+	inline bool isValid() const { return !_id.empty(); }
 
 private:
 	bool load();
 	void destroy();
 
-	static void prepareEnv(lua_State* state, const LuaRef& env);
+	bool checkRecursiveInclusion(const Path& abspath);
+
+	static void prepareEnv(lua_State* state, const LuaEnv& env);
 };

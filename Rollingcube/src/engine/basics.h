@@ -25,21 +25,21 @@ struct EventDispatcher
 };
 
 
-struct AxisBase
+struct Basis
 {
 	glm::vec3 front = { 0, 0, 1 };
 	glm::vec3 right = { 1, 0, 0 };
 	glm::vec3 up = { 0, 1, 0 };
 
-	constexpr AxisBase() = default;
-	constexpr AxisBase(const AxisBase&) = default;
-	constexpr AxisBase(AxisBase&&) noexcept = default;
-	constexpr ~AxisBase() = default;
+	constexpr Basis() = default;
+	constexpr Basis(const Basis&) = default;
+	constexpr Basis(Basis&&) noexcept = default;
+	constexpr ~Basis() = default;
 
-	constexpr AxisBase& operator= (const AxisBase&) = default;
-	constexpr AxisBase& operator= (AxisBase&&) noexcept = default;
+	constexpr Basis& operator= (const Basis&) = default;
+	constexpr Basis& operator= (Basis&&) noexcept = default;
 
-	constexpr AxisBase(const glm::vec3& front, const glm::vec3& right, const glm::vec3& up) :
+	constexpr Basis(const glm::vec3& front, const glm::vec3& right, const glm::vec3& up) :
 		front(front),
 		right(right),
 		up(up)
@@ -58,7 +58,7 @@ struct AxisBase
 		front.z = -view[2][2];
 	}
 
-	constexpr AxisBase(const glm::mat4& view) :
+	constexpr Basis(const glm::mat4& view) :
 		right(view[0][0], view[1][0], view[2][0]),
 		up(view[0][1], view[1][1], view[2][1]),
 		front(-view[0][2], -view[1][2], -view[2][2])
@@ -185,13 +185,31 @@ public:
 	const glm::mat4& getInvertedModelMatrix() const;
 
 public:
-	inline void setPosition(const glm::vec3& position) { _position = position; _modelNeedUpdate = true; _invertedModelNeedUpdate = true; ++_changeVersion; }
+	inline void setPosition(const glm::vec3& position)
+	{
+		_position = position;
+		_modelNeedUpdate = true;
+		_invertedModelNeedUpdate = true;
+		++_changeVersion;
+	}
 	inline const glm::vec3& getPosition() const { return _position; }
 
-	inline void setRotation(const glm::vec3& rotation) { _rotation = rotation; _modelNeedUpdate = true; _invertedModelNeedUpdate = true; ++_changeVersion; }
+	inline void setRotation(const glm::vec3& rotation)
+	{
+		_rotation = glm::utils::normalizeRange(rotation, -360, 360);
+		_modelNeedUpdate = true;
+		_invertedModelNeedUpdate = true;
+		++_changeVersion;
+	}
 	inline const glm::vec3& getRotation() const { return _rotation; }
 
-	inline void setScale(const glm::vec3& scale) { _scale = scale; _modelNeedUpdate = true; _invertedModelNeedUpdate = true; ++_changeVersion; }
+	inline void setScale(const glm::vec3& scale)
+	{
+		_scale = glm::max(scale, { 0, 0, 0 });
+		_modelNeedUpdate = true;
+		_invertedModelNeedUpdate = true;
+		++_changeVersion;
+	}
 	inline const glm::vec3& getScale() const { return _scale; }
 
 	inline void setPosition(float x, float y, float z) { setPosition({ x, y, z }); }
@@ -204,7 +222,7 @@ public:
 	inline void rotate(const glm::vec3& deltaAngles) { setRotation(_rotation + deltaAngles); }
 	inline void rotate(float x, float y, float z) { rotate({ x, y, z }); }
 
-	inline void scale(const glm::vec3& delta) { setScale(_scale + delta); }
+	inline void scale(const glm::vec3& delta) { setScale(_scale * delta); }
 	inline void scale(float x, float y, float z) { scale({ x, y, z }); }
 
 	inline glm::mat3 getNormalMatrix() const { return glm::mat3(glm::transpose(getInvertedModelMatrix())); }
@@ -218,4 +236,26 @@ public:
 	inline glm::vec3 getGlobalPosition() const { return getModelMatrix()[3]; }
 
 	inline glm::vec3 getGlobalScale() const { return { glm::length(getRight()), glm::length(getUp()), glm::length(getBackward()) }; }
+
+	inline Basis getBasis() { return { getFront(), getRight(), getUp() }; }
+
+
+	inline void multiplyTransformBy(const Transformable& other)
+	{
+		move(other.getPosition());
+		rotate(other.getRotation());
+		scale(other.getScale());
+	}
+
+	friend inline Transformable operator* (const Transformable& left, const Transformable& right)
+	{
+		Transformable result = left;
+		result.multiplyTransformBy(right);
+		return result;
+	}
+
+	friend inline Transformable& operator*= (Transformable& left, const Transformable& right)
+	{
+		return left.multiplyTransformBy(right), left;
+	}
 };

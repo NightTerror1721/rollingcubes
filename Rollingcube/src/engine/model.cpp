@@ -243,13 +243,13 @@ bool Model::load(const std::string_view& filename, bool computeTangentBasis)
 
 ModelManager ModelManager::Root = ModelManager(nullptr);
 
-ModelManager::Reference ModelManager::loadFromFile(std::string_view filename, bool computeTangentBasis)
+ModelManager::Reference ModelManager::loadFromFile(const IdType& key, std::string_view filename, bool computeTangentBasis)
 {
-	Reference ref = get(filename.data());
+	Reference ref = get(key);
 	if (ref != nullptr)
 		return ref;
 
-	ref = emplace(filename.data());
+	ref = emplace(key);
 	if (!ref)
 		return nullptr;
 

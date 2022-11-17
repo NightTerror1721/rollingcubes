@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <iostream>
 
 #pragma warning(push)
 #pragma warning(disable: 26495)
@@ -15,6 +16,8 @@
 
 using luabridge::LuaRef;
 using luabridge::LuaException;
+
+class LuaEnv;
 
 
 namespace lua::utils
@@ -103,4 +106,10 @@ namespace lua::utils
 			return false;
 		}
 	}
+}
+
+namespace lua::utils
+{
+	void dump(std::ostream& os, lua_State* state, const LuaRef& ref, unsigned int identation = 0, unsigned int identationIncrement = 4);
+	void dump(std::ostream& os, lua_State* state, const LuaEnv& env, unsigned int identation = 0, unsigned int identationIncrement = 4);
 }

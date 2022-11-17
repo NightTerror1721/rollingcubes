@@ -9,4 +9,6 @@ namespace lua::lib::names
 	constexpr const char themes[] = "themes";
 	constexpr const char blocks[] = "blocks";
 	constexpr const char tiles[] = "tiles";
+	constexpr const char models[] = "models";
+	constexpr const char balls[] = "balls";
 }

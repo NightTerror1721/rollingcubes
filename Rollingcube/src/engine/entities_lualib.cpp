@@ -233,6 +233,33 @@ namespace lua::lib::LUA_entities
 		}
 	}
 
+	namespace LUA_lightContainer
+	{
+		static const glm::vec3& getPosition(const StaticLightContainer* self) { return self->getPosition(); }
+
+		static const Light* getLight(StaticLightContainer* self, lua_Integer index) { return std::addressof(self->at(std::size_t(index))); }
+
+
+		static defineLuaLibraryConstructor(registerToLua, root, state)
+		{
+			namespace meta = ::lua::metamethod;
+
+			// Light //
+			auto clss = root.beginClass<StaticLightContainer>("StaticLightContainer");
+			clss
+				// Properties //
+				.addProperty("position", &getPosition)
+				// Operators //
+				.addFunction(meta::len, &StaticLightContainer::size)
+				.addFunction(meta::index, &getLight)
+				// Methods //
+				;
+
+			root = clss.endClass();
+			return true;
+		}
+	}
+
 	namespace LUA_transformable
 	{
 		static const glm::vec3& getPosition(const Transformable* self) { return self->getPosition(); }
@@ -301,7 +328,12 @@ namespace lua::lib::LUA_entities
 
 	namespace LUA_modelableEntity
 	{
-		static Entity::Id::IntegerType getEntityId(ModelableEntity* self) { return self->getEntityId(); }
+		static Entity::Id::IntegerType getEntityId(const ModelableEntity* self) { return self->getEntityId(); }
+
+		static StaticLightContainer* getStaticLightContainer(const ModelableEntity* self)
+		{
+			return std::addressof(const_cast<StaticLightContainer&>(self->getStaticLightContainer()));
+		}
 
 
 		static bool operatorEq(const ModelableEntity* left, const ModelableEntity* right) { return (*left) == (*right); }
@@ -354,6 +386,9 @@ namespace lua::lib::LUA_entities
 			return false;
 
 		if (!LUA_light::registerToLua(root, state))
+			return false;
+
+		if (!LUA_lightContainer::registerToLua(root, state))
 			return false;
 
 		if (!LUA_transformable::registerToLua(root, state))

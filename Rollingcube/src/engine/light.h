@@ -114,6 +114,11 @@ public:
 
 	constexpr void setDirection(const glm::vec3& direction) { _direction = direction; }
 	constexpr const glm::vec3& getDirection() const { return _direction; }
+
+	inline void setDirectionFromAngles(float pitch, float yaw)
+	{
+		setDirection(glm::utils::pitchYawDirection(pitch, yaw));
+	}
 };
 
 

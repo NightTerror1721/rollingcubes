@@ -37,6 +37,7 @@ namespace lua::metamethod
 namespace lua::lib::constants
 {
 	constexpr const char import[] = "import";
+	constexpr const char include[] = "include";
 	constexpr const char openlib[] = "openlib";
 }
 

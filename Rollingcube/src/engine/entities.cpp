@@ -33,39 +33,11 @@ void ModelableEntity::renderWithLightningShader(const Camera& cam)
 void ModelableEntity::bindLightnigShaderRenderData(const Camera& cam) const
 {
 	bindLightnigShaderRenderData(cam, *this, internalGetMaterial(), hasStaticLightManagerLinked() ? std::addressof(getStaticLightContainer()) : nullptr);
-
-	/*auto shader = getLightningShader();
-	if (shader == nullptr)
-		return;
-
-	Material::ConstRef material = internalGetMaterial();
-	if (material == nullptr)
-		return;
-
-	shader->use();
-
-	shader[constants::uniform::camera::viewProjection()] = cam.getViewprojectionMatrix();
-	shader[constants::uniform::camera::viewPos()] = cam.getPosition();
-
-	material->bindTextures();
-
-	shader[constants::uniform::model_data::model()] = getModelMatrix();
-	shader[constants::uniform::model_data::modelNormal()] = getNormalMatrix();
-	if (_staticLightManager != nullptr)
-		shader->setUniformStaticLights(_staticLightContainer);
-	shader->setUniformMaterial(*&material);*/
 }
 
 void ModelableEntity::unbindLightnigShaderRenderData() const
 {
 	unbindLightnigShaderRenderData(internalGetMaterial());
-	/*auto shader = getLightningShader();
-	auto material = internalGetMaterial();
-	if (shader != nullptr && material != nullptr)
-	{
-		material->unbindTextures();
-		shader->notUse();
-	}*/
 }
 
 void ModelableEntity::bindLightnigShaderRenderData(
@@ -78,29 +50,28 @@ void ModelableEntity::bindLightnigShaderRenderData(
 	if (shader == nullptr)
 		return;
 
-	if (material == nullptr)
-		return;
-
 	shader->use();
 
 	shader[constants::uniform::camera::viewProjection()] = cam.getViewprojectionMatrix();
 	shader[constants::uniform::camera::viewPos()] = cam.getPosition();
 
-	material->bindTextures();
+	if (material != nullptr)
+	{
+		material->bindTextures();
+		shader->setUniformMaterial(*&material);
+	}
 
 	shader[constants::uniform::model_data::model()] = transform.getModelMatrix();
 	shader[constants::uniform::model_data::modelNormal()] = transform.getNormalMatrix();
 	if (staticLightContainer != nullptr)
 		shader->setUniformStaticLights(*staticLightContainer);
-	shader->setUniformMaterial(*&material);
 }
 
 void ModelableEntity::unbindLightnigShaderRenderData(Material::ConstRef material)
 {
 	auto shader = ShaderProgramManager::instance().getLightningShaderProgram();
-	if (shader != nullptr && material != nullptr)
-	{
-		material->unbindTextures();
+	if (shader != nullptr)
 		shader->notUse();
-	}
+	if(material != nullptr)
+		material->unbindTextures();
 }

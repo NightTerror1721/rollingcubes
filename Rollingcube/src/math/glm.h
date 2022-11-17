@@ -121,6 +121,72 @@ namespace glm::utils
 	{
 		return pitchYawRollRotationMatrix(eulerAngles.z, eulerAngles.y, eulerAngles.x);
 	}
+
+	template <std::integral _Ty, std::convertible_to<_Ty> _MinTy, std::convertible_to<_Ty> _MaxTy>
+	constexpr _Ty normalizeRange(_Ty value, _MinTy min, _MaxTy max)
+	{
+		return ((value - _Ty(min)) % (_Ty(max) - _Ty(min))) + _Ty(min);
+	}
+
+	template <std::floating_point _Ty, std::convertible_to<_Ty> _MinTy, std::convertible_to<_Ty> _MaxTy>
+	constexpr _Ty normalizeRange(_Ty value, _MinTy min, _MaxTy max)
+	{
+		if (value < _Ty(min))
+			value += _Ty(std::intmax_t(value / (_Ty(max) - _Ty(min)))) * (_Ty(max) - _Ty(min));
+		else if(value > _Ty(max))
+			value -= _Ty(std::intmax_t(value / (_Ty(max) - _Ty(min)))) * (_Ty(max) - _Ty(min));
+		return value;
+	}
+
+	template <typename T, qualifier Q, typename _MinTy, typename _MaxT> requires 
+		(std::integral<T> || std::floating_point<T>) &&
+		std::convertible_to<_MinTy, T> &&
+		std::convertible_to<_MaxT, T>
+	constexpr vec<2, T, Q> normalizeRange(const vec<2, T, Q>& value, _MinTy min, _MaxT max)
+	{
+		return {
+			normalizeRange<T, _MinTy, _MaxT>(value.x, min, max),
+			normalizeRange<T, _MinTy, _MaxT>(value.y, min, max)
+		};
+	}
+
+	template <typename T, qualifier Q, typename _MinTy, typename _MaxT> requires
+		(std::integral<T> || std::floating_point<T>) &&
+		std::convertible_to<_MinTy, T> &&
+		std::convertible_to<_MaxT, T>
+		constexpr vec<3, T, Q> normalizeRange(const vec<3, T, Q>& value, _MinTy min, _MaxT max)
+	{
+		return {
+			normalizeRange<T, _MinTy, _MaxT>(value.x, min, max),
+			normalizeRange<T, _MinTy, _MaxT>(value.y, min, max),
+			normalizeRange<T, _MinTy, _MaxT>(value.z, min, max)
+		};
+	}
+
+	template <typename T, qualifier Q, typename _MinTy, typename _MaxT> requires
+		(std::integral<T> || std::floating_point<T>) &&
+		std::convertible_to<_MinTy, T> &&
+		std::convertible_to<_MaxT, T>
+		constexpr vec<4, T, Q> normalizeRange(const vec<4, T, Q>& value, _MinTy min, _MaxT max)
+	{
+		return {
+			normalizeRange<T, _MinTy, _MaxT>(value.x, min, max),
+			normalizeRange<T, _MinTy, _MaxT>(value.y, min, max),
+			normalizeRange<T, _MinTy, _MaxT>(value.z, min, max),
+			normalizeRange<T, _MinTy, _MaxT>(value.w, min, max)
+		};
+	}
+
+	inline glm::vec3 pitchYawDirection(float pitch, float yaw)
+	{
+		pitch = glm::utils::normalizeRange(pitch, -180, 180);
+		yaw = glm::utils::normalizeRange(yaw, -180, 180);
+		return glm::normalize(glm::vec3{
+			glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch)),
+			glm::sin(glm::radians(pitch)),
+			glm::sin(glm::radians(yaw)) * glm::cos(glm::radians(pitch))
+		});
+	}
 }
 
 template<typename T, glm::qualifier Q>

@@ -13,16 +13,38 @@ namespace lua::lib { void registerBlocksLibToLua(); }
 
 
 
+
+enum class Orientation : int
+{
+	Right = 0,
+	Front = 1,
+	Left = 2,
+	Back = 3,
+
+	Default = Right
+};
+
+namespace utils
+{
+	constexpr Orientation normalize(Orientation o)
+	{
+		return Orientation(glm::utils::normalizeRange(int(o), int(Orientation::Right), int(Orientation::Back)));
+	}
+}
+
+
+
+
 class Block;
 class BlockSide;
 class BlocksNet;
 class BlockContainer;
 
-class BlockModel : public LuaModel
+class BlockTemplate : public LuaTemplate
 {
 public:
-	using Ref = Reference<BlockModel>;
-	using ConstRef = ConstReference<BlockModel>;
+	using Ref = Reference<BlockTemplate>;
+	using ConstRef = ConstReference<BlockTemplate>;
 
 public:
 	static constexpr std::string_view FunctionOnRender = "OnRender";
@@ -34,13 +56,13 @@ public:
 	static constexpr std::string_view FunctionOnBlockSideConstruct = "OnBlockSideConstruct";
 
 public:
-	BlockModel() = default;
-	BlockModel(const BlockModel&) = delete;
-	BlockModel(BlockModel&&) noexcept = default;
-	~BlockModel() = default;
+	BlockTemplate() = default;
+	BlockTemplate(const BlockTemplate&) = delete;
+	BlockTemplate(BlockTemplate&&) noexcept = default;
+	~BlockTemplate() = default;
 
-	BlockModel& operator= (const BlockModel&) = delete;
-	BlockModel& operator= (BlockModel&&) noexcept = default;
+	BlockTemplate& operator= (const BlockTemplate&) = delete;
+	BlockTemplate& operator= (BlockTemplate&&) noexcept = default;
 
 	inline Type getType() const override { return Type::Block; }
 
@@ -57,16 +79,16 @@ public:
 
 
 
-class BlockModelManager : public LuaModelManager<BlockModel>
+class BlockTemplateManager : public LuaTemplateManager<BlockTemplate>
 {
 private:
-	static BlockModelManager Instance;
+	static BlockTemplateManager Instance;
 
 public:
-	static inline BlockModelManager& instance() { return Instance; }
+	static inline BlockTemplateManager& instance() { return Instance; }
 
 private:
-	inline BlockModelManager() : LuaModelManager() {}
+	inline BlockTemplateManager() : LuaTemplateManager() {}
 };
 
 
@@ -85,7 +107,7 @@ public:
 private:
 	SideId _sideId;
 	Block* _parent;
-	BlockModel::Ref _blockModel = nullptr;
+	BlockTemplate::Ref _template = nullptr;
 
 	mutable VersionFlag _updateVersion = {};
 	mutable Transformable _transform = {};
@@ -107,8 +129,8 @@ public:
 	constexpr Block& getParent() { return *_parent; }
 	constexpr const Block& getParent() const { return *_parent; }
 
-	constexpr void setBlockModel(BlockModel::Ref model) { _blockModel = model; }
-	BlockModel::Ref getBlockModel() const;
+	constexpr void setTemplate(BlockTemplate::Ref templ) { _template = templ; }
+	BlockTemplate::Ref getTemplate() const;
 
 	Id getId() const;
 
@@ -124,7 +146,7 @@ private:
 
 	inline void init()
 	{
-		auto model = getBlockModel();
+		auto model = getTemplate();
 		if(model)
 			model->onBlockSideConstruct(*this);
 	}
@@ -137,7 +159,7 @@ public:
 
 	inline void update(Time elapsedTime) override
 	{
-		auto model = getBlockModel();
+		auto model = getTemplate();
 		if (model)
 			model->onUpdateSide(*this, elapsedTime);
 	}
@@ -245,7 +267,7 @@ public:
 private:
 	Id _blockId;
 	std::array<Side, cubes::side::count> _sides;
-	BlockModel::Ref _blockModel;
+	BlockTemplate::Ref _template;
 
 	Slot _slot;
 
@@ -274,8 +296,8 @@ public:
 	constexpr Side& getSide(Side::SideId sideId) { return _sides[cubes::side::idToInt(sideId)]; }
 	constexpr const Side& getSide(Side::SideId sideId) const { return _sides[cubes::side::idToInt(sideId)]; }
 
-	constexpr void setBlockModel(BlockModel::Ref model) { _blockModel = model; }
-	constexpr BlockModel::Ref getBlockModel() const { return _blockModel; }
+	constexpr void setTemplate(BlockTemplate::Ref templ) { _template = templ; }
+	constexpr BlockTemplate::Ref getTemplate() const { return _template; }
 
 	constexpr const Slot& getBlockSlot() const { return _slot; }
 
@@ -290,20 +312,32 @@ public:
 
 private:
 	constexpr void setBlockSlot(const Slot& coords) { _slot = coords; }
+
+public:
+	static inline void setTransformOnSide(Transformable& transf, const Block& block, Side::SideId sideId, glm::vec3 offsets = {})
+	{
+		const auto& sideTransf = block.getSide(sideId).getTransform();
+//		auto result = block * sideTransf;
+		transf.setPosition(sideTransf.getPosition());
+		transf.setRotation(sideTransf.getRotation());
+
+		offsets = glm::quat(glm::radians(transf.getRotation())) * offsets;
+		transf.move(offsets);
+	}
 };
 
 
 inline BlockSide::Id BlockSide::getId() const { return cubes::side::idToInt(_sideId) * _parent->getBlockId(); }
 
-inline BlockModel::Ref BlockSide::getBlockModel() const { return _blockModel ? _blockModel : _parent->_blockModel; }
+inline BlockTemplate::Ref BlockSide::getTemplate() const { return _template ? _template : _parent->_template; }
 
-inline void BlockModel::onRender(Block& block, const Camera& cam) { vcall(FunctionOnRender, std::addressof(block), std::addressof(cam)); }
-inline void BlockModel::onRenderSide(BlockSide& side, const Camera& cam) { vcall(FunctionOnRenderSide, std::addressof(side), std::addressof(cam)); }
-inline void BlockModel::onUpdate(Block& block, Time elapsedTime) { vcall(FunctionOnUpdate, std::addressof(block), elapsedTime.toSeconds()); }
-inline void BlockModel::onUpdateSide(BlockSide& side, Time elapsedTime) { vcall(FunctionOnUpdateSide, std::addressof(side), elapsedTime.toSeconds()); }
+inline void BlockTemplate::onRender(Block& block, const Camera& cam) { vcall(FunctionOnRender, std::addressof(block), std::addressof(cam)); }
+inline void BlockTemplate::onRenderSide(BlockSide& side, const Camera& cam) { vcall(FunctionOnRenderSide, std::addressof(side), std::addressof(cam)); }
+inline void BlockTemplate::onUpdate(Block& block, Time elapsedTime) { vcall(FunctionOnUpdate, std::addressof(block), elapsedTime.toSeconds()); }
+inline void BlockTemplate::onUpdateSide(BlockSide& side, Time elapsedTime) { vcall(FunctionOnUpdateSide, std::addressof(side), elapsedTime.toSeconds()); }
 
-inline void BlockModel::onBlockConstruct(Block& block) { vcall(FunctionOnBlockConstruct, std::addressof(block)); }
-inline void BlockModel::onBlockSideConstruct(BlockSide& side) { vcall(FunctionOnBlockSideConstruct, std::addressof(side)); }
+inline void BlockTemplate::onBlockConstruct(Block& block) { vcall(FunctionOnBlockConstruct, std::addressof(block)); }
+inline void BlockTemplate::onBlockSideConstruct(BlockSide& side) { vcall(FunctionOnBlockSideConstruct, std::addressof(side)); }
 
 
 

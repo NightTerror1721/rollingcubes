@@ -60,3 +60,10 @@ namespace cubes::model
 	inline void render(std::string_view sideName) { getMesh(sideName).render(); }
 	inline void render() { getModel()->render(); }
 }
+
+
+namespace cubes
+{
+	constexpr float gravity = side::size * 64;
+	constexpr float baseMaxFallSpeed = side::size * 30;
+}

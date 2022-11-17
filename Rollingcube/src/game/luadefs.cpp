@@ -3,7 +3,7 @@
 #include "utils/logger.h"
 
 
-Reference<LuaRef> LuaModel::findLuaObject(std::string_view name) const
+Reference<LuaRef> LuaTemplate::findLuaObject(std::string_view name) const
 {
 	if (!_loaded)
 		return nullptr;
@@ -12,7 +12,7 @@ Reference<LuaRef> LuaModel::findLuaObject(std::string_view name) const
 	if (it != _luaCache.end())
 		return it->second.get();
 
-	auto obj = std::make_unique<LuaRef>(_script.getEnvValue(name));
+	auto obj = std::make_unique<LuaRef>(_script.getEnv()[name]);
 	if (obj->isNil())
 	{
 		obj.release();
@@ -25,16 +25,16 @@ Reference<LuaRef> LuaModel::findLuaObject(std::string_view name) const
 	return ref;
 }
 
-LuaModel::~LuaModel()
+LuaTemplate::~LuaTemplate()
 {
 	clear();
 }
 
-bool LuaModel::load()
+bool LuaTemplate::load()
 {
 	if (isLoaded())
 	{
-		logger::warn("Attempt to load already loaded LuaModel {}/{}.lua", getModelTypeName(getType()), _name);
+		logger::warn("Attempt to load already loaded LuaModel {}/{}.lua", getTemplateTypeName(getType()), _name);
 		return false;
 	}
 
@@ -64,7 +64,7 @@ bool LuaModel::load()
 	return true;
 }
 
-void LuaModel::reload()
+void LuaTemplate::reload()
 {
 	if (isLoaded())
 	{
@@ -75,18 +75,18 @@ void LuaModel::reload()
 	}
 }
 
-void LuaModel::clear()
+void LuaTemplate::clear()
 {
 	vcall(FunctionOnDestroy);
 }
 
-void LuaModel::init()
+void LuaTemplate::init()
 {
 	_script();
 	vcall(FunctionOnInit);
 }
 
-std::optional<Path> LuaModel::findModelFile() const
+std::optional<Path> LuaTemplate::findModelFile() const
 {
 	if (_name.empty())
 		return {};
@@ -95,36 +95,7 @@ std::optional<Path> LuaModel::findModelFile() const
 	if (type == Type::Unknown)
 		return {};
 
-	std::string typeName = getModelTypeName(type).data();
+	std::string typeName = getTemplateTypeName(type).data();
 
-	return resources::findFirstValidPath(resources::defs.path(), (Path(typeName) / _name).string(), ".lua");
-
-	/*if (_name.empty())
-		return {};
-
-	Type type = getType();
-	if (type == Type::Unknown)
-		return {};
-
-	std::string typeName = getModelTypeName(type).data();
-
-	const Path relative = Path(typeName) / _name;
-	int count = int(std::distance(relative.begin(), relative.end()));
-
-	Path path = resources::models / relative;
-	for(; count > 0; --count)
-	{
-		Path file = resources::absolute(path);
-		file += ".lua";
-
-		if (std::filesystem::exists(file) && std::filesystem::is_regular_file(file))
-			return resources::absolute(file);
-
-		if (path.has_parent_path())
-			path = path.parent_path();
-		else
-			count = 0;
-	}
-
-	return {};*/
+	return resources::findFirstValidPath(resources::templates.path(), (Path(typeName) / _name).string(), ".lua");
 }

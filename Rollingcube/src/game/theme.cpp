@@ -18,7 +18,7 @@ const std::unordered_set<std::string>& Theme::getAvailableThemeFiles()
 	static constinit bool initiated = false;
 	if (!initiated)
 	{
-		Path dir = resources::absolute(resources::defs / LuaModel::getModelTypeName(LuaModel::Type::Theme));
+		Path dir = resources::absolute(resources::templates / LuaTemplate::getTemplateTypeName(LuaTemplate::Type::Theme));
 		for (const auto& entry : std::filesystem::directory_iterator(dir))
 		{
 			if (entry.is_regular_file())
@@ -47,7 +47,7 @@ bool Theme::load(const std::string& name)
 		return false;
 	}
 
-	auto model = std::make_unique<ThemeModel>();
+	auto model = std::make_unique<ThemeTemplate>();
 	model->setName(name);
 	if (!model->load())
 	{
@@ -60,19 +60,21 @@ bool Theme::load(const std::string& name)
 
 	_name = name;
 	_baseDir = name;
-	_model = std::move(model);
+	_template = std::move(model);
 
-	_model->onLoad();
+	_template->onLoad();
 
-	loadModels();
+	loadTemplates();
 
 	return true;
 }
 
-void Theme::loadModels()
+void Theme::loadTemplates()
 {
-	loadLuaModelData(LuaModel::Type::Tile, TileModelManager::instance());
-	loadLuaModelData(LuaModel::Type::Block, BlockModelManager::instance());
+	loadLuaTemplateData(LuaTemplate::Type::Tile, TileTemplateManager::instance());
+	loadLuaTemplateData(LuaTemplate::Type::Block, BlockTemplateManager::instance());
+	loadLuaTemplateData(LuaTemplate::Type::Model, ModelObjectTemplateManager::instance());
+	loadLuaTemplateData(LuaTemplate::Type::Ball, BallTemplateManager::instance());
 }
 
 void Theme::unload()
@@ -82,9 +84,9 @@ void Theme::unload()
 
 	_name = {};
 	_baseDir = {};
-	_model.release();
+	_template.release();
 	
-	for (std::size_t i = 0; i < LuaModel::TypeCount; ++i)
+	for (std::size_t i = 0; i < LuaTemplate::TypeCount; ++i)
 		_models[i].clear();
 
 	_textureManager.clear();
@@ -123,12 +125,12 @@ void Theme::scanDirectoryForScripts(const Path& directory, const std::function<v
 	}
 }
 
-void Theme::loadLuaModelData(LuaModel::Type type, const std::function<Reference<LuaModel>(const ScriptsDirectoryFileInfo&)>& loaderFunction)
+void Theme::loadLuaTemplateData(LuaTemplate::Type type, const std::function<Reference<LuaTemplate>(const ScriptsDirectoryFileInfo&)>& loaderFunction)
 {
-	auto& modelsCache = getModelCache(type);
+	auto& modelsCache = getTemplateCache(type);
 	modelsCache.clear();
 
-	scanDirectoryForScripts(resources::defs / LuaModel::getModelTypeName(type), [&modelsCache, &loaderFunction](const ScriptsDirectoryFileInfo& fileinfo) {
+	scanDirectoryForScripts(resources::templates / LuaTemplate::getTemplateTypeName(type), [&modelsCache, &loaderFunction](const ScriptsDirectoryFileInfo& fileinfo) {
 		auto ref = loaderFunction(fileinfo);
 		if (ref != nullptr)
 			modelsCache.insert({ fileinfo.keyname, ref });
@@ -168,6 +170,26 @@ Texture::Ref Theme::getTexture(const std::string& name) const
 	return _textureManager.loadFromImage(name, opath.value().string());
 }
 
+Model::Ref Theme::getModel(const std::string& name) const
+{
+	auto ref = _modelManager.get(name);
+	if (ref != nullptr)
+		return ref;
+
+	std::string relativeFilePath = prepareElementName(name);
+
+	static const std::initializer_list<std::string_view> textureExtensions = { ".obj" };
+
+	auto opath = resources::findFirstValidPath(resources::models.path(), relativeFilePath, textureExtensions);
+	if (!opath.has_value())
+	{
+		logger::error("Model on path {} not found.", (resources::models.path() / relativeFilePath).string());
+		return nullptr;
+	}
+
+	return _modelManager.loadFromFile(name, opath.value().string(), true);
+}
+
 
 
 
@@ -205,7 +227,11 @@ namespace lua::lib::LUA_theme
 
 	static Texture* getTexture(const std::string& name) { return &Theme::getCurrentTheme().getTexture(name); }
 
+	static Model* getModel(const std::string& name) { return &Theme::getCurrentTheme().getModel(name); }
+	static Model* getBallModel() { return &Theme::getCurrentTheme().getBallModel(); }
+
 	static Tile getTile(const std::string& name) { return Theme::getCurrentTheme().getTile(name); }
+	static ModelObject getModelObject(const std::string& name) { return Theme::getCurrentTheme().getModelObject(name); }
 
 
 	static defineLuaLibraryConstructor(registerToLua, root, state)
@@ -219,7 +245,10 @@ namespace lua::lib::LUA_theme
 			// Methods //
 			.addStaticFunction("change", &change)
 			.addStaticFunction("getTexture", &getTexture)
+			.addStaticFunction("getModel", &getModel)
+			.addStaticFunction("getBallModel", &getBallModel)
 			.addStaticFunction("getTile", &getTile)
+			.addStaticFunction("getModelObject", &getModelObject)
 			;
 
 		lua::lib::utils::addLuaLocalVariablesToClass(clss);

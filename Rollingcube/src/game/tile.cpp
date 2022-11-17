@@ -5,7 +5,7 @@
 #include "utils/lualib_constants.h"
 
 
-TileModelManager TileModelManager::Instance = {};
+TileTemplateManager TileTemplateManager::Instance = {};
 
 
 
