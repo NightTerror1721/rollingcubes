@@ -16,12 +16,12 @@ namespace balls
 	constexpr float baseFarJumpSpeed = cubes::side::size * 18;
 	constexpr float baseHighJumpSpeed = cubes::side::size * 30;
 
-	constexpr float baseDelayForwardJump = 0.075f;
+	constexpr float baseLateForwardJumpTime = 0.075f;
 
 	constexpr float baseForwardPressTime = 0.15f;
 	constexpr float baseForwardJumpPressTime = 0.1f;
 
-	constexpr float baseRotationTimeStop = 0;
+	constexpr float baseRotationStopTime = 0;
 
 	constexpr float baseLookRelaxSpeed = 3;
 	constexpr float baseLookSpeed = 3;

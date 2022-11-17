@@ -27,6 +27,7 @@ shadowScale = 1
 -- PRIVATE FUNCTIONS --
 
 
+
 -- PUBLIC FUNCTIONS --
 BallUtils = {}
 
