@@ -10,6 +10,10 @@
 
 #include "engine/entities.h"
 
+#include "level.h"
+#include "freecam.h"
+#include "properties.h"
+
 
 enum class GameControllerState
 {
@@ -36,7 +40,10 @@ private:
 
 	Camera _mainCamera = {};
 
-	std::unordered_map<Entity::Id, std::shared_ptr<Entity>> _entities = {};
+	FreecamController _freecam = {};
+	Level _level;
+
+	const Reference<Properties> _props = Properties::referenceInstance();
 
 private:
 	GameController(const GameController&) = delete;
@@ -53,16 +60,14 @@ public:
 	void start(const std::function<bool()>& initiatingFunction = {}, const std::function<void()>& finalizingFunction = {});
 
 private:
+	bool init(const std::function<bool()>& initiatingFunction);
+
 	void loop();
 	void render();
 	void update();
 	void dispatchEvents();
 
 	void finalize(const std::function<void()>& finalizingFunction);
-
-	void addEntity(const std::shared_ptr<Entity>& entity);
-
-	bool removeEntity(Entity::Id id);
 
 public:
 	constexpr bool isRunning() const { return _state == State::Running; }
@@ -73,24 +78,16 @@ public:
 	constexpr Camera& getMainCamera() { return _mainCamera; }
 	constexpr const Camera& getMainCamera() const { return _mainCamera; }
 
+	constexpr FreecamController& getFreecam() { return _freecam; }
+	constexpr const FreecamController& getFreecam() const { return _freecam; }
+
+	constexpr Level& getLevel() { return _level; }
+	constexpr const Level& getLevel() const { return _level; }
+
 	inline void stop()
 	{
 		if (_state == State::Running)
 			_state = State::Finalizing;
-	}
-
-	inline bool removeEntity(const Entity& entity) { return removeEntity(entity.getEntityId()); }
-	inline bool removeEntity(const std::shared_ptr<Entity>& entity)
-	{
-		if(entity != nullptr)
-			removeEntity(entity->getEntityId());
-	}
-
-	inline bool containsEntity(Entity::Id id) const { return _entities.contains(id); }
-	inline bool containsEntity(const Entity& entity) const { return _entities.contains(entity.getEntityId()); }
-	inline bool containsEntity(const std::shared_ptr<Entity>& entity) const
-	{
-		return entity != nullptr && _entities.contains(entity->getEntityId());
 	}
 
 public:

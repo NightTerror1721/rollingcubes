@@ -1,12 +1,14 @@
 #pragma once
 
 #include <array>
+#include <queue>
 
 #include "engine/entities.h"
 
 #include "cube_model.h"
 #include "luadefs.h"
 #include "tile.h"
+#include "basics.h"
 
 
 namespace lua::lib { void registerBlocksLibToLua(); }
@@ -39,6 +41,8 @@ class Block;
 class BlockSide;
 class BlocksNet;
 class BlockContainer;
+class BlockContainerIterator;
+class ConstBlockContainerIterator;
 
 class BlockTemplate : public LuaTemplate
 {
@@ -258,6 +262,8 @@ public:
 	friend BlockSide;
 	friend BlocksNet;
 	friend BlockContainer;
+	friend BlockContainerIterator;
+	friend ConstBlockContainerIterator;
 
 public:
 	using Id = unsigned int;
@@ -265,11 +271,14 @@ public:
 	using Slot = BlockSlot;
 
 private:
-	Id _blockId;
+	Id _blockId = 0;
 	std::array<Side, cubes::side::count> _sides;
-	BlockTemplate::Ref _template;
+	BlockTemplate::Ref _template = nullptr;
 
 	Slot _slot;
+	Reference<BlockContainer> _blockContainer = nullptr;
+	std::shared_ptr<Block> _nextBlock = nullptr;
+	std::shared_ptr<Block> _prevBlock = nullptr;
 
 public:
 	Block(const Block&) = delete;
@@ -279,7 +288,7 @@ public:
 	Block& operator= (Block&&) noexcept = default;
 
 public:
-	Block(Id id = 0);
+	Block();
 	virtual ~Block();
 
 	void init();
@@ -290,7 +299,6 @@ public:
 	void update(Time elapsedTime) override;
 
 public:
-	constexpr void setBlockId(Id blockId) { _blockId = blockId; }
 	constexpr Id getBlockId() const { return _blockId; }
 
 	constexpr Side& getSide(Side::SideId sideId) { return _sides[cubes::side::idToInt(sideId)]; }
@@ -303,6 +311,9 @@ public:
 
 	inline void render(const Camera& cam) override { luaRender(cam); }
 
+	constexpr glm::vec3 getMinimums() const { return getPosition() - glm::vec3(cubes::side::midsize); }
+	constexpr glm::vec3 getMaximums() const { return getPosition() + glm::vec3(cubes::side::midsize); }
+
 protected:
 	Model::Ref internalGetModel() const override { return cubes::model::getModel(); }
 
@@ -311,6 +322,7 @@ public:
 	constexpr const Side& operator[] (Side::SideId sideId) const { return getSide(sideId); }
 
 private:
+	constexpr void setBlockId(Id blockId) { _blockId = blockId; }
 	constexpr void setBlockSlot(const Slot& coords) { _slot = coords; }
 
 public:
@@ -327,7 +339,7 @@ public:
 };
 
 
-inline BlockSide::Id BlockSide::getId() const { return cubes::side::idToInt(_sideId) * _parent->getBlockId(); }
+inline BlockSide::Id BlockSide::getId() const { return (_parent->getBlockId() - 1) * cubes::side::count + cubes::side::idToInt(_sideId); }
 
 inline BlockTemplate::Ref BlockSide::getTemplate() const { return _template ? _template : _parent->_template; }
 
@@ -359,11 +371,10 @@ public:
 	BlocksNet& operator= (const BlocksNet&) = default;
 	BlocksNet& operator= (BlocksNet&&) noexcept = default;
 
-private:
-
 public:
+	inline bool empty() const { return _net.empty(); }
+	inline std::size_t size() const { return _net.size(); }
 
-public:
 	inline std::shared_ptr<Block> getBlock(const Block::Slot& slot) const
 	{
 		const auto& it = _net.find(slot);
@@ -401,19 +412,171 @@ public:
 		_net.erase(it);
 		return ptr;
 	}
-};
 
+	inline void clear()
+	{
+		_net.clear();
+	}
+};
 
 
 
 class BlockContainer
 {
 public:
-	using ZBlocksMap = std::unordered_map<BlockSlot::ValueType, std::shared_ptr<Block>>;
-	using YZBlocksMap = std::unordered_map<BlockSlot::ValueType, ZBlocksMap>;
-	using XYZBlocksMap = std::unordered_map<BlockSlot::ValueType, YZBlocksMap>;
+	friend BlockContainerIterator;
+	friend ConstBlockContainerIterator;
+
+public:
+	using Net = BlocksNet;
+	using Slot = Block::Slot;
+
+	using iterator = BlockContainerIterator;
+	using const_iterator = ConstBlockContainerIterator;
 
 private:
-	std::vector<std::shared_ptr<Block>> _blocks;
-	XYZBlocksMap _blocksNet;
+	Net _net = {};
+	std::vector<std::shared_ptr<Block>> _allocator = {};
+	std::priority_queue<Block::Id> _unusedIds = {};
+	std::shared_ptr<Block> _first = nullptr;
+	std::shared_ptr<Block> _last = nullptr;
+	std::shared_ptr<TransparentRenderList> _transparentRenderList = nullptr;
+
+public:
+	BlockContainer() = default;
+	BlockContainer(const BlockContainer&) = delete;
+	BlockContainer(BlockContainer&&) noexcept = default;
+
+	BlockContainer& operator= (const BlockContainer&) = delete;
+	BlockContainer& operator= (BlockContainer&&) noexcept = default;
+
+	inline ~BlockContainer() { clear(); }
+
+public:
+	void clear();
+
+	std::shared_ptr<Block> createBlock(const Slot& slot, const std::string& templateName);
+
+	bool removeBlock(const Slot& slot);
+
+	std::shared_ptr<Block> getBlockById(Block::Id blockId) const;
+	Reference<Block::Side> getBlockSideBySideId(Block::Side::Id sideId) const;
+
+	void render(const Camera& cam);
+	void update(Time elapsedTime);
+
+public:
+	inline bool empty() const { return _first == nullptr; }
+	inline std::size_t size() const { return _net.size(); }
+
+	inline bool containsBlock(const Slot& slot) const { return _net.getBlock(slot) != nullptr; }
+	inline std::shared_ptr<Block> getBlock(const Slot& slot) const { return _net.getBlock(slot); }
+
+	inline std::shared_ptr<Block> operator[] (const Slot& slot) const { return getBlock(slot); }
+
+	inline std::shared_ptr<Block> getBlockBySideId(Block::Side::Id sideId) const
+	{
+		return getBlockById(Block::Id(sideId / cubes::side::count) + 1);
+	}
+
+private:
+	std::shared_ptr<Block> createNewBlockFromTemplate(const std::string& templateName);
+
+private:
+	static constexpr std::size_t bidToIdx(Block::Id id) { return static_cast<std::size_t>(id - 1); }
+	static constexpr Block::Id idxToBid(std::size_t idx) { return static_cast<Block::Id>(idx + 1); }
+
+public:
+	iterator begin();
+	const_iterator begin() const;
+	const_iterator cbegin() const;
+	iterator end();
+	const_iterator end() const;
+	const_iterator cend() const;
 };
+
+
+class BlockContainerIterator
+{
+public:
+	friend ConstBlockContainerIterator;
+
+public:
+	using iterator_category = std::forward_iterator_tag;
+	using difference_type = std::ptrdiff_t;
+	using value_type = std::shared_ptr<Block>;
+	using pointer = std::shared_ptr<Block>*;
+	using reference = std::shared_ptr<Block>&;
+	using const_pointer = const std::shared_ptr<Block>*;
+	using const_reference = const std::shared_ptr<Block>&;
+
+private:
+	value_type _block = nullptr;
+
+public:
+	constexpr BlockContainerIterator() = default;
+	BlockContainerIterator(const BlockContainerIterator&) = default;
+	BlockContainerIterator(BlockContainerIterator&&) noexcept = default;
+	~BlockContainerIterator() = default;
+
+	BlockContainerIterator& operator= (const BlockContainerIterator&) = default;
+	BlockContainerIterator& operator= (BlockContainerIterator&&) noexcept = default;
+
+	bool operator== (const BlockContainerIterator&) const = default;
+
+public:
+	inline BlockContainerIterator(const_pointer ptr) : _block(*ptr) {}
+	inline BlockContainerIterator(const_reference ref) : _block(ref) {}
+
+	inline BlockContainerIterator& operator++ () { return _block = _block->_nextBlock, *this; }
+	inline BlockContainerIterator operator++ (int) { auto old = *this; return ++(*this), old; }
+
+	inline const value_type& operator* () const { return _block; }
+	inline Block* operator-> () const { return _block.get(); }
+};
+
+class ConstBlockContainerIterator
+{
+public:
+	using iterator_category = std::forward_iterator_tag;
+	using difference_type = std::ptrdiff_t;
+	using value_type = std::shared_ptr<const Block>;
+	using pointer = std::shared_ptr<const Block>*;
+	using reference = std::shared_ptr<const Block>&;
+	using const_pointer = const std::shared_ptr<const Block>*;
+	using const_reference = const std::shared_ptr<const Block>&;
+
+private:
+	value_type _block = nullptr;
+
+public:
+	constexpr ConstBlockContainerIterator() = default;
+	ConstBlockContainerIterator(const ConstBlockContainerIterator&) = default;
+	ConstBlockContainerIterator(ConstBlockContainerIterator&&) noexcept = default;
+	~ConstBlockContainerIterator() = default;
+
+	ConstBlockContainerIterator& operator= (const ConstBlockContainerIterator&) = default;
+	ConstBlockContainerIterator& operator= (ConstBlockContainerIterator&&) noexcept = default;
+
+	bool operator== (const ConstBlockContainerIterator&) const = default;
+
+public:
+	inline ConstBlockContainerIterator(const const_pointer ptr) : _block(*ptr) {}
+	inline ConstBlockContainerIterator(const const_reference ref) : _block(ref) {}
+	inline ConstBlockContainerIterator(const BlockContainerIterator::const_pointer ptr) : _block(*ptr) {}
+	inline ConstBlockContainerIterator(const BlockContainerIterator::const_reference ref) : _block(ref) {}
+	inline ConstBlockContainerIterator(BlockContainerIterator it) : _block(it._block) {}
+
+	inline ConstBlockContainerIterator& operator++ () { return _block = _block->_nextBlock, *this; }
+	inline ConstBlockContainerIterator operator++ (int) { auto old = *this; return ++(*this), old; }
+
+	inline const value_type& operator* () const { return _block; }
+	inline const Block* operator-> () const { return _block.get(); }
+};
+
+inline BlockContainer::iterator BlockContainer::begin() { return iterator(_first); }
+inline BlockContainer::const_iterator BlockContainer::begin() const { return const_iterator(_first); }
+inline BlockContainer::const_iterator BlockContainer::cbegin() const { return const_iterator(_first); }
+inline BlockContainer::iterator BlockContainer::end() { return iterator(); }
+inline BlockContainer::const_iterator BlockContainer::end() const { return const_iterator(); }
+inline BlockContainer::const_iterator BlockContainer::cend() const { return const_iterator(); }

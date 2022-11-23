@@ -26,6 +26,7 @@
 #include "game/cube_model.h"
 #include "game/block.h"
 #include "game/theme.h"
+#include "game/properties.h"
 
 
 int test_window();
@@ -36,6 +37,7 @@ Model createCubeModel();
 
 int main(int argc, char** argv)
 {
+    Properties::load();
     lua::initCustomLibs();
 
     //lua_test();
@@ -135,7 +137,7 @@ static void renderIfNotTransparency(EntityCameraDistanceCollection<ModelEntity>&
 
 void tutos()
 {
-    window::createMainWindow();
+    window::createMainWindow({ int(window::default_width), int(window::default_height) });
 
     Theme::changeCurrentTheme("test_theme");
 
@@ -456,17 +458,17 @@ void tutos()
         using WP = EntityCameraDistanceWrapper<ModelEntity>;
 
         WP wCube1;
-        wCube1.setEntity(entityCube1);
+        wCube1.setEntity(entityCube1.get());
         wCube1.setDistance(-cam.getDistanceTo(entityCube1->getPosition()));
         transparentEntities.addWrappedEntity(wCube1);
 
         WP wCube2;
-        wCube2.setEntity(entityCube2);
+        wCube2.setEntity(entityCube2.get());
         wCube2.setDistance(-cam.getDistanceTo(entityCube2->getPosition()));
         transparentEntities.addWrappedEntity(wCube2);
 
         WP wCube3;
-        wCube3.setEntity(entityCube3);
+        wCube3.setEntity(entityCube3.get());
         wCube3.setDistance(-cam.getDistanceTo(entityCube3->getPosition()));
         transparentEntities.addWrappedEntity(wCube3);
 
@@ -488,7 +490,7 @@ void tutos()
         const auto& rot = cam.getEulerAngles();
         const auto& camFront = cam.getFront();
         const auto& camUp = cam.getUp();
-        font.setColor({ 1, 1, 1 });
+        font.setColor({1, 1, 1});
         font.print(ortoCam, 5, 5, 16, "Cam pos: (x:{:.2f}, y:{:.2f}, z:{:.2f})", pos.x, pos.y, pos.z);
         font.print(ortoCam, 5, 5 + 16 + 5, 16, "Cam rot: (pitch:{:.2f}, yaw:{:.2f}, roll:{:.2f})", rot.x, rot.y, rot.z);
         font.print(ortoCam, 5, 5 + 32 + 10, 16, "Cam FRONT: (x:{:.2f}, y:{:.2f}, z:{:.2f})", camFront.x, camFront.y, camFront.z);

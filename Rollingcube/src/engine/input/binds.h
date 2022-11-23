@@ -198,6 +198,13 @@ public:
 public:
 	constexpr InputBindValue(ButtonState state) : state(state), axisValue(state == ButtonState::Pressed ? 1.f : 0.f) {}
 	constexpr InputBindValue(Gamepad::AxisValue value) : state(value != 0 ? ButtonState::Pressed : ButtonState::Released), axisValue(value) {}
+
+public:
+	constexpr bool isPressed() const { return state == ButtonState::Pressed; }
+	constexpr bool isReleased() const { return state == ButtonState::Released; }
+
+	constexpr bool operator== (decltype(nullptr)) const { return axisValue == 0; }
+	constexpr bool operator!= (decltype(nullptr)) const { return axisValue != 0; }
 };
 
 

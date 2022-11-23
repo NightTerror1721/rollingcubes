@@ -327,7 +327,7 @@ public:
 	using BaseEntityType = _EntityTy;
 
 protected:
-	std::shared_ptr<BaseEntityType> _entity = nullptr;
+	Reference<BaseEntityType> _entity = nullptr;
 	float _distance = 0;
 
 public:
@@ -343,21 +343,21 @@ public:
 	constexpr auto operator<=> (const EntityCameraDistanceWrapper& right) const noexcept { return _distance <=> right._distance; }
 
 public:
-	constexpr void setEntity(const std::shared_ptr<BaseEntityType>& entity) { _entity = entity; }
-	constexpr const std::shared_ptr<BaseEntityType>& getEntity() const { return _entity; }
+	constexpr void setEntity(Reference<BaseEntityType> entity) { _entity = entity; }
+	constexpr const Reference<BaseEntityType> getEntity() const { return _entity; }
 
 	constexpr void setDistance(float distance) { _distance = distance; }
 	constexpr float getDistance() const { return _distance; }
 
 	void render(const Camera& cam)
 	{
-		if (_entity != nullptr && _entity->isVisibleInCamera(cam))
+		if (_entity != nullptr)
 			_entity->render(cam);
 	}
 
 	void renderWithBoundingVolume(const Camera& cam)
 	{
-		if (_entity != nullptr && _entity->isVisibleInCamera(cam))
+		if (_entity != nullptr)
 		{
 			_entity->render(cam);
 			_entity->renderBoundingVolume(cam);
@@ -409,32 +409,39 @@ public:
 	inline void addWrappedEntity(const Wrapper& wrappedEntity)
 	{
 		_sorted = false;
-		float distance = wrappedEntity.getDistance();
 		_entities.push_back(wrappedEntity);
 	}
 
 	inline void addWrappedEntity(Wrapper&& wrappedEntity)
 	{
 		_sorted = false;
-		float distance = wrappedEntity.getDistance();
 		_entities.push_back(std::move(wrappedEntity));
 	}
 
-	inline void addEntity(const std::shared_ptr<BaseEntityType>& entity, float distance)
+	inline void addEntity(Reference<BaseEntityType> entity, float distance)
 	{
-		Wrapper w;
-		w.setEntity(entity);
-		w.setDistance(distance);
-		addWrappedEntity(std::move(w));
+		if (entity != nullptr)
+		{
+			Wrapper w;
+			w.setEntity(entity);
+			w.setDistance(distance);
+			addWrappedEntity(std::move(w));
+		}
 	}
 
-	inline void addEntity(const std::shared_ptr<BaseEntityType>& entity, const Camera& cam)
+	inline void addEntity(Reference<BaseEntityType> entity, const Camera& cam)
 	{
-		Wrapper w;
-		w.setEntity(entity);
-		w.setDistance(cam.getZDistanceTo(entity->getPosition()));
-		addWrappedEntity(std::move(w));
+		if (entity != nullptr)
+		{
+			Wrapper w;
+			w.setEntity(entity);
+			w.setDistance(cam.getDistanceTo(entity->getPosition()));
+			addWrappedEntity(std::move(w));
+		}
 	}
+
+	inline void addEntity(const std::shared_ptr<BaseEntityType>& entity, float distance) { addEntity(Reference<BaseEntityType>(entity.get()), distance); }
+	inline void addEntity(const std::shared_ptr<BaseEntityType>& entity, const Camera& cam) { addEntity(Reference<BaseEntityType>(entity.get()), cam); }
 
 	inline void sort() const
 	{

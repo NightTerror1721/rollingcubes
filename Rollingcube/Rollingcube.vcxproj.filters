@@ -189,6 +189,12 @@
     <ClCompile Include="src\engine\lua\natives.cpp">
       <Filter>Source Files\engine\lua</Filter>
     </ClCompile>
+    <ClCompile Include="src\game\freecam.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\game\level.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\math\MathUtils.h">
@@ -415,6 +421,24 @@
     </ClInclude>
     <ClInclude Include="src\engine\lua\calls.h">
       <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game\basics.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game\level.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game\freecam.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game\input_binds.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game\properties.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\parallel.h">
+      <Filter>Header Files\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

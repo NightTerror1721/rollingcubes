@@ -26,7 +26,7 @@ namespace window
 
 	Dimension getMainWindowSize();
 
-	bool createMainWindow();
+	bool createMainWindow(const Dimension& windowSize);
 
 	void simpleLoop(bool terminateOnEnd, const std::function<void(Time)>& drawFunction = {}, const std::function<void(const TimeController&)>& endDrawFunction = {});
 }

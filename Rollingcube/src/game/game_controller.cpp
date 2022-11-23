@@ -18,14 +18,19 @@ void GameController::start(const std::function<bool()>& initiatingFunction, cons
 	if (_state == State::Stop)
 	{
 		_state = State::Starting;
-
-		window::createMainWindow();
-		if (initiatingFunction())
+		if (init(initiatingFunction))
 			loop();
 		else
 			_state = State::Finalizing;
 		finalize(finalizingFunction);
 	}
+}
+
+bool GameController::init(const std::function<bool()>& initiatingFunction)
+{
+	window::createMainWindow({ int(_props->windowWidth), int(_props->windowHeight) });
+
+	return initiatingFunction();
 }
 
 void GameController::loop()
@@ -49,8 +54,7 @@ void GameController::render()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	for (const auto& e : _entities)
-		e.second->render(_mainCamera);
+	_level.render(_mainCamera);
 
 	glfwSwapBuffers(window::getMainWindow());
 }
@@ -60,16 +64,17 @@ void GameController::update()
 	_prevElapsedTime = _elapsedTime;
 	_elapsedTime = _time.update();
 
-	for (const auto& e : _entities)
-		e.second->update(_elapsedTime);
+	_freecam.update(_elapsedTime);
+	_level.update(_elapsedTime);
 }
 
 void GameController::dispatchEvents()
 {
 	InputManager::dispatchEvents([this](const InputEvent& event) {
-		for (const auto& e : _entities)
-			e.second->dispatchEvent(event);
+		_freecam.dispatchEvent(event);
+		_level.dispatchEvent(event);
 	});
+	Mouse::setPositionToCenter();
 }
 
 void GameController::finalize(const std::function<void()>& finalizingFunction)
@@ -80,22 +85,4 @@ void GameController::finalize(const std::function<void()>& finalizingFunction)
 		gl::terminate();
 		_state = State::Stop;
 	}
-}
-
-void GameController::addEntity(const std::shared_ptr<Entity>& entity)
-{
-	if (entity != nullptr && !containsEntity(entity))
-	{
-		_entities.insert({ entity->getEntityId(), entity });
-	}
-}
-
-bool GameController::removeEntity(Entity::Id id)
-{
-	const auto& it = _entities.find(id);
-	if (it == _entities.end())
-		return false;
-
-	_entities.erase(it);
-	return true;
 }

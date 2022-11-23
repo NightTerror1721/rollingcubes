@@ -20,13 +20,13 @@ namespace window
 		return dim;
 	}
 
-	bool createMainWindow()
+	bool createMainWindow(const Dimension& windowSize)
 	{
 		if (mainw == nullptr)
 		{
 			gl::initGLFW();
 
-			mainw = glfwCreateWindow(default_width, default_height, "Rollingcube", nullptr, nullptr);
+			mainw = glfwCreateWindow(windowSize.width, windowSize.height, "Rollingcube", nullptr, nullptr);
 			if (mainw == nullptr)
 			{
 				fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible.\n");

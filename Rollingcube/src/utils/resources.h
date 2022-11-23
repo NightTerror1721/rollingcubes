@@ -84,4 +84,6 @@ namespace resources
 	inline const Directory templates = { data, "templates" };
 	inline const Directory textures = { data, "textures" };
 	inline const Directory models = { data, "models" };
+
+	inline const Directory user = { "user" };
 }
