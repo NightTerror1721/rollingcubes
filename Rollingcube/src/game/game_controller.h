@@ -41,7 +41,7 @@ private:
 	Camera _mainCamera = {};
 
 	FreecamController _freecam = {};
-	Level _level;
+	Level _level = {};
 
 	const Reference<Properties> _props = Properties::referenceInstance();
 

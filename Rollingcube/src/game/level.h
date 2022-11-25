@@ -38,6 +38,7 @@ public:
 
 	inline void setTransparentRenderList(const std::shared_ptr<TransparentRenderList>& list) { _transparentRenderList = list; }
 
+
 	inline std::shared_ptr<Block> insertBlock(const Block::Slot& slot, const std::string& templateName) { return _blocks.createBlock(slot, templateName); }
 	inline bool removeBlock(const Block::Slot& slot) { return _blocks.removeBlock(slot); }
 	inline std::shared_ptr<Block> getBlock(const Block::Slot& slot) { return _blocks.getBlock(slot); }

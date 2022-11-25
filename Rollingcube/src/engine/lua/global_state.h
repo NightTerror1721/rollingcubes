@@ -3,7 +3,7 @@
 #include "natives.h"
 
 
-class LuaGlobalState
+/*class LuaGlobalState
 {
 private:
 	lua_State* _state;
@@ -33,4 +33,4 @@ private:
 
 public:
 	static inline lua_State* state() { return Instance.get(); }
-};
+};*/
