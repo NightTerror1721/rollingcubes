@@ -144,7 +144,7 @@ enum class LookDirection : int
 
 
 
-class Ball : public ModelableEntity, public LuaLocalVariablesContainer
+class Ball : public ModelableEntity, public LocalValuesContainer
 {
 public:
 	using Move = BallMove;

@@ -1,6 +1,5 @@
-openlib "base"
-openlib "Rollingcube.blocks"
-openlib "Rollingcube.tiles"
+openlib "blocks"
+openlib "tiles"
 
 
 mainTile = nil

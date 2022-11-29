@@ -135,15 +135,6 @@
     <ClCompile Include="src\engine\bounding.cpp">
       <Filter>Source Files\engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\lua\chunk.cpp">
-      <Filter>Source Files\engine\lua</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\lua\manager.cpp">
-      <Filter>Source Files\engine\lua</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\lua\libs.cpp">
-      <Filter>Source Files\engine\lua</Filter>
-    </ClCompile>
     <ClCompile Include="src\math\glm.cpp">
       <Filter>Source Files\math</Filter>
     </ClCompile>
@@ -186,14 +177,14 @@
     <ClCompile Include="src\game\ball_constants.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\lua\natives.cpp">
-      <Filter>Source Files\engine\lua</Filter>
-    </ClCompile>
     <ClCompile Include="src\game\freecam.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="src\game\level.cpp">
       <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\lua\module.cpp">
+      <Filter>Source Files\engine\lua</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -320,30 +311,6 @@
     <ClInclude Include="src\engine\bounding.h">
       <Filter>Header Files\engine</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\lua\lua.h">
-      <Filter>Header Files\engine\lua</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\lua\constants.h">
-      <Filter>Header Files\engine\lua</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\lua\chunk.h">
-      <Filter>Header Files\engine\lua</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\lua\natives.h">
-      <Filter>Header Files\engine\lua</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\lua\script.h">
-      <Filter>Header Files\engine\lua</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\lua\manager.h">
-      <Filter>Header Files\engine\lua</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\lua\global_state.h">
-      <Filter>Header Files\engine\lua</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\lua\libs.h">
-      <Filter>Header Files\engine\lua</Filter>
-    </ClInclude>
     <ClInclude Include="src\utils\lualib_constants.h">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
@@ -361,12 +328,6 @@
     </ClInclude>
     <ClInclude Include="src\game\luadefs.h">
       <Filter>Header Files\game</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\lua\env.h">
-      <Filter>Header Files\engine\lua</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\lua\localvars.h">
-      <Filter>Header Files\engine\lua</Filter>
     </ClInclude>
     <ClInclude Include="src\game\tile.h">
       <Filter>Header Files\game</Filter>
@@ -419,9 +380,6 @@
     <ClInclude Include="src\game\ball_constants.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\lua\calls.h">
-      <Filter>Header Files\engine\lua</Filter>
-    </ClInclude>
     <ClInclude Include="src\game\basics.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
@@ -439,6 +397,21 @@
     </ClInclude>
     <ClInclude Include="src\core\parallel.h">
       <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\environment.h">
+      <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\libs.h">
+      <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\module.h">
+      <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\localvalues.h">
+      <Filter>Header Files\engine\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\lua\constants.h">
+      <Filter>Header Files\engine\lua</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

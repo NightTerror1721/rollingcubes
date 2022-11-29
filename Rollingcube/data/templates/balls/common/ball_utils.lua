@@ -1,6 +1,5 @@
-openlib "base"
-openlib "Rollingcube.balls"
-openlib "Rollingcube.models"
+openlib "balls"
+openlib "models"
 
 
 -- CONSTANTS --

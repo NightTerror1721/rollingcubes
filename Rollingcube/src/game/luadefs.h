@@ -6,7 +6,7 @@
 #include <optional>
 #include <concepts>
 
-#include "engine/lua/lua.h"
+#include "engine/lua/module.h"
 #include "utils/resources.h"
 #include "utils/reference.h"
 #include "utils/manager.h"
@@ -74,8 +74,7 @@ protected:
 protected:
 	Id _id = 0;
 	std::string _name = {};
-	LuaScript _script;
-	bool _loaded = false;
+	std::shared_ptr<LuaModule> _module = nullptr;
 
 private:
 	mutable std::unordered_map<std::string, std::unique_ptr<LuaRef>> _luaCache;
@@ -97,7 +96,7 @@ public:
 	constexpr void setName(const std::string& name) { _name = name; }
 	constexpr const std::string& getName() const { return _name; }
 
-	constexpr bool isLoaded() const { return _loaded; }
+	inline bool isLoaded() const { return _module != nullptr; }
 
 	virtual Type getType() const = 0;
 
@@ -203,3 +202,9 @@ public:
 		return ref;
 	}
 };
+
+
+namespace lua
+{
+	void initGameLibs();
+}

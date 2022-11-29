@@ -4,8 +4,7 @@
 
 #include "utils/resources.h"
 
-#include "engine/lua/lua.h"
-#include "engine/lua/constants.h"
+#include "engine/lua/module.h"
 #include "utils/lualib_constants.h"
 
 
@@ -251,7 +250,7 @@ namespace lua::lib::LUA_theme
 			.addStaticFunction("getModelObject", &getModelObject)
 			;
 
-		lua::lib::utils::addLuaLocalVariablesToClass(clss);
+		lua::lib::addLocalValuesContainerToClass(clss);
 
 		root = clss.endClass();
 		return true;

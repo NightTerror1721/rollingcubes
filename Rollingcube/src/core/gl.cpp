@@ -5,7 +5,7 @@
 #include "engine/texture.h"
 #include "engine/model.h"
 #include "engine/shader.h"
-#include "engine/lua/lua.h"
+#include "engine/lua/module.h"
 #include "game/theme.h"
 
 
@@ -51,7 +51,7 @@ namespace gl
 		ModelObjectTemplateManager::instance().clear();
 		BallTemplateManager::instance().clear();
 		Theme::releaseCurrentTheme();
-		LuaScriptManager::instance().clear();
+		LuaModuleManager::instance().clear();
 
 		TextureManager::root().clear();
 		CubeMapTextureManager::root().clear();

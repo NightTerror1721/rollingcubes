@@ -1,5 +1,4 @@
-openlib "base"
-openlib "Rollingcube.tiles"
+openlib "tiles"
 
 
 material = nil

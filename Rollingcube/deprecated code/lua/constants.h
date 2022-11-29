@@ -34,13 +34,14 @@ namespace lua::metamethod
 	constexpr const char name[] = "__name";
 }
 
-namespace lua::constants
+namespace lua::lib::constants
 {
+	constexpr const char import[] = "import";
 	constexpr const char include[] = "include";
 	constexpr const char openlib[] = "openlib";
 }
 
-namespace lua::constants
+namespace lua::lib::constants
 {
 	constexpr const char xpcall[] = "xpcall";
 	constexpr const char select[] = "select";

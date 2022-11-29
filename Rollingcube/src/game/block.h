@@ -99,7 +99,7 @@ private:
 
 
 
-class BlockSide : public LuaLocalVariablesContainer, public Renderable, public Updatable
+class BlockSide : public LocalValuesContainer, public Renderable, public Updatable
 {
 public:
 	friend Block;
@@ -256,7 +256,7 @@ namespace std
 
 
 
-class Block : public ModelableEntity, public LuaLocalVariablesContainer
+class Block : public ModelableEntity, public LocalValuesContainer
 {
 public:
 	friend BlockSide;

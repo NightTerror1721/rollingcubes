@@ -15,8 +15,6 @@
 #include "engine/text.h"
 #include "engine/skybox.h"
 
-#include "engine/lua/lua.h"
-
 #include "utils/logger.h"
 #include "utils/bmp_decoder.h"
 #include "utils/image.h"
@@ -38,7 +36,7 @@ Model createCubeModel();
 int main(int argc, char** argv)
 {
     Properties::load();
-    lua::initCustomLibs();
+    lua::initGameLibs();
 
     //lua_test();
     tutos();

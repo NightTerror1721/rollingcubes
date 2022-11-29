@@ -50,7 +50,7 @@ public:
 
 
 
-class Theme : public LuaLocalVariablesContainer
+class Theme : public LocalValuesContainer
 {
 private:
 	static Theme CurrentTheme;

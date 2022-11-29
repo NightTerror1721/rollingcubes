@@ -3,7 +3,7 @@
 #include "theme.h"
 
 
-class Level : public LuaLocalVariablesContainer
+class Level : public LocalValuesContainer
 {
 private:
 	BlockContainer _blocks = {};

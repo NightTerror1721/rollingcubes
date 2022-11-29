@@ -1,23 +1,44 @@
 #include "luadefs.h"
 
+#include "math/glm.h"
 #include "utils/logger.h"
+
+#include "theme.h"
+
+
+void lua::initGameLibs()
+{
+	static constinit bool initiatedFlag = false;
+
+	if (!initiatedFlag)
+	{
+		lua::lib::registerGlmToLua();
+		lua::lib::registerCameraLibToLua();
+		lua::lib::registerShaderLibToLua();
+		lua::lib::registerEntitiesLibToLua();
+		lua::lib::registerThemesLibToLua();
+		lua::lib::registerTilesLibToLua();
+		lua::lib::registerBlocksLibToLua();
+		lua::lib::registerModelsLibToLua();
+		lua::lib::registerBallsLibToLua();
+
+		initiatedFlag = true;
+	}
+}
 
 
 Reference<LuaRef> LuaTemplate::findLuaObject(std::string_view name) const
 {
-	if (!_loaded)
+	if (!isLoaded())
 		return nullptr;
 
 	auto it = _luaCache.find(name.data());
 	if (it != _luaCache.end())
 		return it->second.get();
 
-	auto obj = std::make_unique<LuaRef>(_script.getEnv()[name]);
+	auto obj = std::make_unique<LuaRef>(_module->getValue<LuaRef>(name));
 	if (obj->isNil())
-	{
-		obj.release();
 		return nullptr;
-	}
 
 	Reference<LuaRef> ref = obj.get();
 	_luaCache.insert({ name.data(), std::move(obj) });
@@ -45,19 +66,17 @@ bool LuaTemplate::load()
 		return false;
 	}
 
-	LuaScript script = LuaScriptManager::instance().getScript(filePathOpt.value().string());
-	if (!script)
+	_module = LuaModuleManager::instance().load(filePathOpt.value());
+	if (_module == nullptr || !_module->isLoaded())
 	{
-		logger::error("Cannot load LuaModel Script {} not found.", filePathOpt.value().string());
+		logger::error("Cannot load LuaModel Script {} because not found or has errors on load.", filePathOpt.value().string());
 		return false;
 	}
 
 	static constinit Id _idgen = 1;
 
 	_id = _idgen++;
-	_script = script;
 	_luaCache.clear();
-	_loaded = true;
 
 	init();
 
@@ -70,7 +89,7 @@ void LuaTemplate::reload()
 	{
 		clear();
 		_luaCache.clear();
-		_script.reload();
+		_module->reload();
 		init();
 	}
 }
@@ -82,7 +101,6 @@ void LuaTemplate::clear()
 
 void LuaTemplate::init()
 {
-	_script();
 	vcall(FunctionOnInit);
 }
 

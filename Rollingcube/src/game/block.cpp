@@ -1,8 +1,7 @@
 #include "block.h"
 
 #include "core/parallel.h"
-#include "engine/lua/lua.h"
-#include "engine/lua/constants.h"
+#include "engine/lua/module.h"
 #include "utils/lualib_constants.h"
 
 #include "theme.h"
@@ -392,7 +391,7 @@ namespace lua::lib::LUA_blocks
 				.addFunction("renderTile", &renderTile)
 				;
 
-			lua::lib::utils::addLuaLocalVariablesToClass(clss);
+			lua::lib::addLocalValuesContainerToClass(clss);
 
 			root = clss.endClass();
 			return true;
@@ -422,7 +421,7 @@ namespace lua::lib::LUA_blocks
 				.addFunction("render", &render)
 				;
 
-			lua::lib::utils::addLuaLocalVariablesToClass(clss);
+			lua::lib::addLocalValuesContainerToClass(clss);
 
 			root = clss.endClass();
 			return true;

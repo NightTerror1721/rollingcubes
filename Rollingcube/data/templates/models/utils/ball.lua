@@ -1,5 +1,4 @@
-openlib "base"
-openlib "Rollingcube.models"
+openlib "models"
 
 
 mainModel = nil

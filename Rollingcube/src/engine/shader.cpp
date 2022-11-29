@@ -3,8 +3,7 @@
 #include "utils/logger.h"
 #include "utils/shader_constants.h"
 
-#include "lua/lua.h"
-#include "lua/constants.h"
+#include "lua/module.h"
 #include "utils/lualib_constants.h"
 
 
@@ -340,11 +339,11 @@ namespace lua::lib::LUA_shader
 	}
 
 	template <typename _Ty> requires requires(const ShaderProgram::Uniform& u, const std::vector<_Ty>& value) { { u = value }; }
-	static void setUniformArray(const ShaderProgram* shader, const char* name, LuaRef value, lua_State* state)
+	static void setUniformArray(const ShaderProgram* shader, const char* name, LuaRef value)
 	{
 		if (!value.isTable())
 		{
-			lua::utils::error(state, "Expected valid table, but found {}.", value.tostring());
+			lua::utils::error("Expected valid table, but found {}.", value.tostring());
 			return;
 		}
 
@@ -364,14 +363,13 @@ namespace lua::lib::LUA_shader
 		const std::string& name,
 		const char* vertexShaderPath,
 		const char* fragmentShaderPath,
-		LuaRef geometryShaderPathLUA,
-		lua_State* state)
+		LuaRef geometryShaderPathLUA)
 	{
 		ShaderProgramManager& man = ShaderProgramManager::instance();
 
 		if (man.contains(name))
 		{
-			lua::utils::error(state, "ShaderProgram '{}' already exists.", name);
+			lua::utils::error("ShaderProgram '{}' already exists.", name);
 			return false;
 		}
 
@@ -383,12 +381,12 @@ namespace lua::lib::LUA_shader
 		return ref != nullptr;
 	}
 
-	static ShaderProgram* get(const std::string& name, lua_State* state)
+	static ShaderProgram* get(const std::string& name)
 	{
 		ShaderProgram::Ref ref = ShaderProgramManager::instance().get(name);
 		if (ref == nullptr)
 		{
-			lua::utils::error(state, "ShaderProgram '{}' not found.", name);
+			lua::utils::error("ShaderProgram '{}' not found.", name);
 			return nullptr;
 		}
 		return &ref;

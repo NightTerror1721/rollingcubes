@@ -1,7 +1,6 @@
 #include "ball.h"
 
-#include "engine/lua/lua.h"
-#include "engine/lua/constants.h"
+#include "engine/lua/module.h"
 #include "utils/lualib_constants.h"
 
 
@@ -21,7 +20,7 @@ void Ball::init(BallTemplate::Ref templ)
 	}
 
 	_template = templ;
-	clearLuaVariables();
+	clearLocalValues();
 
 	_template->onConstruct(*this);
 
@@ -135,7 +134,7 @@ namespace lua::lib::LUA_balls
 			// Methods //
 			;
 
-		lua::lib::utils::addLuaLocalVariablesToClass(clss);
+		lua::lib::addLocalValuesContainerToClass(clss);
 
 		root = clss.endClass();
 		return true;

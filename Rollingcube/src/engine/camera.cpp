@@ -5,8 +5,7 @@
 #include "utils/shader_constants.h"
 #include "basics.h"
 
-#include "lua/lua.h"
-#include "lua/constants.h"
+#include "lua/module.h"
 #include "utils/lualib_constants.h"
 
 

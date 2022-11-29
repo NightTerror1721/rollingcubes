@@ -1,7 +1,6 @@
 #include "modelobj.h"
 
-#include "engine/lua/lua.h"
-#include "engine/lua/constants.h"
+#include "engine/lua/module.h"
 #include "utils/lualib_constants.h"
 
 

@@ -1,7 +1,6 @@
 #include "entities.h"
 
-#include "lua/lua.h"
-#include "lua/constants.h"
+#include "lua/module.h"
 #include "utils/lualib_constants.h"
 
 
