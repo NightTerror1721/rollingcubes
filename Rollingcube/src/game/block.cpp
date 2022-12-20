@@ -384,7 +384,7 @@ namespace lua::lib::LUA_blocks
 				.addProperty("parent", &getParent)
 				.addProperty("position", &getPosition)
 				.addProperty("rotationAngles", &getRotationAngles)
-				.addProperty("scale", &getScale)
+				.addProperty("scalation", &getScale)
 				.addProperty("normal", &getNormal)
 				.addProperty("modelMatrix", &getModelMatrix)
 				// Methods //

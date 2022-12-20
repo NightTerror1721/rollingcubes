@@ -1,0 +1,8 @@
+{
+    "front": "test_theme/front.jpg",
+    "back": "test_theme/back.jpg",
+    "left": "test_theme/left.jpg",
+    "right": "test_theme/right.jpg",
+    "top": "test_theme/up.jpg",
+    "bottom": "test_theme/down.jpg"
+}

@@ -4,6 +4,7 @@
 #include "texture.h"
 #include "camera.h"
 
+
 class Skybox : public TransformableEntity
 {
 private:

@@ -73,6 +73,9 @@ void GameController::dispatchEvents()
 	InputManager::dispatchEvents([this](const InputEvent& event) {
 		_freecam.dispatchEvent(event);
 		_level.dispatchEvent(event);
+
+		if (_stopOnEscape && event.type == InputEvent::Type::KeyPressed && event.key.key == Key::Escape)
+			stop();
 	});
 	Mouse::setPositionToCenter();
 }

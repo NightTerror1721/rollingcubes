@@ -35,6 +35,8 @@ namespace resources
 
 		inline const Path& path() const { return _dirpath; }
 
+		inline std::string string() const { return _dirpath.string(); }
+
 		inline Path resolve(std::string_view subpath) const { return _dirpath / subpath; }
 		inline Path resolve(const Path& subpath) const { return _dirpath / subpath; }
 		inline Path operator/ (std::string_view subpath) const { return _dirpath / subpath; }
@@ -83,6 +85,7 @@ namespace resources
 	inline const Directory fonts = { data, "fonts" };
 	inline const Directory templates = { data, "templates" };
 	inline const Directory textures = { data, "textures" };
+	inline const Directory cubemapTextures = { data, "cmtex" };
 	inline const Directory models = { data, "models" };
 
 	inline const Directory user = { "user" };

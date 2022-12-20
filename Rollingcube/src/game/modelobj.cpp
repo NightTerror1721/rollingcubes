@@ -70,7 +70,7 @@ namespace lua::lib::LUA_modelobj
 	{
 		namespace meta = lua::metamethod;
 
-		// Tile::RenderData //
+		// ModelObject::RenderData //
 		auto cls1 = root.beginClass<ModelObjectRenderData>("ModelObjectRenderData");
 		cls1.addConstructor<void (*)()>()
 			// Fields //

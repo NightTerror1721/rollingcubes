@@ -6,6 +6,8 @@
 #include "core/gl.h"
 #include "utils/image.h"
 #include "utils/manager.h"
+#include "utils/json.h"
+#include "utils/resources.h"
 
 enum class TextureFormat : GLenum
 {
@@ -333,7 +335,11 @@ public:
 		}
 	}
 
+public:
 	bool loadFromImage(const FacesFiles& filenames);
+
+	bool loadFromJson(std::string_view path, std::string_view directoryPath = "");
+	bool loadFromJson(const JsonValue& json, std::string_view directoryPath = "");
 
 	void destroy();
 
@@ -350,6 +356,8 @@ private:
 		}
 		return true;
 	}
+
+	static std::string extractPathFromJson(const JsonValue& json, const std::string& filename, const Path& directory);
 };
 
 
@@ -394,6 +402,30 @@ public:
 			topFilename,
 			bottomFilename
 		});
+	}
+
+	inline Reference loadFromJson(const IdType& id, const JsonValue& value, std::string_view directoryPath = "")
+	{
+		Reference ref = create(id);
+		if (!ref)
+			return nullptr;
+
+		if (!ref->loadFromJson(value, directoryPath))
+			return destroy(id), nullptr;
+
+		return ref;
+	}
+
+	inline Reference loadFromJson(const IdType& id, std::string_view filepath, std::string_view directoryPath = "")
+	{
+		Reference ref = create(id);
+		if (!ref)
+			return nullptr;
+
+		if (!ref->loadFromJson(filepath, directoryPath))
+			return destroy(id), nullptr;
+
+		return ref;
 	}
 
 private:

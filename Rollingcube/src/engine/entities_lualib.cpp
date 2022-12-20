@@ -196,6 +196,46 @@ namespace lua::lib::LUA_entities
 		}
 	}
 
+	namespace LUA_cubemaptexture
+	{
+		static CubeMapTexture::Id getId(const CubeMapTexture* self) { return self->getId(); }
+
+		static CubeMapTexture::SizeType getWidth(const CubeMapTexture* self) { return self->getWidth(); }
+
+		static CubeMapTexture::SizeType getHeight(const CubeMapTexture* self) { return self->getHeight(); }
+
+		static std::string getFilePath(const CubeMapTexture* self, int index) { return self->getFilePath(std::size_t(index)).data(); }
+
+
+		static void setMagFilter(CubeMapTexture* self, GLint filter) { self->setFilter(CubeMapTexture::MagnificationFilter(filter)); }
+		static void setMinFilter(CubeMapTexture* self, GLint filter) { self->setFilter(CubeMapTexture::MinificationFilter(filter)); }
+
+
+		static defineLuaLibraryConstructor(registerToLua, root, state)
+		{
+			namespace meta = ::lua::metamethod;
+
+			// CubeMapTexture //
+			auto clss = root.beginClass<CubeMapTexture>("CubeMapTexture");
+			clss.addConstructor<void(*)()>()
+				.addProperty("id", &getId)
+				.addProperty("width", &getWidth)
+				.addProperty("height", &getHeight)
+				.addFunction("getFilePath", &getFilePath)
+				.addFunction("isCreated", &CubeMapTexture::isCreated)
+				.addFunction("hasFile", &CubeMapTexture::hasFile)
+				.addFunction("bind", &CubeMapTexture::bind)
+				.addFunction("unbind", &CubeMapTexture::unbind)
+				.addFunction("activate", &CubeMapTexture::activate)
+				.addFunction("setMagnificationFilter", &setMagFilter)
+				.addFunction("setMinificationFilter", &setMinFilter)
+				.addFunction("setRepeat", &CubeMapTexture::setRepeat);
+
+			root = clss.endClass();
+			return true;
+		}
+	}
+
 	namespace LUA_light
 	{
 		static const glm::vec3& getPosition(const Light* self) { return self->getPosition(); }
@@ -306,7 +346,7 @@ namespace lua::lib::LUA_entities
 				// Fields //
 				.addProperty("position", &getPosition, &setPosition)
 				.addProperty("rotationAngles", &getRotationAngles, &setRotationAngles)
-				.addProperty("scale", &getScale, &setScale)
+				.addProperty("scalation", &getScale, &setScale)
 				.addProperty("basisRight", &getRight)
 				.addProperty("basisForward", &getForward)
 				.addProperty("basisFront", &getFront)
@@ -382,6 +422,9 @@ namespace lua::lib::LUA_entities
 			return false;
 
 		if (!LUA_texture::registerToLua(root, state))
+			return false;
+
+		if (!LUA_cubemaptexture::registerToLua(root, state))
 			return false;
 
 		if (!LUA_light::registerToLua(root, state))

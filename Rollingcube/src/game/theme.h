@@ -7,6 +7,8 @@
 
 #include "utils/optref.h"
 
+#include "engine/skybox.h"
+
 #include "luadefs.h"
 
 #include "block.h"
@@ -115,6 +117,7 @@ private:
 	mutable std::unordered_map<std::string, Reference<LuaTemplate>> _models[LuaTemplate::TypeCount] = {};
 
 	mutable TextureManager _textureManager = TextureManager::root().createChildManager();
+	mutable CubeMapTextureManager _cubeMapTextureManager = CubeMapTextureManager::root().createChildManager();
 	mutable ModelManager _modelManager = ModelManager::root().createChildManager();
 
 public:
@@ -147,6 +150,7 @@ public:
 
 public:
 	Texture::Ref getTexture(const std::string& name) const;
+	CubeMapTexture::Ref getCubeMapTexture(const std::string& name) const;
 	Model::Ref getModel(const std::string& name) const;
 
 public:

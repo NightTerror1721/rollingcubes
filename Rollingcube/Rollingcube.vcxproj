@@ -255,6 +255,7 @@
     <ClInclude Include="src\math\MathUtils.h" />
     <ClInclude Include="src\utils\bmp_decoder.h" />
     <ClInclude Include="src\utils\color_channels.h" />
+    <ClInclude Include="src\utils\exception_utils.h" />
     <ClInclude Include="src\utils\image.h" />
     <ClInclude Include="src\utils\io_utils.h" />
     <ClInclude Include="src\utils\jpeg_decoder.h" />

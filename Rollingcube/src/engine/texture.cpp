@@ -1,6 +1,7 @@
 #include "texture.h"
 
 #include "utils/logger.h"
+#include "utils/exception_utils.h"
 
 
 bool Texture::createFromData(const unsigned char* data, SizeType width, SizeType height, Format format, bool generateMipmaps)
@@ -136,6 +137,47 @@ bool CubeMapTexture::loadFromImage(const FacesFiles& filenames)
 	return true;
 }
 
+bool CubeMapTexture::loadFromJson(std::string_view path, std::string_view directoryPath)
+{
+	try
+	{
+		JsonValue value = json::read(path);
+		return loadFromJson(value, directoryPath);
+	}
+	catch (const std::exception& ex)
+	{
+		logger::error("Error during cubemap texture json file load: {}.", ex.what());
+		return false;
+	}
+}
+
+bool CubeMapTexture::loadFromJson(const JsonValue& json, std::string_view directoryPath)
+{
+	if (!json.is_object())
+	{
+		logger::error("Ill-formed cubemap texture json file.");
+		return false;
+	}
+
+	try
+	{
+		const auto directory = Path(directoryPath);
+		return loadFromImage({
+			extractPathFromJson(json, "front", directory),
+			extractPathFromJson(json, "back", directory),
+			extractPathFromJson(json, "left", directory),
+			extractPathFromJson(json, "right", directory),
+			extractPathFromJson(json, "top", directory),
+			extractPathFromJson(json, "bottom", directory)
+		});
+	}
+	catch (const std::exception& ex)
+	{
+		logger::error("Error during cubemap texture json file load: {}.", ex.what());
+		return false;
+	}
+}
+
 void CubeMapTexture::destroy()
 {
 	if (isCreated())
@@ -146,6 +188,19 @@ void CubeMapTexture::destroy()
 	_height = 0;
 	_format = Format(0);
 	_files = {};
+}
+
+std::string CubeMapTexture::extractPathFromJson(const JsonValue& json, const std::string& filename, const Path& directory)
+{
+	if (!json.contains(filename))
+		throw utils::formatException("Cubemap '{}' face not found.", filename);
+
+	auto jpath = json.at(filename);
+	if(!jpath.is_string())
+		throw utils::formatException("Cubemap '{}' face has not valid string path.", filename);
+
+	const auto path = jpath.get_ref<const std::string&>();
+	return resources::absolute(directory.empty() ? Path(path) : (directory / path)).string();
 }
 
 

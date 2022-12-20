@@ -519,8 +519,11 @@ void tutos()
         if (timeAccum >= Time::seconds(1))
         {
             Time t_avg = marksAccum / marksCount;
-            std::cout << maxTime.toMilliseconds() << "ms poor performance; ";
-            std::cout << t_avg.toMilliseconds() << "ms avg performance." << std::endl;
+            double millisAvg = t_avg.toMicroseconds() / 1000.0;
+            double millisMax = maxTime.toMicroseconds() / 1000.0;
+
+            std::cout << millisMax << " ms poor performance; ";
+            std::cout << millisAvg << " ms avg performance." << std::endl;
             timeAccum = Time::zero();
             marksAccum = Time::zero();
             maxTime = Time::zero();

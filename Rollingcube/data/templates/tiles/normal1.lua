@@ -1,28 +1,31 @@
 openlib "tiles"
 
 
-material = nil
+MainMaterial = nil
 
 
 function OnInit()
-    material = Material()
-    material.diffuseColor = vec3(1, 1, 1)
-    material.ambientColor = vec3(0.45, 0.45, 0.45)
-    material.specularColor = vec3(0.3, 0.3, 0.3)
-    material.shininess = 50
+    MainMaterial = Material()
+    MainMaterial.diffuseColor = vec3(1, 1, 1)
+    MainMaterial.ambientColor = vec3(0.45, 0.45, 0.45)
+    MainMaterial.specularColor = vec3(0.3, 0.3, 0.3)
+    MainMaterial.shininess = 50
 
-    material.diffuseTexture = Theme.getTexture("tile1")
-    material.specularTexture = Theme.getTexture("tile1_sm")
-    material.normalsTexture = Theme.getTexture("tile1_nm")
+    MainMaterial.diffuseTexture = Theme.getTexture("tile1")
+    MainMaterial.specularTexture = Theme.getTexture("tile1_sm")
+    MainMaterial.normalsTexture = Theme.getTexture("tile1_nm")
 end
 
 
 function OnDestroy()
-    material = nil
+    MainMaterial = nil
 end
 
 
+---@param tile Tile
+---@param sideId integer
+---@param renderData TileRenderData
 function OnRender(tile, sideId, renderData)
-    renderData.material = material
+    renderData.material = MainMaterial
     tile:renderQuad(sideId, renderData)
 end

@@ -1,40 +1,46 @@
 openlib "models"
 
 
-mainModel = nil
-mainMaterial = nil
+MainModel = nil
+MainMaterial = nil
 
-texture = nil
+---@type string
+BallMainTexture = ""
 
 
 function OnInit()
-    mainModel = Theme.getBallModel()
+    MainModel = Theme.getBallModel()
 
-    mainMaterial = Material()
-    mainMaterial.diffuseColor = vec3(1, 1, 1)
-    mainMaterial.ambientColor = vec3(0.1, 0.1, 0.1)
-    mainMaterial.specularColor = vec3(0.7, 0.7, 0.7)
-    mainMaterial.shininess = 32
+    MainMaterial = Material()
+    MainMaterial.diffuseColor = vec3(1, 1, 1)
+    MainMaterial.ambientColor = vec3(0.1, 0.1, 0.1)
+    MainMaterial.specularColor = vec3(0.7, 0.7, 0.7)
+    MainMaterial.shininess = 32
 
-    if texture ~= nil then
-        mainMaterial.diffuseTexture = Theme.getTexture(texture)
+    if BallMainTexture ~= "" then
+        MainMaterial.diffuseTexture = Theme.getTexture(BallMainTexture)
     end
 end
 
 
 function OnDestroy()
-    mainModel = nil
-    mainMaterial = nil
-    texture = nil
+    MainModel = nil
+    MainMaterial = nil
+    BallMainTexture = ""
 end
 
 
+
+---@param modelobj ModelObject
+---@param renderData ModelObjectRenderData
 function OnRender(modelobj, renderData)
-    renderData.material = mainMaterial
-    modelobj:renderModel(mainModel, renderData)
+    renderData.material = MainMaterial
+    modelobj:renderModel(MainModel, renderData)
 end
 
 
+---@param mesh Mesh
+---@param renderData ModelObjectRenderData
 function OnRenderMesh(mesh, renderData)
     mesh:render(renderData)
 end

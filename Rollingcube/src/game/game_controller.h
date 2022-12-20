@@ -43,6 +43,8 @@ private:
 	FreecamController _freecam = {};
 	Level _level = {};
 
+	bool _stopOnEscape = false;
+
 	const Reference<Properties> _props = Properties::referenceInstance();
 
 private:
@@ -83,6 +85,8 @@ public:
 
 	constexpr Level& getLevel() { return _level; }
 	constexpr const Level& getLevel() const { return _level; }
+
+	constexpr void setStopOnEscape() { _stopOnEscape = true; }
 
 	inline void stop()
 	{

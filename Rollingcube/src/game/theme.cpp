@@ -169,6 +169,26 @@ Texture::Ref Theme::getTexture(const std::string& name) const
 	return _textureManager.loadFromImage(name, opath.value().string());
 }
 
+CubeMapTexture::Ref Theme::getCubeMapTexture(const std::string& name) const
+{
+	auto ref = _cubeMapTextureManager.get(name);
+	if (ref != nullptr)
+		return ref;
+
+	std::string relativeFilePath = prepareElementName(name);
+
+	static const std::initializer_list<std::string_view> textureExtensions = { ".json" };
+
+	auto opath = resources::findFirstValidPath(resources::textures.path(), relativeFilePath, textureExtensions);
+	if (!opath.has_value())
+	{
+		logger::error("Texture on path {} not found.", (resources::textures.path() / relativeFilePath).string());
+		return nullptr;
+	}
+
+	return _cubeMapTextureManager.loadFromJson(name, std::string_view(opath.value().string()), resources::cubemapTextures.string());
+}
+
 Model::Ref Theme::getModel(const std::string& name) const
 {
 	auto ref = _modelManager.get(name);
@@ -225,6 +245,7 @@ namespace lua::lib::LUA_theme
 	static bool change(const std::string& name) { return Theme::getCurrentTheme().changeCurrentTheme(name); }
 
 	static Texture* getTexture(const std::string& name) { return &Theme::getCurrentTheme().getTexture(name); }
+	static CubeMapTexture* getCubeMapTexture(const std::string& name) { return &Theme::getCurrentTheme().getCubeMapTexture(name); }
 
 	static Model* getModel(const std::string& name) { return &Theme::getCurrentTheme().getModel(name); }
 	static Model* getBallModel() { return &Theme::getCurrentTheme().getBallModel(); }
@@ -244,6 +265,7 @@ namespace lua::lib::LUA_theme
 			// Methods //
 			.addStaticFunction("change", &change)
 			.addStaticFunction("getTexture", &getTexture)
+			.addStaticFunction("getCubeMapTexture", &getCubeMapTexture)
 			.addStaticFunction("getModel", &getModel)
 			.addStaticFunction("getBallModel", &getBallModel)
 			.addStaticFunction("getTile", &getTile)

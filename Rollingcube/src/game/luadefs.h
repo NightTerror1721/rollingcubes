@@ -16,11 +16,12 @@ enum class LuaTemplateType
 {
 	Unknown = 0,
 
+	Theme,
+	Skybox,
 	Block,
 	Item,
 	Model,
 	Tile,
-	Theme,
 	Ball,
 	Mob,
 	Menu
@@ -49,11 +50,12 @@ public:
 	{
 		switch (type)
 		{
+			case Type::Theme: return "themes";
+			case Type::Skybox: return "skyboxes";
 			case Type::Block: return "blocks";
 			case Type::Item: return "items";
 			case Type::Model: return "models";
 			case Type::Tile: return "tiles";
-			case Type::Theme: return "themes";
 			case Type::Ball: return "balls";
 			case Type::Mob: return "mobs";
 			case Type::Menu: return "menus";

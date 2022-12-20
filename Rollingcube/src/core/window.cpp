@@ -44,7 +44,7 @@ namespace window
 
 			glEnable(GL_CULL_FACE);
 
-			glfwSwapInterval(1);
+			//glfwSwapInterval(1);
 
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		}

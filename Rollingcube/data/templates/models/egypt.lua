@@ -1,3 +1,3 @@
 include "utils/ball"
 
-texture = "egypt.jpg"
+BallMainTexture = "egypt.jpg"
