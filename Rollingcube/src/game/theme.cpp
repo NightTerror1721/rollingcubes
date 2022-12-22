@@ -63,6 +63,7 @@ bool Theme::load(const std::string& name)
 
 	_template->onLoad();
 
+	ShaderProgramManager::instance().loadInternalShaders();
 	loadTemplates();
 
 	return true;
@@ -249,6 +250,7 @@ namespace lua::lib::LUA_theme
 
 	static Model* getModel(const std::string& name) { return &Theme::getCurrentTheme().getModel(name); }
 	static Model* getBallModel() { return &Theme::getCurrentTheme().getBallModel(); }
+	static Model* getSkyboxModel() { return &Theme::getCurrentTheme().getSkyboxModel(); }
 
 	static Tile getTile(const std::string& name) { return Theme::getCurrentTheme().getTile(name); }
 	static ModelObject getModelObject(const std::string& name) { return Theme::getCurrentTheme().getModelObject(name); }
@@ -268,6 +270,7 @@ namespace lua::lib::LUA_theme
 			.addStaticFunction("getCubeMapTexture", &getCubeMapTexture)
 			.addStaticFunction("getModel", &getModel)
 			.addStaticFunction("getBallModel", &getBallModel)
+			.addStaticFunction("getSkyboxModel", &getSkyboxModel)
 			.addStaticFunction("getTile", &getTile)
 			.addStaticFunction("getModelObject", &getModelObject)
 			;

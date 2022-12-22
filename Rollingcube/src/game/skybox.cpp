@@ -1,27 +1,35 @@
 #include "skybox.h"
 
 #include "utils/shader_constants.h"
-#include "game/cube_model.h"
+#include "cube_model.h"
+
+#include "engine/lua/module.h"
+#include "utils/lualib_constants.h"
 
 
-Skybox::Skybox() : TransformableEntity()
+SkyboxTemplateManager SkyboxTemplateManager::Instance;
+
+
+Skybox::Skybox() : TransformableEntity(), LocalValuesContainer()
 {
-	using namespace constants::shader;
-
-	static std::once_flag prepareOnceFlag;
-	std::call_once(prepareOnceFlag, []() {
-		ShaderProgramManager::instance().load(internals::shaderFiles(sky));
-	});
-
 	_shader = ShaderProgramManager::instance().getSkyShaderProgram();
+}
+
+void Skybox::update(Time elapsedTime)
+{
+    if (_template != nullptr)
+        _template->onUpdate(*this, elapsedTime);
 }
 
 void Skybox::render(const Camera& cam)
 {
+    if (_template != nullptr)
+        _template->onRender(*this, cam);
+
 	if (_shader != nullptr && _texture != nullptr)
 	{
-		const auto& model = getDefaultModel();
-        glm::mat4 view = glm::mat4(glm::mat3(cam.getViewMatrix()));
+		auto model = getDefaultModel();
+        glm::mat4 view = cam.getCenteredViewMatrix();
 
         glDepthFunc(GL_LEQUAL);
 		_shader->use();
@@ -29,7 +37,7 @@ void Skybox::render(const Camera& cam)
 		_shader["skybox"] = 0;
         _shader["view"] = view;
         _shader["projection"] = cam.getProjectionMatrix();
-		model.render();
+		model->render();
         glDepthFunc(GL_LESS);
 	}
 }
@@ -102,3 +110,46 @@ void Skybox::loadDefaultModel()
 }
 
 
+
+
+
+
+
+
+
+
+
+
+namespace lua::lib
+{
+	namespace LUA_skyboxes { static defineLuaLibraryConstructor(registerToLua, root, state); }
+
+	void registerSkyboxessLibToLua()
+	{
+		LuaLibraryManager::instance().registerLibrary(
+			::lua::lib::names::skyboxes,
+			&LUA_skyboxes::registerToLua,
+			{ ::lua::lib::names::themes, ::lua::lib::names::models }
+		);
+	}
+}
+
+namespace lua::lib::LUA_skyboxes
+{
+    static defineLuaLibraryConstructor(registerToLua, root, state)
+	{
+		namespace meta = lua::metamethod;
+
+
+		auto clss = root.deriveClass<Skybox, TransformableEntity>("Skybox");
+		clss
+			// Fields //
+			// Methods //
+			;
+
+		lua::lib::addLocalValuesContainerToClass(clss);
+
+		root = clss.endClass();
+		return true;
+	}
+}

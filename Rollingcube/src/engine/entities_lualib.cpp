@@ -135,19 +135,19 @@ namespace lua::lib::LUA_entities
 
 		static bool create(Texture* self, Texture::SizeType width, Texture::SizeType height, GLenum format, LuaRef generateMipmapsLUA)
 		{
-			bool generateMipmaps = generateMipmapsLUA.isBool() ? generateMipmapsLUA.cast<bool>() : false;
+			bool generateMipmaps = generateMipmapsLUA.isBool() ? generateMipmapsLUA.cast<bool>().value() : false;
 			return self->create(width, height, Texture::Format(format), generateMipmaps);
 		}
 
 		static bool loadFromFile(Texture* self, const std::string& filepath, LuaRef generateMipmapsLUA)
 		{
-			bool generateMipmaps = generateMipmapsLUA.isBool() ? generateMipmapsLUA.cast<bool>() : true;
+			bool generateMipmaps = generateMipmapsLUA.isBool() ? generateMipmapsLUA.cast<bool>().value() : true;
 			return self->loadFromImage(filepath, generateMipmaps);
 		}
 
 		static bool resize(Texture* self, Texture::SizeType width, Texture::SizeType height, LuaRef generateMipmapsLUA)
 		{
-			bool generateMipmaps = generateMipmapsLUA.isBool() ? generateMipmapsLUA.cast<bool>() : false;
+			bool generateMipmaps = generateMipmapsLUA.isBool() ? generateMipmapsLUA.cast<bool>().value() : false;
 			return self->resize(width, height, generateMipmaps);
 		}
 
@@ -158,17 +158,17 @@ namespace lua::lib::LUA_entities
 
 			// Texture::MagnificationFilter //
 			root = root.beginNamespace("TextureMagnificationFilter")
-				.addConstant("Nearest", &filters::mag::Nearest)
-				.addConstant("Bilinear", &filters::mag::Bilinear)
+				.addVariable("Nearest", &filters::mag::Nearest)
+				.addVariable("Bilinear", &filters::mag::Bilinear)
 				.endNamespace();
 
 			// Texture::MinificationFilter //
 			root = root.beginNamespace("TextureMinificationFilter")
-				.addConstant("Nearest", &filters::min::Nearest)
-				.addConstant("Bilinear", &filters::min::Bilinear)
-				.addConstant("NearestMipmap", &filters::min::NearestMipmap)
-				.addConstant("BilinearMipmap", &filters::min::BilinearMipmap)
-				.addConstant("Trilinear", &filters::min::Trilinear)
+				.addVariable("Nearest", &filters::min::Nearest)
+				.addVariable("Bilinear", &filters::min::Bilinear)
+				.addVariable("NearestMipmap", &filters::min::NearestMipmap)
+				.addVariable("BilinearMipmap", &filters::min::BilinearMipmap)
+				.addVariable("Trilinear", &filters::min::Trilinear)
 				.endNamespace();
 
 			// Texture //
@@ -272,6 +272,33 @@ namespace lua::lib::LUA_entities
 		}
 	}
 
+	namespace LUA_directionalLight
+	{
+		static const glm::vec3& getDirection(const DirectionalLight* self) { return self->getDirection(); }
+		static void setDirection(DirectionalLight* self, const glm::vec3& position) { self->setDirection(position); }
+
+		static float getIntensity(const DirectionalLight* self) { return self->getIntensity(); }
+		static void setIntensity(DirectionalLight* self, float intensity) { self->setIntensity(intensity); }
+
+		static void setDirectionFromAngles(DirectionalLight* self, float pitch, float yaw) { self->setDirectionFromAngles(pitch, yaw); }
+
+
+		static defineLuaLibraryConstructor(registerToLua, root, state)
+		{
+			namespace meta = ::lua::metamethod;
+
+			// Light //
+			auto clss = root.deriveClass<DirectionalLight, ColorChannels>("DirectionalLight");
+			clss.addConstructor<void(*)()>()
+				.addProperty("direction", &getDirection, &setDirection)
+				.addProperty("intensity", &getIntensity, &setIntensity)
+				.addFunction("setDirectionFromAngles", &setDirectionFromAngles);
+
+			root = clss.endClass();
+			return true;
+		}
+	}
+
 	namespace LUA_lightContainer
 	{
 		static const glm::vec3& getPosition(const StaticLightContainer* self) { return self->getPosition(); }
@@ -326,6 +353,8 @@ namespace lua::lib::LUA_entities
 
 		static const glm::mat4& getModelMatrix(const Transformable* self) { return self->getModelMatrix(); }
 
+		static const glm::mat4& getNormalMatrix(const Transformable* self) { return self->getNormalMatrix(); }
+
 		static const glm::mat4& getInvertedModelMatrix(const Transformable* self) { return self->getInvertedModelMatrix(); }
 
 
@@ -354,6 +383,7 @@ namespace lua::lib::LUA_entities
 				.addProperty("globalPosition", &getGlobalPosition)
 				.addProperty("globalScale", &getGlobalScale)
 				.addProperty("modelMatrix", &getModelMatrix)
+				.addProperty("normalMatrix", &getNormalMatrix)
 				.addProperty("invertedModelMatrix", &getInvertedModelMatrix)
 				// Methods //
 				.addFunction("move", &move)

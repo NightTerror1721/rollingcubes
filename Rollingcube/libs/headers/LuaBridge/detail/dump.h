@@ -1,4 +1,5 @@
-// https://github.com/vinniefalco/LuaBridge
+// https://github.com/kunitoki/LuaBridge3
+// Copyright 2020, Lucio Asnaghi
 // Copyright 2019, Dmitry Tarakanov
 // Copyright 2012, Vinnie Falco <vinnie.falco@gmail.com>
 // Copyright 2007, Nathan Reed
@@ -6,13 +7,12 @@
 
 #pragma once
 
-#include "LuaBridge/detail/ClassInfo.h"
+#include "ClassInfo.h"
 
 #include <iostream>
 #include <string>
 
 namespace luabridge {
-
 namespace debug {
 
 inline void putIndent(std::ostream& stream, unsigned level)
@@ -80,7 +80,7 @@ inline void dumpValue(lua_State* L, int index, std::ostream& stream, unsigned le
     }
 }
 
-inline void dumpTable(lua_State* L, int index, std::ostream& stream, unsigned level)
+inline void dumpTable(lua_State* L, int index, std::ostream& stream, unsigned level = 0)
 {
     stream << "table@" << lua_topointer(L, index);
 
@@ -117,5 +117,4 @@ inline void dumpState(lua_State* L, std::ostream& stream = std::cerr)
 }
 
 } // namespace debug
-
 } // namespace luabridge

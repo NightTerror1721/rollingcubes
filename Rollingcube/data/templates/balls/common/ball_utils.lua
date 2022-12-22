@@ -3,6 +3,7 @@ openlib "models"
 
 
 -- CONSTANTS --
+
 local BALL_MODEL_PREFIX <const> = "ball_"
 
 local COLLISION_TYPE_SIDE <const> = 0

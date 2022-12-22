@@ -164,9 +164,14 @@ ShaderProgramManager::Reference ShaderProgramManager::load(
 void ShaderProgramManager::loadInternalShaders()
 {
 	using namespace constants::shader::internals;
+	static constinit bool init = false;
 
-	for (std::size_t i = 0; i < count; ++i)
-		load(shaders[i]);
+	if (!init)
+	{
+		init = true;
+		for (std::size_t i = 0; i < count; ++i)
+			load(shaders[i]);
+	}
 }
 
 #define GET_INTERNAL_SHADER(_Name)											\
@@ -353,7 +358,7 @@ namespace lua::lib::LUA_shader
 		{
 			v.reserve(len);
 			for (int i = 0; i < len; ++i)
-				v.push_back(value.rawget(i).cast<_Ty>());
+				v.push_back(value.rawget(i).cast<_Ty>().value());
 
 			shader->getUniform(name) = v;
 		}
@@ -375,7 +380,7 @@ namespace lua::lib::LUA_shader
 
 		std::string geometryShaderPath = "";
 		if (geometryShaderPathLUA.isString())
-			geometryShaderPath = geometryShaderPathLUA.cast<std::string>();
+			geometryShaderPath = geometryShaderPathLUA.cast<std::string>().value();
 
 		ShaderProgram::Ref ref = man.load(name, vertexShaderPath, fragmentShaderPath, geometryShaderPath);
 		return ref != nullptr;
@@ -397,12 +402,27 @@ namespace lua::lib::LUA_shader
 		return ShaderProgramManager::instance().contains(name);
 	}
 
+	static constinit struct DefaultShadersPool {} DefaultShaders = {};
+
+	static DefaultShadersPool* getShaderProgramDefaults() { return &DefaultShaders; }
+	static ShaderProgram* getLightningShaderProgram(const DefaultShadersPool*) { return &ShaderProgramManager::instance().getLightningShaderProgram(); }
+	static ShaderProgram* getFreetypeFontShaderProgram(const DefaultShadersPool*) { return &ShaderProgramManager::instance().getFreetypeFontShaderProgram(); }
+	static ShaderProgram* getSkyShaderProgram(const DefaultShadersPool*) { return &ShaderProgramManager::instance().getSkyShaderProgram(); }
+	static ShaderProgram* getLinesShaderProgram(const DefaultShadersPool*) { return &ShaderProgramManager::instance().getLinesShaderProgram(); }
+
 
 
 
 	static defineLuaLibraryConstructor(registerToLua, root, state)
 	{
 		namespace meta = ::lua::metamethod;
+
+		root = root.beginClass<DefaultShadersPool>("DefaultShadersPool")
+			.addProperty("lightning", &getLightningShaderProgram)
+			.addProperty("freetypeFont", &getFreetypeFontShaderProgram)
+			.addProperty("sky", &getSkyShaderProgram)
+			.addProperty("lines", &getLinesShaderProgram)
+			.endClass();
 
 		auto clss = root.beginClass<ShaderProgram>("ShaderProgram");
 		clss
@@ -430,7 +450,10 @@ namespace lua::lib::LUA_shader
 			// Static Functions //
 			.addStaticFunction("load", &loadShaderProgram)
 			.addStaticFunction("get", &get)
-			.addStaticFunction("exists", &exists);
+			.addStaticFunction("exists", &exists)
+			// Static properties //
+			.addStaticProperty("defaults", &getShaderProgramDefaults)
+			;
 
 		root = clss.endClass();
 		return true;

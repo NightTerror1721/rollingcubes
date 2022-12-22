@@ -82,7 +82,7 @@ namespace lua::utils
 	template <LuaValidValue _Ty>
 	inline void push(const _Ty& value) { bridge::push<_Ty>(state(), value); }
 
-	inline void pushNil() { push(bridge::Nil()); }
+	inline void pushNil() { push(nullptr); }
 
 	inline void pop(unsigned int amount = 1) { lua_pop(state(), static_cast<int>(amount)); }
 
@@ -149,7 +149,7 @@ namespace lua::utils
 	{
 		try
 		{
-			LuaException::pcall(state(), nargs, nresults, msgh);
+			lua::bridge::pcall(state(), nargs, nresults, msgh);
 			return true;
 		}
 		catch (const LuaException& ex)
@@ -170,7 +170,7 @@ namespace lua::utils
 	template <LuaValidValue _Ty>
 	inline void setGlobalValue(std::string_view name, const _Ty& value) { lua::bridge::setGlobal<_Ty>(state(), value, name.data()); }
 
-	inline void setGlobalNil(std::string_view name) { lua::bridge::setGlobal(state(), lua::bridge::Nil(), name.data()); }
+	inline void setGlobalNil(std::string_view name) { lua::bridge::setGlobal(state(), nullptr, name.data()); }
 
 	inline void setFromGlobal(std::string_view name, const LuaRef& env) { env[name] = getGlobalValue(name); }
 }

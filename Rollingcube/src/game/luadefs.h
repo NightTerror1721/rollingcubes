@@ -158,9 +158,9 @@ protected:
 		else
 		{
 			if constexpr (std::same_as<LuaRef, _RetTy>)
-				return LuaRef(luabridge::Nil());
+				return LuaRef(lua::state());
 			else
-				return LuaRef(luabridge::Nil()).cast<_RetTy>();
+				return LuaRef(lua::state()).cast<_RetTy>().value();
 		}
 	}
 };

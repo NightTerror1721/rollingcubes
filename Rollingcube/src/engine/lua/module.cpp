@@ -51,7 +51,7 @@ bool LuaModule::load()
 	_env->push();
 	lua_setupvalue(state, -2, 1);
 	LuaCallStack::push(*this);
-	try { LuaException::pcall(state); }
+	try { lua::bridge::pcall(state); }
 	catch (const LuaException& ex)
 	{
 		hasError = true;
@@ -166,7 +166,7 @@ void LuaModule::LUA_include(const std::string& path, LuaRef luaFromRoot)
 		return;
 	}
 
-	bool fromRoot = luaFromRoot.cast<bool>();
+	bool fromRoot = luaFromRoot.cast<bool>().value();
 	mod->includeModule(path, fromRoot);
 }
 

@@ -129,9 +129,6 @@
     <ClCompile Include="src\utils\tangent_space.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\skybox.cpp">
-      <Filter>Source Files\engine</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\bounding.cpp">
       <Filter>Source Files\engine</Filter>
     </ClCompile>
@@ -185,6 +182,12 @@
     </ClCompile>
     <ClCompile Include="src\engine\lua\module.cpp">
       <Filter>Source Files\engine\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="src\game\skybox.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\luadebuglib.cpp">
+      <Filter>Source Files\utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -305,9 +308,6 @@
     <ClInclude Include="src\utils\tangent_space.h">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\skybox.h">
-      <Filter>Header Files\engine</Filter>
-    </ClInclude>
     <ClInclude Include="src\engine\bounding.h">
       <Filter>Header Files\engine</Filter>
     </ClInclude>
@@ -414,6 +414,12 @@
       <Filter>Header Files\engine\lua</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\exception_utils.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game\skybox.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\luadebuglib.h">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
   </ItemGroup>

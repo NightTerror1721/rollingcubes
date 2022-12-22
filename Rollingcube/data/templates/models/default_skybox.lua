@@ -1,21 +1,12 @@
-include "lightning_shader"
+openlib "models"
 
 
 MainModel = nil
-MainMaterial = nil
-
----@type string
-BallMainTexture = ""
+MainTexture = nil
 
 
 function OnInit()
-    MainModel = Theme.getBallModel()
-
-    MainMaterial = Material()
-    MainMaterial.diffuseColor = vec3(1, 1, 1)
-    MainMaterial.ambientColor = vec3(0.1, 0.1, 0.1)
-    MainMaterial.specularColor = vec3(0.7, 0.7, 0.7)
-    MainMaterial.shininess = 32
+    MainModel = Theme.getSkyboxModel()
 
     if BallMainTexture ~= "" then
         MainMaterial.diffuseTexture = Theme.getTexture(BallMainTexture)
@@ -35,7 +26,6 @@ end
 ---@param renderData ModelObjectRenderData
 function OnRender(modelobj, renderData)
     renderData.material = MainMaterial
-    LightningShader.bindRenderData(renderData)
     modelobj:renderModel(MainModel, renderData)
 end
 

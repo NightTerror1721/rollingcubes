@@ -33,7 +33,7 @@ namespace lua::lib
 
 namespace lua::lib::LUA_modelobj
 {
-	static const Camera* renderDataGetCamera(const ModelObjectRenderData* self) { return &self->camera; }
+	static Camera* renderDataGetCamera(const ModelObjectRenderData* self) { return const_cast<Camera*>(&self->camera); }
 	static void renderDataSetCamera(ModelObjectRenderData* self, Camera* value) { self->camera = value; }
 
 	static const Transformable* renderDataGetTransform(const ModelObjectRenderData* self) { return &self->transform; }

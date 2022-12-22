@@ -29,6 +29,8 @@ namespace gl
 }
 
 
+namespace lua::lib { void registerGlLibToLua(); }
+
 namespace gl
 {
 	enum class DataType : GLenum
@@ -69,6 +71,7 @@ namespace gl
 		Never = GL_NEVER,
 		Less = GL_LESS,
 		Equal = GL_EQUAL,
+		LessOrEqual = GL_LEQUAL,
 		Greater = GL_GREATER,
 		NotEqual = GL_NOTEQUAL,
 		GreaterOrEqual = GL_GEQUAL,

@@ -157,6 +157,8 @@ public:
 	inline const glm::mat4& getProjectionMatrix() const { return _projectionMatrix; }
 	inline const glm::mat4& getViewprojectionMatrix() const { return _viewprojectionMatrix; }
 
+	inline glm::mat4 getCenteredViewMatrix() const { return glm::mat4(glm::mat3(getViewMatrix())); }
+
 	inline glm::mat4 mvp(const glm::mat4& model) const { return model * _viewprojectionMatrix; }
 
 	inline void setPosition(const glm::vec3& position) { setEye(position); }

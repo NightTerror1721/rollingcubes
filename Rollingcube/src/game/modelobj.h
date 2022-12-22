@@ -86,10 +86,10 @@ public:
 	{
 		if (model != nullptr)
 		{
-			ModelableEntity::bindLightnigShaderRenderData(*renderData.camera, *renderData.transform, nullptr, renderData.staticLights);
+//			ModelableEntity::bindLightnigShaderRenderData(*renderData.camera, *renderData.transform, nullptr, renderData.staticLights);
 			for (const auto& mesh : *model)
 				_template->onRenderMesh(const_cast<Mesh&>(*mesh), renderData);
-			ModelableEntity::unbindLightnigShaderRenderData(nullptr);
+//			ModelableEntity::unbindLightnigShaderRenderData(nullptr);
 		}
 	}
 

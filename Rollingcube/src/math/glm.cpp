@@ -19,6 +19,58 @@ namespace lua::lib
 
 	namespace LUA_vec2
 	{
+		static int index(glm::vec2* self, lua_State* state)
+		{
+			using namespace lua::bridge;
+
+			//glm::vec2* self = Stack<glm::vec2*>::get(state, 1).value();
+			
+			if (lua_isstring(state, 2))
+			{
+				std::size_t len;
+				const char* name = luaL_checklstring(state, 2, &len);
+				if (len != 1)
+					lua::utils::error("'{}'field on class vec2 not found.", name);
+
+				float value;
+				switch (name[0])
+				{
+					case 'x': case 'r': case 's': value = self->x; break;
+					case 'y': case 'g': case 't': value = self->y; break;
+
+					default:
+						lua::utils::error("'{}'field on class vec2 not found.", name);
+						return 0;
+				}
+
+				Stack<float>::push(state, value);
+
+				return 1;
+			}
+
+			if (lua_isinteger(state, 2))
+			{
+				int index = Stack<int>::get(state, 2).value();
+				if (index < 1 || index > 2)
+					lua::utils::error("Index out of bound [{}, {}]. But found {}.", 1, 2, index);
+				Stack<float>::push(state, (*self)[index]);
+				return 1;
+			}
+
+			if (lua_isnumber(state, 2))
+			{
+				int index = (int) Stack<lua_Number>::get(state, 2).value();
+				if (index < 1 || index > 2)
+					lua::utils::error("Index out of bound [{}, {}]. But found {}.", 1, 2, index);
+				Stack<float>::push(state, (*self)[index]);
+				return 1;
+			}
+
+			lua::utils::error("'{}'field on class vec2 not found.", LuaRef::fromStack(state, 2).tostring());
+			return 0;
+		}
+
+
 		static glm::vec2 constructor(LuaRef cls, LuaRef lx, LuaRef ly)
 		{
 			if (lx.isNil())
@@ -27,16 +79,16 @@ namespace lua::lib
 			if (ly.isNil())
 			{
 				if (lx.isInstance<glm::vec2>())
-					return glm::vec2(lx.cast<glm::vec2>());
+					return glm::vec2(lx.cast<glm::vec2>().value());
 
 				if (lx.isInstance<glm::vec3>())
-					return glm::vec2(lx.cast<glm::vec3>());
+					return glm::vec2(lx.cast<glm::vec3>().value());
 
 				if (lx.isInstance<glm::vec4>())
-					return glm::vec2(lx.cast<glm::vec4>());
+					return glm::vec2(lx.cast<glm::vec4>().value());
 			}
 
-			return glm::vec2(lx.cast<float>(), ly.cast<float>());
+			return glm::vec2(lx.cast<float>().value(), ly.cast<float>().value());
 		}
 
 		static bool eq(const glm::vec2* left, const glm::vec2& right) { return (*left) == right; }
@@ -48,14 +100,14 @@ namespace lua::lib
 		static glm::vec2 mul(const glm::vec2* left, LuaRef right)
 		{
 			if (right.isNumber())
-				return (*left) * right.cast<float>();
-			return (*left) * right.cast<glm::vec2>();
+				return (*left) * right.cast<float>().value();
+			return (*left) * right.cast<glm::vec2>().value();
 		}
 		static glm::vec2 div(const glm::vec2* left, LuaRef right)
 		{
 			if (right.isNumber())
-				return (*left) / right.cast<float>();
-			return (*left) / right.cast<glm::vec2>();
+				return (*left) / right.cast<float>().value();
+			return (*left) / right.cast<glm::vec2>().value();
 		}
 
 		static std::string toString(const glm::vec2* left)
@@ -65,19 +117,9 @@ namespace lua::lib
 
 		static int len(const glm::vec2* left) { return static_cast<int>(glm::vec2::length()); }
 
-		static float index(const glm::vec2* left, int index)
-		{
-			return (*left)[index];
-		}
-
-		static float newindex(glm::vec2* left, int index, float value)
-		{
-			return (*left)[index] = value;
-		}
-
 		static glm::vec2 normalize(const glm::vec2* left) { return glm::normalize(*left); }
 		static float length(const glm::vec2* left) { return glm::length(*left); }
-		static float dot(const glm::vec2* left, const glm::vec2& right) { return glm::dot(*left, right); }
+		static float dot(const glm::vec2* left, const glm::vec2* right) { return glm::dot(*left, *right); }
 	}
 
 	static defineLuaLibraryConstructor(LUA_glmLib_vec2, root, state)
@@ -87,12 +129,12 @@ namespace lua::lib
 
 		// glm::vec2 //
 		auto clss = root.beginClass<glm::vec2>("vec2");
-		clss.addData("x", &glm::vec2::x)
-			.addData("y", &glm::vec2::y)
-			.addData("r", &glm::vec2::r)
-			.addData("g", &glm::vec2::g)
-			.addData("s", &glm::vec2::s)
-			.addData("t", &glm::vec2::t)
+		root = clss.addProperty("x", &glm::vec2::x)
+			.addProperty("y", &glm::vec2::y)
+			.addProperty("r", &glm::vec2::r)
+			.addProperty("g", &glm::vec2::g)
+			.addProperty("s", &glm::vec2::s)
+			.addProperty("t", &glm::vec2::t)
 			.addStaticFunction(meta::call, &constructor)
 			.addFunction(meta::eq, &eq)
 			.addFunction(meta::add, &add)
@@ -102,13 +144,12 @@ namespace lua::lib
 			.addFunction(meta::unm, &neg)
 			.addFunction(meta::len, &len)
 			.addFunction(meta::tostring, &toString)
-			.addFunction(meta::index, &index)
-			.addFunction(meta::newindex, &newindex)
-			.addFunction("normalize", &normalize)
-			.addFunction("length", &length)
-			.addFunction("dot", &dot)
-			;
-		root = clss.endClass();
+//			.addFunction(meta::index, &index)
+//			.addFunction(meta::newindex, &newindex)
+			.addStaticFunction("normalize", &normalize)
+			.addStaticFunction("length", &length)
+			.addStaticFunction("dot", &dot)
+			.endClass();
 
 		return true;
 	}
@@ -125,19 +166,19 @@ namespace lua::lib
 			if (ly.isNil())
 			{
 				if(lx.isInstance<glm::vec3>())
-					return glm::vec3(lx.cast<glm::vec3>());
+					return glm::vec3(lx.cast<glm::vec3>().value());
 
 				if (lx.isInstance<glm::vec4>())
-					return glm::vec3(lx.cast<glm::vec4>());
+					return glm::vec3(lx.cast<glm::vec4>().value());
 			}
 
 			if (lz.isNil())
 			{
 				if (lx.isInstance<glm::vec2>())
-					return glm::vec3(lx.cast<glm::vec2>(), ly.cast<float>());
+					return glm::vec3(lx.cast<glm::vec2>().value(), ly.cast<float>().value());
 			}
 
-			return glm::vec3(lx.cast<float>(), ly.cast<float>(), lz.cast<float>());
+			return glm::vec3(lx.cast<float>().value(), ly.cast<float>().value(), lz.cast<float>().value());
 		}
 
 		static bool eq(const glm::vec3* left, const glm::vec3& right) { return (*left) == right; }
@@ -149,14 +190,14 @@ namespace lua::lib
 		static glm::vec3 mul(const glm::vec3* left, LuaRef right)
 		{
 			if (right.isNumber())
-				return (*left) * right.cast<float>();
-			return (*left) * right.cast<glm::vec3>();
+				return (*left) * right.cast<float>().value();
+			return (*left) * right.cast<glm::vec3>().value();
 		}
 		static glm::vec3 div(const glm::vec3* left, LuaRef right)
 		{
 			if (right.isNumber())
-				return (*left) / right.cast<float>();
-			return (*left) / right.cast<glm::vec3>();
+				return (*left) / right.cast<float>().value();
+			return (*left) / right.cast<glm::vec3>().value();
 		}
 
 		static std::string toString(const glm::vec3* left)
@@ -189,15 +230,15 @@ namespace lua::lib
 
 		// glm::vec3 //
 		auto clss = root.beginClass<glm::vec3>("vec3");
-		clss.addData("x", &glm::vec3::x)
-			.addData("y", &glm::vec3::y)
-			.addData("z", &glm::vec3::z)
-			.addData("r", &glm::vec3::r)
-			.addData("g", &glm::vec3::g)
-			.addData("b", &glm::vec3::b)
-			.addData("s", &glm::vec3::s)
-			.addData("t", &glm::vec3::t)
-			.addData("p", &glm::vec3::p)
+		clss.addProperty("x", &glm::vec3::x)
+			.addProperty("y", &glm::vec3::y)
+			.addProperty("z", &glm::vec3::z)
+			.addProperty("r", &glm::vec3::r)
+			.addProperty("g", &glm::vec3::g)
+			.addProperty("b", &glm::vec3::b)
+			.addProperty("s", &glm::vec3::s)
+			.addProperty("t", &glm::vec3::t)
+			.addProperty("p", &glm::vec3::p)
 			.addStaticFunction(meta::call, &constructor)
 			.addFunction(meta::eq, &eq)
 			.addFunction(meta::add, &add)
@@ -207,8 +248,8 @@ namespace lua::lib
 			.addFunction(meta::unm, &neg)
 			.addFunction(meta::len, &len)
 			.addFunction(meta::tostring, &toString)
-			.addFunction(meta::index, &index)
-			.addFunction(meta::newindex, &newindex)
+//			.addFunction(meta::index, &index)
+//			.addFunction(meta::newindex, &newindex)
 			.addFunction("normalize", &normalize)
 			.addFunction("length", &length)
 			.addFunction("dot", &dot)
@@ -232,22 +273,22 @@ namespace lua::lib
 			if (ly.isNil())
 			{
 				if (lx.isInstance<glm::vec4>())
-					return glm::vec4(lx.cast<glm::vec4>());
+					return glm::vec4(lx.cast<glm::vec4>().value());
 			}
 
 			if (lz.isNil())
 			{
 				if (lx.isInstance<glm::vec3>())
-					return glm::vec4(lx.cast<glm::vec3>(), ly.cast<float>());
+					return glm::vec4(lx.cast<glm::vec3>().value(), ly.cast<float>().value());
 			}
 
 			if (lw.isNil())
 			{
 				if (lx.isInstance<glm::vec2>())
-					return glm::vec4(lx.cast<glm::vec2>(), ly.cast<float>(), lz.cast<float>());
+					return glm::vec4(lx.cast<glm::vec2>().value(), ly.cast<float>().value(), lz.cast<float>().value());
 			}
 
-			return glm::vec4(lx.cast<float>(), ly.cast<float>(), lz.cast<float>(), lw.cast<float>());
+			return glm::vec4(lx.cast<float>().value(), ly.cast<float>().value(), lz.cast<float>().value(), lw.cast<float>().value());
 		}
 
 		static bool eq(const glm::vec4* left, const glm::vec4& right) { return (*left) == right; }
@@ -259,14 +300,14 @@ namespace lua::lib
 		static glm::vec4 mul(const glm::vec4* left, LuaRef right)
 		{
 			if (right.isNumber())
-				return (*left) * right.cast<float>();
-			return (*left) * right.cast<glm::vec4>();
+				return (*left) * right.cast<float>().value();
+			return (*left) * right.cast<glm::vec4>().value();
 		}
 		static glm::vec4 div(const glm::vec4* left, LuaRef right)
 		{
 			if (right.isNumber())
-				return (*left) / right.cast<float>();
-			return (*left) / right.cast<glm::vec4>();
+				return (*left) / right.cast<float>().value();
+			return (*left) / right.cast<glm::vec4>().value();
 		}
 
 		static std::string toString(const glm::vec4* left)
@@ -298,18 +339,18 @@ namespace lua::lib
 
 		// glm::vec4 //
 		auto clss = root.beginClass<glm::vec4>("vec4");
-		clss.addData("x", &glm::vec4::x)
-			.addData("y", &glm::vec4::y)
-			.addData("z", &glm::vec4::z)
-			.addData("w", &glm::vec4::w)
-			.addData("r", &glm::vec4::r)
-			.addData("g", &glm::vec4::g)
-			.addData("b", &glm::vec4::b)
-			.addData("a", &glm::vec4::a)
-			.addData("s", &glm::vec4::s)
-			.addData("t", &glm::vec4::t)
-			.addData("p", &glm::vec4::p)
-			.addData("q", &glm::vec4::q)
+		clss.addProperty("x", &glm::vec4::x)
+			.addProperty("y", &glm::vec4::y)
+			.addProperty("z", &glm::vec4::z)
+			.addProperty("w", &glm::vec4::w)
+			.addProperty("r", &glm::vec4::r)
+			.addProperty("g", &glm::vec4::g)
+			.addProperty("b", &glm::vec4::b)
+			.addProperty("a", &glm::vec4::a)
+			.addProperty("s", &glm::vec4::s)
+			.addProperty("t", &glm::vec4::t)
+			.addProperty("p", &glm::vec4::p)
+			.addProperty("q", &glm::vec4::q)
 			.addStaticFunction(meta::call, &constructor)
 			.addFunction(meta::eq, &eq)
 			.addFunction(meta::add, &add)
@@ -319,8 +360,8 @@ namespace lua::lib
 			.addFunction(meta::unm, &neg)
 			.addFunction(meta::len, &len)
 			.addFunction(meta::tostring, &toString)
-			.addFunction(meta::index, &index)
-			.addFunction(meta::newindex, &newindex)
+//			.addFunction(meta::index, &index)
+//			.addFunction(meta::newindex, &newindex)
 			.addFunction("normalize", &normalize)
 			.addFunction("length", &length)
 			.addFunction("dot", &dot)
@@ -335,12 +376,17 @@ namespace lua::lib
 
 	namespace LUA_mat4
 	{
+		static glm::vec4* getRow(glm::mat4* self, int row) { return std::addressof((*self)[row]); }
+
+		static float getValue(glm::mat4* self, int row, int column) { return (*self)[row][column]; }
+
+
 		static glm::mat4 constructor(LuaRef cls, LuaRef arg)
 		{
 			if (arg.isNil())
 				return glm::mat4();
 
-			return glm::mat4(arg.cast<float>());
+			return glm::mat4(arg.cast<float>().value());
 		}
 
 		static glm::mat4 s_identity() { return glm::identity<glm::mat4>(); }
@@ -354,16 +400,16 @@ namespace lua::lib
 		static LuaRef mul(const glm::mat4* left, LuaRef right, lua_State* state)
 		{
 			if (right.isNumber())
-				return LuaRef(state, (*left) * right.cast<float>());
+				return LuaRef(state, (*left) * right.cast<float>().value());
 			if (right.isInstance<glm::vec4>())
-				return LuaRef(state, (*left) * right.cast<glm::vec4>());
-			return LuaRef(state, (*left) * right.cast<glm::mat4>());
+				return LuaRef(state, (*left) * right.cast<glm::vec4>().value());
+			return LuaRef(state, (*left) * right.cast<glm::mat4>().value());
 		}
 		static glm::mat4 div(const glm::mat4* left, LuaRef right)
 		{
 			if (right.isNumber())
-				return (*left) / right.cast<float>();
-			return (*left) / right.cast<glm::mat4>();
+				return (*left) / right.cast<float>().value();
+			return (*left) / right.cast<glm::mat4>().value();
 		}
 
 		static std::string toString(const glm::mat4* left)

@@ -273,14 +273,14 @@ namespace lua::lib
 
 namespace lua::lib::LUA_camera
 {
-	static const glm::vec3& getEye(const Camera* self) { return self->getEye(); } // position //
-	static void setEye(Camera* self, const glm::vec3& eye) { self->setEye(eye); } // position //
+	static const glm::vec3* getEye(const Camera* self) { return std::addressof(self->getEye()); } // position //
+	static void setEye(Camera* self, glm::vec3* eye) { self->setEye(*eye); } // position //
 
-	static const glm::vec3& getCenter(const Camera* self) { return self->getCenter(); }
-	static void setCenter(Camera* self, const glm::vec3& center) { self->setCenter(center); }
+	static glm::vec3 getCenter(const Camera* self) { return self->getCenter(); }
+	static void setCenter(Camera* self, glm::vec3* center) { self->setCenter(*center); }
 
-	static const glm::vec3& getUp(const Camera* self) { return self->getUp(); }
-	static void setUp(Camera* self, const glm::vec3& up) { self->setUp(up); }
+	static glm::vec3 getUp(const Camera* self) { return self->getUp(); }
+	static void setUp(Camera* self, glm::vec3* up) { self->setUp(*up); }
 
 	static float getFov(const Camera* self) { return self->getFov(); }
 
@@ -295,6 +295,8 @@ namespace lua::lib::LUA_camera
 	static const glm::mat4& getProjectionMatrix(const Camera* self) { return self->getProjectionMatrix(); }
 
 	static const glm::mat4& getViewprojectionMatrix(const Camera* self) { return self->getViewprojectionMatrix(); }
+
+	static glm::mat4 getCenteredViewMatrix(const Camera* self) { return self->getCenteredViewMatrix(); }
 
 	static glm::vec3 getFront(const Camera* self) { return self->getFront(); }
 
@@ -324,6 +326,7 @@ namespace lua::lib::LUA_camera
 			.addProperty("viewMatrix", &getViewMatrix)
 			.addProperty("projectionMatrix", &getProjectionMatrix)
 			.addProperty("viewProjectionMatrix", &getViewprojectionMatrix)
+			.addProperty("centeredViewMatrix", &getCenteredViewMatrix)
 			.addProperty("position", &getEye, &setEye)
 			.addProperty("front", &getFront)
 			.addProperty("right", &getRight)

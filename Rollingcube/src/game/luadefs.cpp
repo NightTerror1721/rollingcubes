@@ -2,6 +2,7 @@
 
 #include "math/glm.h"
 #include "utils/logger.h"
+#include "utils/luadebuglib.h"
 
 #include "theme.h"
 
@@ -13,6 +14,8 @@ void lua::initGameLibs()
 	if (!initiatedFlag)
 	{
 		lua::lib::registerGlmToLua();
+		lua::lib::registerGlLibToLua();
+		lua::lib::registerDebugLibToLua();
 		lua::lib::registerCameraLibToLua();
 		lua::lib::registerShaderLibToLua();
 		lua::lib::registerEntitiesLibToLua();
@@ -21,6 +24,7 @@ void lua::initGameLibs()
 		lua::lib::registerBlocksLibToLua();
 		lua::lib::registerModelsLibToLua();
 		lua::lib::registerBallsLibToLua();
+		lua::lib::registerSkyboxessLibToLua();
 
 		initiatedFlag = true;
 	}

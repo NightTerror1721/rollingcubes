@@ -7,14 +7,13 @@
 
 #include "utils/optref.h"
 
-#include "engine/skybox.h"
-
 #include "luadefs.h"
 
 #include "block.h"
 #include "tile.h"
 #include "modelobj.h"
 #include "ball.h"
+#include "skybox.h"
 
 
 namespace lua::lib { void registerThemesLibToLua(); }
@@ -155,6 +154,7 @@ public:
 
 public:
 	inline Model::Ref getBallModel() const { return balls::model::getModel(); }
+	inline Model::Ref getSkyboxModel() const { return Skybox::getDefaultModel(); }
 
 private:
 	bool load(const std::string& name);

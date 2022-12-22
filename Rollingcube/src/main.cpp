@@ -13,7 +13,6 @@
 #include "engine/sampler.h"
 #include "engine/entities.h"
 #include "engine/text.h"
-#include "engine/skybox.h"
 
 #include "utils/logger.h"
 #include "utils/bmp_decoder.h"
@@ -24,6 +23,7 @@
 #include "game/cube_model.h"
 #include "game/block.h"
 #include "game/theme.h"
+#include "game/skybox.h"
 #include "game/properties.h"
 
 

@@ -12,6 +12,8 @@ function include(path, fromRoot) end
 
 ---@alias RollingcubeLibname
 ---| '"geometry"'
+---| '"gl"'
+---| '"debug"'
 ---| '"camera"'
 ---| '"shader"'
 ---| '"entities"'
@@ -20,6 +22,7 @@ function include(path, fromRoot) end
 ---| '"tiles"'
 ---| '"models"'
 ---| '"balls"'
+---| '"skyboxes"'
 
 
 --- class vec2 ---
@@ -31,8 +34,6 @@ function include(path, fromRoot) end
 ---@field g number
 ---@field s number
 ---@field t number
----@field [0] number
----@field [1] number
 ---@operator add(vec2):vec2
 ---@operator sub(vec2):vec2
 ---@operator mul(vec2|number):vec2
@@ -71,9 +72,6 @@ vec2 = {
 ---@field s number
 ---@field t number
 ---@field p number
----@field [0] number
----@field [1] number
----@field [2] number
 ---@operator add(vec3):vec3
 ---@operator sub(vec3):vec3
 ---@operator mul(vec3|number):vec3
@@ -121,10 +119,6 @@ vec3 = {
 ---@field t number
 ---@field p number
 ---@field q number
----@field [0] number
----@field [1] number
----@field [2] number
----@field [3] number
 ---@operator add(vec4):vec4
 ---@operator sub(vec4):vec4
 ---@operator mul(vec4|number):vec4
@@ -234,23 +228,75 @@ function radians(degrees) end
 function degrees(radians) end
 
 
+--- namespace GL ---
+
+GL = {
+    ---@enum GL.DepthFunction
+    DepthFunction = {
+        Never = 512,
+        Less = 513,
+        Equal = 514,
+        LessOrEqual = 515,
+        Greater = 516,
+        NotEqual = 517,
+        GreaterOrEqual = 518,
+        Always = 519,
+        Default = 513
+    },
+
+    ---@enum GL.CullFace
+    CullFace = {
+        Front = 1028,
+        Back = 1029,
+        FrontAndBack = 1032,
+        Default = 1029
+    },
+
+    ---@enum GL.FrontFace
+    FrontFace = {
+        Clockwise = 2304,
+        CounterClockwise = 2305,
+        Default = 2305
+    },
+
+
+    ---@param depthFunction GL.DepthFunction
+    setDepthFunction = function(depthFunction) end,
+
+    enableDepthTest = function() end,
+
+    disableDepthTest = function() end,
+
+    ---@param face GL.CullFace
+    setCullFace = function(face) end,
+
+    ---@param face GL.FrontFace
+    setFrontFace = function(face) end,
+
+    enableCullFace = function() end,
+
+    disableCullFace = function() end,
+}
+
+
 --- class Camera ---
 
 ---@class Camera
 ---@field eye vec3
 ---@field center vec3
 ---@field up vec3
----@field fov number
----@field aspect number
----@field nearPlane number
----@field farPlane number
----@field viewMatrix mat4
----@field projectionMatrix mat4
----@field viewProjectionMatrix mat4
----@field position vec3 alias for 'Camera.eye' field
----@field front vec3
----@field right vec3
----@field eulerAngles vec3
+---@field fov number readonly
+---@field aspect number readonly
+---@field nearPlane number readonly
+---@field farPlane number readonly
+---@field viewMatrix mat4 readonly
+---@field projectionMatrix mat4 readonly
+---@field viewProjectionMatrix mat4 readonly
+---@field centeredViewMatrix mat4 readonly
+---@field position vec3 readonly alias for 'Camera.eye' field
+---@field front vec3 readonly
+---@field right vec3 readonly
+---@field eulerAngles vec3 readonly
 ---@operator call:Camera
 Camera = {
     ---method
@@ -446,7 +492,14 @@ ShaderProgram = {
     ---static method
     ---@param name string
     ---@return boolean
-    exists = function(name) end
+    exists = function(name) end,
+
+    ---@class ShaderProgram.DefaultShadersPool
+    ---@field lightning ShaderProgram readonly
+    ---@field freetypeFont ShaderProgram readonly
+    ---@field sky ShaderProgram readonly
+    ---@field lines ShaderProgram readonly
+    defaults = {}
 }
 
 
@@ -460,7 +513,7 @@ ShaderProgram = {
 ---@field specularTexture Texture
 ---@field normalsTexture Texture
 ---@field shininess number
----@field opacity number alias for 'Material.shininess' field
+---@field opacity number
 ---@overload fun(): Material
 Material = {
     ---method
@@ -628,6 +681,29 @@ Light = {
 }
 
 
+--- class DirectionalLight ---
+
+---@class DirectionalLight
+---@field ambientColor vec3
+---@field diffuseColor vec3
+---@field specularColor vec3
+---@field direction vec3
+---@field intensity number
+---@overload fun(): DirectionalLight
+DirectionalLight = {
+    ---method
+    ---@param self DirectionalLight
+    ---@param color vec3
+    setColor = function(self, color) end,
+
+    ---method
+    ---@param self DirectionalLight
+    ---@param pitch number
+    ---@param yaw number
+    setDirectionFromAngles = function(self, pitch, yaw) end
+}
+
+
 --- class StaticLightContainer ---
 
 ---@class StaticLightContainer
@@ -650,6 +726,7 @@ StaticLightContainer = {}
 ---@field globalPosition vec3 readonly
 ---@field globalScale vec3 readonly
 ---@field modelMatrix mat4 readonly
+---@field normalMatrix mat4 readonly
 ---@field invertedModelMatrix mat4 readonly
 Transformable = {
     ---method
@@ -744,6 +821,10 @@ Theme = {
     ---static method
     ---@return Model
     getBallModel = function() end,
+
+    ---static method
+    ---@return Model
+    getSkyboxModel = function() end,
 
     ---static method
     ---@param name string
@@ -940,6 +1021,31 @@ Ball = {
 
     ---method
     ---@param self Ball
+    ---@param name string
+    deleteLocalValue = function(self, name) end,
+}
+
+
+--- class Skybox ---
+
+---@class Skybox: Entity
+Skybox = {
+    ---method
+    ---@generic T
+    ---@param self Skybox
+    ---@param name string
+    ---@return T
+    getLocalValue = function(self, name) end,
+
+    ---method
+    ---@generic T
+    ---@param self Skybox
+    ---@param name string
+    ---@param value T
+    setLocalValue = function(self, name, value) end,
+
+    ---method
+    ---@param self Skybox
     ---@param name string
     deleteLocalValue = function(self, name) end,
 }

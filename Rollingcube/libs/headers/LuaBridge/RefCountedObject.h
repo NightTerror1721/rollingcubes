@@ -1,4 +1,5 @@
-// https://github.com/vinniefalco/LuaBridge
+// https://github.com/kunitoki/LuaBridge3
+// Copyright 2020, Lucio Asnaghi
 // Copyright 2012, Vinnie Falco <vinnie.falco@gmail.com>
 // Copyright 2004-11 by Raw Material Software Ltd.
 // SPDX-License-Identifier: MIT
@@ -37,6 +38,9 @@
 //==============================================================================
 
 #pragma once
+
+#include "detail/Config.h"
+#include "detail/TypeTraits.h"
 
 #include <cassert>
 #include <utility>
@@ -79,13 +83,13 @@ public:
         This is done automatically by the smart pointer, but is public just
         in case it's needed for nefarious purposes.
     */
-    void incReferenceCount() const { ++refCount; }
+    inline void incReferenceCount() const { ++refCount; }
 
     /** Decreases the object's reference count.
 
         If the count gets to zero, the object will be deleted.
     */
-    void decReferenceCount() const
+    inline void decReferenceCount() const
     {
         assert(getReferenceCount() > 0);
 
@@ -96,7 +100,7 @@ public:
     /** Returns the object's current reference count.
      * @returns The reference count.
      */
-    int getReferenceCount() const { return static_cast<int>(refCount); }
+    inline int getReferenceCount() const { return static_cast<int>(refCount); }
 
 protected:
     //==============================================================================
@@ -152,17 +156,17 @@ public:
 
     //==============================================================================
     /** Creates a pointer to a null object. */
-    RefCountedObjectPtr() : referencedObject(nullptr) {}
+    inline RefCountedObjectPtr() : referencedObject(0) {}
 
     /** Creates a pointer to an object.
         This will increment the object's reference-count if it is non-null.
 
         @param refCountedObject A reference counted object to own.
     */
-    RefCountedObjectPtr(ReferenceCountedObjectClass* const refCountedObject)
+    inline RefCountedObjectPtr(ReferenceCountedObjectClass* const refCountedObject)
         : referencedObject(refCountedObject)
     {
-        if (refCountedObject != nullptr)
+        if (refCountedObject != 0)
             refCountedObject->incReferenceCount();
     }
 
@@ -171,9 +175,10 @@ public:
 
         @param other Another pointer.
     */
-    RefCountedObjectPtr(const RefCountedObjectPtr& other) : referencedObject(other.referencedObject)
+    inline RefCountedObjectPtr(const RefCountedObjectPtr& other)
+        : referencedObject(other.referencedObject)
     {
-        if (referencedObject != nullptr)
+        if (referencedObject != 0)
             referencedObject->incReferenceCount();
     }
 
@@ -182,9 +187,10 @@ public:
 
       @param other Another pointer.
     */
-    RefCountedObjectPtr(RefCountedObjectPtr&& other) : referencedObject(other.referencedObject)
+    inline RefCountedObjectPtr(RefCountedObjectPtr&& other)
+        : referencedObject(other.referencedObject)
     {
-        other.referencedObject = nullptr;
+        other.referencedObject = 0;
     }
 
     /** Copies another pointer.
@@ -193,10 +199,10 @@ public:
         @param other Another pointer.
     */
     template<class DerivedClass>
-    RefCountedObjectPtr(const RefCountedObjectPtr<DerivedClass>& other)
+    inline RefCountedObjectPtr(const RefCountedObjectPtr<DerivedClass>& other)
         : referencedObject(static_cast<ReferenceCountedObjectClass*>(other.getObject()))
     {
-        if (referencedObject != nullptr)
+        if (referencedObject != 0)
             referencedObject->incReferenceCount();
     }
 
@@ -234,7 +240,10 @@ public:
      */
     RefCountedObjectPtr& operator=(RefCountedObjectPtr&& other)
     {
-        std::swap(referencedObject, other.referencedObject);
+        using std::swap;
+
+        swap(referencedObject, other.referencedObject);
+
         return *this;
     }
 
@@ -249,13 +258,13 @@ public:
     {
         if (referencedObject != newObject)
         {
-            if (newObject != nullptr)
+            if (newObject != 0)
                 newObject->incReferenceCount();
 
             ReferenceCountedObjectClass* const oldObject = referencedObject;
             referencedObject = newObject;
 
-            if (oldObject != nullptr)
+            if (oldObject != 0)
                 oldObject->decReferenceCount();
         }
 
@@ -268,7 +277,7 @@ public:
     */
     ~RefCountedObjectPtr()
     {
-        if (referencedObject != nullptr)
+        if (referencedObject != 0)
             referencedObject->decReferenceCount();
     }
 
@@ -298,16 +307,62 @@ private:
     ReferenceCountedObjectClass* referencedObject;
 };
 
-//==============================================================================
+/** Compares two ReferenceCountedObjectPointers. */
+template<class ReferenceCountedObjectClass>
+bool operator==(const RefCountedObjectPtr<ReferenceCountedObjectClass>& object1,
+                ReferenceCountedObjectClass* const object2)
+{
+    return object1.getObject() == object2;
+}
 
-// forward declaration
-template<class T>
-struct ContainerTraits;
+/** Compares two ReferenceCountedObjectPointers. */
+template<class ReferenceCountedObjectClass>
+bool operator==(const RefCountedObjectPtr<ReferenceCountedObjectClass>& object1,
+                const RefCountedObjectPtr<ReferenceCountedObjectClass>& object2)
+{
+    return object1.getObject() == object2.getObject();
+}
+
+/** Compares two ReferenceCountedObjectPointers. */
+template<class ReferenceCountedObjectClass>
+bool operator==(ReferenceCountedObjectClass* object1,
+                RefCountedObjectPtr<ReferenceCountedObjectClass>& object2)
+{
+    return object1 == object2.getObject();
+}
+
+/** Compares two ReferenceCountedObjectPointers. */
+template<class ReferenceCountedObjectClass>
+bool operator!=(const RefCountedObjectPtr<ReferenceCountedObjectClass>& object1,
+                const ReferenceCountedObjectClass* object2)
+{
+    return object1.getObject() != object2;
+}
+
+/** Compares two ReferenceCountedObjectPointers. */
+template<class ReferenceCountedObjectClass>
+bool operator!=(const RefCountedObjectPtr<ReferenceCountedObjectClass>& object1,
+                RefCountedObjectPtr<ReferenceCountedObjectClass>& object2)
+{
+    return object1.getObject() != object2.getObject();
+}
+
+/** Compares two ReferenceCountedObjectPointers. */
+template<class ReferenceCountedObjectClass>
+bool operator!=(ReferenceCountedObjectClass* object1,
+                RefCountedObjectPtr<ReferenceCountedObjectClass>& object2)
+{
+    return object1 != object2.getObject();
+}
+
+//==============================================================================
 
 template<class T>
 struct ContainerTraits<RefCountedObjectPtr<T>>
 {
-    typedef T Type;
+    using Type = T;
+
+    static RefCountedObjectPtr<T> construct(T* c) { return c; }
 
     static T* get(RefCountedObjectPtr<T> const& c) { return c.getObject(); }
 };

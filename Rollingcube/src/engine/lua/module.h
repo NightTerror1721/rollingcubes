@@ -92,7 +92,7 @@ public:
 	template <typename _Ty> requires LuaValidValue<_Ty> || std::same_as<_Ty, LuaRef>
 	inline void setValue(std::string_view name, const _Ty& value) const { (*_env)[name] = value; }
 
-	inline void setNil(std::string_view name) const { (*_env)[name] = lua::bridge::Nil(); }
+	inline void setNil(std::string_view name) const { (*_env)[name] = nullptr; }
 
 	template <typename _Ty> requires LuaValidValue<_Ty> || std::same_as<_Ty, LuaRef>
 	inline _Ty getValue(std::string_view name) const { return (*_env)[name].cast<_Ty>(); }

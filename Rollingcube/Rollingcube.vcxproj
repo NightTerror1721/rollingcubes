@@ -110,7 +110,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -133,7 +133,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -171,7 +171,6 @@
     <ClCompile Include="src\engine\model.cpp" />
     <ClCompile Include="src\engine\sampler.cpp" />
     <ClCompile Include="src\engine\old_shader.cpp" />
-    <ClCompile Include="src\engine\skybox.cpp" />
     <ClCompile Include="src\engine\text.cpp" />
     <ClCompile Include="src\engine\texture.cpp" />
     <ClCompile Include="src\game\ball.cpp" />
@@ -183,6 +182,7 @@
     <ClCompile Include="src\game\level.cpp" />
     <ClCompile Include="src\game\luadefs.cpp" />
     <ClCompile Include="src\game\modelobj.cpp" />
+    <ClCompile Include="src\game\skybox.cpp" />
     <ClCompile Include="src\game\theme.cpp" />
     <ClCompile Include="src\game\tile.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -192,6 +192,7 @@
     <ClCompile Include="src\utils\jpeg_decoder.cpp" />
     <ClCompile Include="src\utils\json.cpp" />
     <ClCompile Include="src\utils\logger.cpp" />
+    <ClCompile Include="src\utils\luadebuglib.cpp" />
     <ClCompile Include="src\utils\png_decoder.cpp" />
     <ClCompile Include="src\utils\raw_buffer.cpp" />
     <ClCompile Include="src\utils\resources.cpp" />
@@ -232,7 +233,6 @@
     <ClInclude Include="src\engine\model.h" />
     <ClInclude Include="src\engine\sampler.h" />
     <ClInclude Include="src\engine\old_shader.h" />
-    <ClInclude Include="src\engine\skybox.h" />
     <ClInclude Include="src\engine\text.h" />
     <ClInclude Include="src\engine\texture.h" />
     <ClInclude Include="src\game\ball.h" />
@@ -247,6 +247,7 @@
     <ClInclude Include="src\game\luadefs.h" />
     <ClInclude Include="src\game\modelobj.h" />
     <ClInclude Include="src\game\properties.h" />
+    <ClInclude Include="src\game\skybox.h" />
     <ClInclude Include="src\game\theme.h" />
     <ClInclude Include="src\game\tile.h" />
     <ClInclude Include="src\math\bases.h" />
@@ -261,6 +262,7 @@
     <ClInclude Include="src\utils\jpeg_decoder.h" />
     <ClInclude Include="src\utils\json.h" />
     <ClInclude Include="src\utils\logger.h" />
+    <ClInclude Include="src\utils\luadebuglib.h" />
     <ClInclude Include="src\utils\lualib_constants.h" />
     <ClInclude Include="src\utils\manager.h" />
     <ClInclude Include="src\utils\optref.h" />

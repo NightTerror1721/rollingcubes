@@ -44,7 +44,7 @@ public:
 		return locals()[name];
 	}
 
-	inline void deleteLocalValue(const std::string& name) { setLocalValue(name, lua::bridge::Nil()); }
+	inline void deleteLocalValue(const std::string& name) { setLocalValue(name, nullptr); }
 
 	inline void clearLocalValues() { _locals.reset(); }
 };

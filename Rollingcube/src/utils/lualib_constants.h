@@ -3,6 +3,8 @@
 namespace lua::lib::names
 {
 	constexpr const char geometry[] = "geometry";
+	constexpr const char gl[] = "gl";
+	constexpr const char debug[] = "debug";
 	constexpr const char camera[] = "camera";
 	constexpr const char shader[] = "shader";
 	constexpr const char entities[] = "entities";
@@ -11,4 +13,5 @@ namespace lua::lib::names
 	constexpr const char tiles[] = "tiles";
 	constexpr const char models[] = "models";
 	constexpr const char balls[] = "balls";
+	constexpr const char skyboxes[] = "skyboxes";
 }
